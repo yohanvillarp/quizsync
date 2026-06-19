@@ -1,0 +1,60 @@
+@import "tailwindcss";
+
+@theme {
+  /* Fuentes del Design System */
+  --font-headline: "Bricolage Grotesque", sans-serif;
+  --font-body: "Karla", sans-serif;
+
+  /* Colores del Analog Sketchbook */
+  --color-paper: #faf9f5;
+  --color-paper-dim: #dbdad6;
+  --color-ink: #091426;
+  --color-ink-offset: #1e293b;
+
+  /* Resaltadores (Highlighters) */
+  --color-high-yellow: #f2e580;
+  --color-high-pink: #ffd8ed;
+
+  /* Animación Stop-Motion (Live Paper) */
+  --animate-live-paper: jitter 0.15s infinite step-end;
+}
+
+/* Definición de la animación de vibración de papel */
+@keyframes jitter {
+  0% {
+    transform: rotate(0.5deg) skew(0deg);
+    border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+  }
+
+  33% {
+    transform: rotate(-0.5deg) skew(0.5deg);
+    border-radius: 240px 20px 235px 10px / 20px 240px 10px 235px;
+  }
+
+  66% {
+    transform: rotate(0.3deg) skew(-0.5deg);
+    border-radius: 250px 10px 220px 20px / 15px 230px 20px 245px;
+  }
+
+  100% {
+    transform: rotate(-0.2deg) skew(0deg);
+    border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+  }
+}
+
+/* El fondo global con textura de cuaderno cuadriculado (Grid de 24px) */
+body {
+  background-color: var(--color-paper);
+  background-image:
+    linear-gradient(var(--color-paper-dim) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-paper-dim) 1px, transparent 1px);
+  background-size: 24px 24px;
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  cursor: url("@/shared/assets/cursors/pencil.svg") 2 30, auto;
+}
+
+/* Cursores para elementos interactivos, usando la misma estética */
+a, button, [role="button"], input[type="button"], input[type="submit"], input[type="reset"] {
+  cursor: url("@/shared/assets/cursors/pencil.svg") 2 30, pointer;
+}
