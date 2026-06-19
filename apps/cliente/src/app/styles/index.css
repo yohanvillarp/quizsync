@@ -42,6 +42,10 @@
   }
 }
 
+@keyframes fly-diagonal {
+  0% { transform: translate(0, 0); }
+  100% { transform: translate(130vw, -100vh); }
+}
 /* El fondo global con textura de cuaderno cuadriculado (Grid de 24px) */
 body {
   background-color: var(--color-paper);
@@ -51,10 +55,71 @@ body {
   background-size: 24px 24px;
   color: var(--color-ink);
   font-family: var(--font-body);
-  cursor: url("@/shared/assets/cursors/pencil.svg") 2 30, auto;
 }
 
-/* Cursores para elementos interactivos, usando la misma estética */
-a, button, [role="button"], input[type="button"], input[type="submit"], input[type="reset"] {
-  cursor: url("@/shared/assets/cursors/pencil.svg") 2 30, pointer;
+/* Ocultar cursor nativo para usar nuestro Custom Cursor robusto */
+.custom-cursor-active,
+.custom-cursor-active * {
+  cursor: none !important;
 }
+
+/* =========================================
+   AVATAR INVENTORY STYLES
+   ========================================= */
+
+.polaroid {
+  border: 2px solid var(--color-ink);
+  background: #ffffff;
+  box-shadow: 6px 6px 0px var(--color-ink);
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  max-width: 240px;
+  margin: 0 auto;
+}
+
+.polaroid:hover {
+  transform: translateY(-5px) rotate(0deg) !important;
+  box-shadow: 10px 10px 0px var(--color-ink);
+}
+
+.polaroid.selected {
+  background-color: var(--color-high-yellow);
+  transform: scale(1.05) rotate(0deg) !important;
+  box-shadow: 8px 8px 0px var(--color-ink);
+  border-width: 3px;
+}
+
+.doodle-ink {
+  stroke: var(--color-ink);
+  fill: none;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+@keyframes blink {
+  0%, 90%, 100% { transform: scaleY(1); }
+  95% { transform: scaleY(0.1); }
+}
+@keyframes wag {
+  0%, 100% { transform: rotate(-5deg); }
+  50% { transform: rotate(15deg); }
+}
+@keyframes tilt {
+  0%, 100% { transform: rotate(-3deg); }
+  50% { transform: rotate(3deg); }
+}
+@keyframes wave {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(-20deg); }
+}
+@keyframes twitch {
+  0%, 80%, 100% { transform: rotate(0deg); }
+  85%, 95% { transform: rotate(10deg); }
+  90% { transform: rotate(-10deg); }
+}
+
+.anim-eyes { animation: blink 4s infinite; transform-origin: center; }
+.selected .fox-tail { animation: wag 0.8s infinite ease-in-out; transform-origin: 100px 150px; }
+.selected .owl-head { animation: tilt 2s infinite ease-in-out; transform-origin: 100px 80px; }
+.selected .bear-arm { animation: wave 0.6s infinite ease-in-out; transform-origin: 70px 110px; }
+.selected .cat-ear { animation: twitch 2s infinite; transform-origin: center; }
