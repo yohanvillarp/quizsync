@@ -94,7 +94,7 @@ export function PencilTrailCursor() {
       {Array.from({ length: TRAIL_LENGTH }).map((_, i) => (
         <div
           key={i}
-          ref={el => dotsRef.current[i] = el}
+          ref={(el) => { dotsRef.current[i] = el; }}
           className="absolute top-0 left-0 w-3 h-3 bg-[var(--dynamic-cursor-color)] rounded-full transition-transform duration-75"
         />
       ))}

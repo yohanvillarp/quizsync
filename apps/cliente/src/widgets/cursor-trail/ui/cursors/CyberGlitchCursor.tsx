@@ -101,7 +101,7 @@ export function CyberGlitchCursor() {
       {Array.from({ length: NUM_CLONES - 1 }).map((_, i) => (
         <div
           key={`clone-${i}`}
-          ref={el => clonesRef.current[i + 1] = el}
+          ref={(el) => { clonesRef.current[i + 1] = el; }}
           className={`absolute top-0 left-0 w-4 h-4 border-2 transition-transform duration-75 ease-out ${
             i % 2 === 0 ? 'border-cyan-400 bg-cyan-400/20' : 'border-red-500 bg-red-500/20'
           }`}
@@ -110,7 +110,7 @@ export function CyberGlitchCursor() {
       
       {/* Core Cursor */}
       <div 
-        ref={el => clonesRef.current[0] = el}
+        ref={(el) => { clonesRef.current[0] = el; }}
         className="absolute top-0 left-0 w-4 h-4 bg-[var(--dynamic-cursor-color)] border-2 border-black shadow-[0_0_0_2px_var(--dynamic-cursor-color)] transition-transform duration-75 ease-out"
       />
     </div>

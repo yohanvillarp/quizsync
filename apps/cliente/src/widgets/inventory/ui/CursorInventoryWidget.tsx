@@ -1,6 +1,6 @@
 import { MousePointer2, Palette } from "lucide-react";
 import { useCursorStore, type CursorType } from "@/shared/store/useCursorStore";
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 
 const CURSOR_OPTIONS: { id: CursorType; name: string; icon: ReactNode; desc: string }[] = [
   { 

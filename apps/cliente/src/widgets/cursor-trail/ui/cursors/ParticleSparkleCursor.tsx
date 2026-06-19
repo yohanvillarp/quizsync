@@ -145,7 +145,7 @@ export function ParticleSparkleCursor() {
       {Array.from({ length: MAX_PARTICLES }).map((_, i) => (
         <div
           key={i}
-          ref={el => particlesRef.current[i] = el}
+          ref={(el) => { particlesRef.current[i] = el; }}
           className="absolute top-0 left-0 w-3 h-3 bg-[var(--dynamic-cursor-color)] rounded-full opacity-0 shadow-[0_0_8px_var(--dynamic-cursor-color)]"
         />
       ))}

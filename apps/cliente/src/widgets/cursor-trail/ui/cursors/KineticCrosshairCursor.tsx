@@ -94,13 +94,13 @@ export function KineticCrosshairCursor() {
       <div className="absolute w-1.5 h-1.5 bg-[var(--dynamic-cursor-color)] rounded-full -translate-x-1/2 -translate-y-1/2 shadow-[0_0_2px_rgba(255,255,255,0.8)]" />
       
       {/* Top */}
-      <div ref={el => bracketsRef.current[0] = el} className="absolute w-0.5 h-3 bg-[var(--dynamic-cursor-color)] -translate-x-1/2 -translate-y-full shadow-[0_0_1px_rgba(255,255,255,0.8)] transition-transform duration-75 ease-out" />
+      <div ref={(el) => { bracketsRef.current[0] = el; }} className="absolute w-0.5 h-3 bg-[var(--dynamic-cursor-color)] -translate-x-1/2 -translate-y-full shadow-[0_0_1px_rgba(255,255,255,0.8)] transition-transform duration-75 ease-out" />
       {/* Bottom */}
-      <div ref={el => bracketsRef.current[1] = el} className="absolute w-0.5 h-3 bg-[var(--dynamic-cursor-color)] -translate-x-1/2 shadow-[0_0_1px_rgba(255,255,255,0.8)] transition-transform duration-75 ease-out" />
+      <div ref={(el) => { bracketsRef.current[1] = el; }} className="absolute w-0.5 h-3 bg-[var(--dynamic-cursor-color)] -translate-x-1/2 shadow-[0_0_1px_rgba(255,255,255,0.8)] transition-transform duration-75 ease-out" />
       {/* Left */}
-      <div ref={el => bracketsRef.current[2] = el} className="absolute w-3 h-0.5 bg-[var(--dynamic-cursor-color)] -translate-x-full -translate-y-1/2 shadow-[0_0_1px_rgba(255,255,255,0.8)] transition-transform duration-75 ease-out" />
+      <div ref={(el) => { bracketsRef.current[2] = el; }} className="absolute w-3 h-0.5 bg-[var(--dynamic-cursor-color)] -translate-x-full -translate-y-1/2 shadow-[0_0_1px_rgba(255,255,255,0.8)] transition-transform duration-75 ease-out" />
       {/* Right */}
-      <div ref={el => bracketsRef.current[3] = el} className="absolute w-3 h-0.5 bg-[var(--dynamic-cursor-color)] -translate-y-1/2 shadow-[0_0_1px_rgba(255,255,255,0.8)] transition-transform duration-75 ease-out" />
+      <div ref={(el) => { bracketsRef.current[3] = el; }} className="absolute w-3 h-0.5 bg-[var(--dynamic-cursor-color)] -translate-y-1/2 shadow-[0_0_1px_rgba(255,255,255,0.8)] transition-transform duration-75 ease-out" />
     </div>
   );
 }
