@@ -1,0 +1,257 @@
+<!DOCTYPE html><html class="light" lang="es" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>QuizSync - ¡A Jugar!</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;700;800&amp;family=Karla:wght@400;700&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@100..900&amp;family=Karla:wght@100..900&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "secondary-fixed": "#f2e580",
+                    "surface-container": "#efeeea",
+                    "surface-container-lowest": "#ffffff",
+                    "on-surface": "#1b1c1a",
+                    "on-error": "#ffffff",
+                    "secondary-fixed-dim": "#d5c867",
+                    "secondary-container": "#f2e580",
+                    "outline-variant": "#c5c6cd",
+                    "on-background": "#1b1c1a",
+                    "primary-container": "#1e293b",
+                    "on-surface-variant": "#45474c",
+                    "surface-container-highest": "#e3e2df",
+                    "on-secondary-fixed": "#201c00",
+                    "surface-container-high": "#e9e8e4",
+                    "on-tertiary-fixed": "#2c1325",
+                    "inverse-primary": "#bcc7de",
+                    "on-secondary-fixed-variant": "#4f4800",
+                    "background": "#faf9f5",
+                    "tertiary": "#240b1d",
+                    "secondary": "#695f02",
+                    "tertiary-container": "#3b2032",
+                    "surface-container-low": "#f4f4f0",
+                    "primary": "#091426",
+                    "error-container": "#ffdad6",
+                    "on-error-container": "#93000a",
+                    "tertiary-fixed": "#ffd8ed",
+                    "surface-bright": "#faf9f5",
+                    "outline": "#75777d",
+                    "tertiary-fixed-dim": "#e5bad3",
+                    "on-tertiary": "#ffffff",
+                    "on-tertiary-container": "#ab859c",
+                    "on-primary": "#ffffff",
+                    "surface-dim": "#dbdad6",
+                    "inverse-on-surface": "#f2f1ed",
+                    "on-primary-fixed": "#111c2d",
+                    "on-tertiary-fixed-variant": "#5c3d51",
+                    "on-secondary": "#ffffff",
+                    "inverse-surface": "#2f312e",
+                    "on-primary-fixed-variant": "#3c475a",
+                    "on-secondary-container": "#6f650a",
+                    "primary-fixed-dim": "#bcc7de",
+                    "on-primary-container": "#8590a6",
+                    "error": "#ba1a1a",
+                    "surface-tint": "#545f73",
+                    "primary-fixed": "#d8e3fb",
+                    "surface-variant": "#e3e2df",
+                    "surface": "#faf9f5"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "stack-lg": "3rem",
+                    "stack-sm": "0.5rem",
+                    "stack-md": "1.5rem",
+                    "margin-page": "2rem",
+                    "gutter": "1.5rem",
+                    "unit": "4px"
+            },
+            "fontFamily": {
+                    "headline-lg": ["Bricolage Grotesque"],
+                    "body-md": ["Karla"],
+                    "label-md": ["Bricolage Grotesque"],
+                    "headline-xl": ["Bricolage Grotesque"],
+                    "headline-lg-mobile": ["Bricolage Grotesque"]
+            },
+            "fontSize": {
+                    "headline-lg": ["32px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                    "body-md": ["18px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                    "label-md": ["14px", {"lineHeight": "1.0", "fontWeight": "600"}],
+                    "headline-xl": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "800"}],
+                    "headline-lg-mobile": ["28px", {"lineHeight": "1.2", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        @keyframes jitter {
+            0% { transform: translate(0,0) rotate(0deg); }
+            25% { transform: translate(1px, 1px) rotate(0.2deg); }
+            50% { transform: translate(-1px, 0px) rotate(-0.2deg); }
+            75% { transform: translate(1px, -1px) rotate(0.1deg); }
+            100% { transform: translate(0,0) rotate(0deg); }
+        }
+        .animate-jitter {
+            animation: jitter 0.2s infinite;
+        }
+        .animate-jitter-slow {
+            animation: jitter 0.4s infinite;
+        }
+
+        .paper-grid {
+            background-image: 
+                linear-gradient(to right, #e2e8f0 1px, transparent 1px),
+                linear-gradient(to bottom, #e2e8f0 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+
+        .sketch-border {
+            border: 2px solid #1e293b;
+            border-radius: 255px 15px 225px 15px/15px 225px 15px 255px;
+        }
+
+        .sketch-border-thick {
+            border: 3px solid #1e293b;
+            border-radius: 4px 12px 6px 14px/12px 4px 14px 6px;
+        }
+
+        .highlighter-effect {
+            box-shadow: inset 0 -0.5em 0 0 #f2e580;
+        }
+
+        .offset-depth {
+            position: relative;
+        }
+        .offset-depth::after {
+            content: '';
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            width: 100%;
+            height: 100%;
+            background-color: #1e293b;
+            z-index: -1;
+            border-radius: inherit;
+        }
+
+        .wobbly-line {
+            border-bottom: 2px solid #1e293b;
+            border-radius: 100% 10% 90% 20%;
+        }
+
+        .doodle-float {
+            animation: float 3s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(3deg); }
+        }
+    </style>
+</head>
+<body class="bg-background font-body-md text-primary paper-grid min-h-screen flex flex-col overflow-x-hidden bg-fixed"><div class="absolute inset-0 pointer-events-none z-0 opacity-10 overflow-hidden"><img alt="" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCBzK6s0u2fMWk-KEQNxA77AnjY38mAGRM1YOuBBezFQEXcs0MgMvZZgS00IkqoIiAXbVexEPFIvFxTwdlqYFyTed1Zb5JkfZLwLETU6myao2KIj1w8BZycWyuQw0jiv--NP6E79N82MPNC-nMgDFiTetdFikl4J8Qf1p467KAaT7i3fGIh1H4b7vrzbIQzbJQABYYYf_u1-ftU5r03nvqrY1nl0Qx-H0vHQJBVITKUtJpFqKyI8xEo2vgpQW6kSb-qlEzNz0LLnHI"></div>
+<!-- TopAppBar -->
+<header class="flex justify-between items-center w-full sticky top-0 z-50 bg-background/90 backdrop-blur-sm px-margin-page py-unit-stack-sm border-b-2 border-primary after:content-[''] after:absolute after:top-1 after:left-1 after:w-full after:h-full after:bg-primary after:-z-10 h-16">
+<div class="font-headline-lg-mobile text-headline-lg-mobile text-primary italic">
+            ✏️ QuizSync
+        </div>
+<div class="flex items-center gap-4">
+
+<button class="flex items-center gap-2 px-6 py-2 bg-secondary-container sketch-border hover:bg-secondary-container transition-transform hover:-rotate-2 animate-jitter-slow scale-110">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: &quot;FILL&quot; 1;">face</span>
+<span class="font-label-md text-label-md uppercase tracking-tight">Elegir Personaje</span>
+</button>
+</div>
+</header>
+<!-- Main Canvas -->
+<main class="flex-grow flex flex-col items-center justify-center relative px-margin-page py-stack-lg overflow-hidden min-h-[calc(100vh-64px)] z-10">
+<!-- Margin Doodles (Floating) -->
+
+<div class="absolute top-1/2 left-4 -translate-y-1/2 doodle-float hidden md:block opacity-40" style="animation-delay: 1.5s;">
+<span class="material-symbols-outlined text-8xl text-outline-variant">school</span>
+</div>
+<!-- Central Action Area -->
+<div class="w-full max-w-md flex flex-col items-center gap-stack-md z-10 md:max-w-2xl">
+<!-- Hand-drawn Title -->
+<div class="text-center mb-4">
+<h1 class="font-headline-xl text-headline-xl text-primary-container tracking-tighter -rotate-2 select-none" style="opacity: 0;">QuizSync</h1>
+<div class="w-48 h-1 bg-primary mx-auto wobbly-line mt-[-8px]"></div>
+</div>
+<!-- PIN Input Container -->
+<div class="w-full relative group">
+<div class="bg-surface-container-lowest sketch-border-thick p-2 animate-jitter-slow group-focus-within:rotate-1 transition-transform md:p-6">
+<input class="w-full bg-transparent border-none focus:ring-0 text-center font-headline-lg text-headline-lg placeholder:text-outline-variant text-primary uppercase tracking-widest py-4 md:text-6xl" maxlength="6" placeholder="PIN DE JUEGO" type="text">
+</div>
+<!-- Decorative Ink Splash -->
+<div class="absolute -top-4 -right-4 pointer-events-none opacity-20">
+<span class="material-symbols-outlined text-4xl transform rotate-45">format_ink_highlighter</span>
+</div>
+</div>
+<!-- Action Buttons Stack -->
+<div class="w-full flex flex-col gap-unit-stack-sm">
+<!-- UNIRSE Button (Highlighted) -->
+<button class="w-full relative py-4 bg-secondary-container sketch-border-thick hover:scale-105 active:scale-95 transition-all animate-jitter flex items-center justify-center group overflow-hidden md:p-6">
+<div class="absolute inset-0 bg-[#fef08a] opacity-0 group-hover:opacity-40 transition-opacity"></div>
+<span class="font-headline-lg text-headline-lg text-primary relative z-10">UNIRSE</span>
+</button>
+<!-- CREAR Button (Sketchy Outlined) -->
+<button class="w-full py-4 bg-transparent sketch-border hover:bg-surface-container-high transition-transform hover:-rotate-1 active:scale-95 flex items-center justify-center">
+<span class="font-headline-lg text-headline-lg text-on-surface-variant">CREAR</span>
+</button>
+</div>
+<!-- Quick Info / Subtext -->
+<p class="font-label-md text-label-md text-outline italic mt-2">
+                "¡Escribe el código y demuestra quién sabe más!"
+            </p>
+</div>
+<!-- Margin Scribbles -->
+<div class="mt-stack-lg w-full max-w-2xl flex justify-between px-4 opacity-50 select-none pointer-events-none">
+<span class="material-symbols-outlined text-4xl -rotate-12">history_edu</span>
+<span class="material-symbols-outlined text-4xl rotate-12">lightbulb</span>
+<span class="material-symbols-outlined text-4xl -rotate-6">emoji_events</span>
+</div>
+</main>
+<!-- BottomNavBar (The Anchor) -->
+<script>
+        // Simple micro-interaction for the PIN input
+        const pinInput = document.querySelector('input[type="text"]');
+        pinInput.addEventListener('input', (e) => {
+            // Force numeric if possible, though it's styled for any code
+            e.target.value = e.target.value.toUpperCase();
+            
+            // Jitter more on input
+            const container = e.target.closest('.sketch-border-thick');
+            container.style.transform = `rotate(${Math.random() * 2 - 1}deg) scale(1.02)`;
+            setTimeout(() => {
+                container.style.transform = '';
+            }, 100);
+        });
+
+        // Add random "doodles" dynamically for extra flavor
+        function addDoodle() {
+            const symbols = ['star', 'favorite', 'rocket', 'bolt', 'mood'];
+            const doodle = document.createElement('span');
+            doodle.className = 'material-symbols-outlined absolute pointer-events-none opacity-10 text-primary-container';
+            doodle.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+            doodle.style.left = Math.random() * 90 + '%';
+            doodle.style.top = Math.random() * 90 + '%';
+            doodle.style.fontSize = (Math.random() * 40 + 20) + 'px';
+            doodle.style.transform = `rotate(${Math.random() * 360}deg)`;
+            document.body.appendChild(doodle);
+        }
+
+        for(let i=0; i<8; i++) addDoodle();
+    </script><span class="material-symbols-outlined absolute pointer-events-none opacity-10 text-primary-container" style="left: 42.6328%; top: 67.2861%; font-size: 43.9484px; transform: rotate(142.914deg);">rocket</span><span class="material-symbols-outlined absolute pointer-events-none opacity-10 text-primary-container" style="left: 2.54454%; top: 80.227%; font-size: 23.4707px; transform: rotate(204.595deg);">mood</span><span class="material-symbols-outlined absolute pointer-events-none opacity-10 text-primary-container" style="left: 19.452%; top: 8.59978%; font-size: 46.424px; transform: rotate(116.733deg);">bolt</span><span class="material-symbols-outlined absolute pointer-events-none opacity-10 text-primary-container" style="left: 62.2732%; top: 17.3803%; font-size: 50.1838px; transform: rotate(273.333deg);">rocket</span><span class="material-symbols-outlined absolute pointer-events-none opacity-10 text-primary-container" style="left: 88.7777%; top: 32.4269%; font-size: 22.3265px; transform: rotate(171.644deg);">star</span><span class="material-symbols-outlined absolute pointer-events-none opacity-10 text-primary-container" style="left: 21.8574%; top: 28.1738%; font-size: 22.9113px; transform: rotate(237.758deg);">bolt</span><span class="material-symbols-outlined absolute pointer-events-none opacity-10 text-primary-container" style="left: 73.587%; top: 38.4603%; font-size: 37.7091px; transform: rotate(162.263deg);">star</span><span class="material-symbols-outlined absolute pointer-events-none opacity-10 text-primary-container" style="left: 76.8823%; top: 36.4457%; font-size: 51.5962px; transform: rotate(36.1772deg);">bolt</span><span class="material-symbols-outlined absolute pointer-events-none opacity-10 text-primary-container" style="left: 61.1151%; top: 14.0656%; font-size: 59.118px; transform: rotate(146.714deg);">bolt</span><span class="material-symbols-outlined absolute pointer-events-none opacity-10 text-primary-container" style="left: 43.8121%; top: 37.0946%; font-size: 58.1427px; transform: rotate(125.045deg);">rocket</span><span class="material-symbols-outlined absolute pointer-events-none opacity-10 text-primary-container" style="left: 26.0586%; top: 38.9772%; font-size: 43.7122px; transform: rotate(305.323deg);">favorite</span><span class="material-symbols-outlined absolute pointer-events-none opacity-10 text-primary-container" style="left: 3.79115%; top: 36.1282%; font-size: 20.5621px; transform: rotate(346.473deg);">favorite</span><span class="material-symbols-outlined absolute pointer-events-none opacity-10 text-primary-container" style="left: 9.2309%; top: 21.7613%; font-size: 25.2598px; transform: rotate(117.266deg);">star</span><span class="material-symbols-outlined absolute pointer-events-none opacity-10 text-primary-container" style="left: 88.5109%; top: 30.9091%; font-size: 26.6672px; transform: rotate(243.59deg);">mood</span><span class="material-symbols-outlined absolute pointer-events-none opacity-10 text-primary-container" style="left: 59.631%; top: 87.2462%; font-size: 34.13px; transform: rotate(113.086deg);">mood</span><span class="material-symbols-outlined absolute pointer-events-none opacity-10 text-primary-container" style="left: 8.5634%; top: 32.7646%; font-size: 25.0409px; transform: rotate(243.274deg);">favorite</span>
+
+
+
+
+</body></html>
