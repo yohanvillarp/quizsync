@@ -26,8 +26,6 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '22.x'
-          cache: 'npm'
-          cache-dependency-path: 'apps/api-core/package-lock.json'
 
       - name: npm install, build, and prune
         run: |
