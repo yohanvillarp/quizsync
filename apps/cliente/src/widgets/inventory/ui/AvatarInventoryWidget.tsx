@@ -1,5 +1,6 @@
 import { useAvatarStore, type AvatarType } from "@/shared/store/useAvatarStore";
 import { FoxAvatar, OwlAvatar, BearAvatar, CatAvatar, RabbitAvatar, DogAvatar } from "@/shared/ui/avatars/AvatarIcons";
+import { useSFX } from "@/shared/lib/audio/useSFX";
 
 const AVATAR_OPTIONS: { id: AvatarType; name: string; component: React.ReactNode; rotation: number }[] = [
   { id: 'fox', name: 'Zorro', component: <FoxAvatar />, rotation: -1.5 },
@@ -22,6 +23,7 @@ const AVATAR_OPTIONS: { id: AvatarType; name: string; component: React.ReactNode
 
 export function AvatarInventoryWidget() {
   const { selectedAvatar, setSelectedAvatar } = useAvatarStore();
+  const { playSelectSound } = useSFX();
 
   return (
     <div className="w-full relative">
@@ -45,7 +47,10 @@ export function AvatarInventoryWidget() {
                 isSelected ? 'selected jitter' : ''
               }`}
               style={{ transform: isSelected ? 'none' : `rotate(${avatar.rotation}deg)` }}
-              onClick={() => setSelectedAvatar(avatar.id)}
+              onClick={() => {
+                setSelectedAvatar(avatar.id);
+                playSelectSound();
+              }}
             >
               <div className="w-full aspect-square bg-white mb-4 flex items-center justify-center relative overflow-visible">
                 {avatar.component}

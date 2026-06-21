@@ -18,7 +18,7 @@ function generateSpheres() {
 }
 
 export function AudioVisualizerWidget() {
-  const { audioRef, beatValue, start, volume, setVolume, isPlaying } = useAudioAnalyzer();
+  const { audioRef, beatValue, start, stop, volume, setVolume, isPlaying } = useAudioAnalyzer();
   const spheres = useMemo(() => generateSpheres(), []);
 
   // Matemáticas para deformar las esferas con el beat de la música
@@ -59,7 +59,7 @@ export function AudioVisualizerWidget() {
       </div>
 
       {/* Control Modular de Audio */}
-      <AudioControlsWidget volume={volume} setVolume={setVolume} start={start} isPlaying={isPlaying} />
+      <AudioControlsWidget volume={volume} setVolume={setVolume} start={start} stop={stop} isPlaying={isPlaying} />
     </>
   );
 }
