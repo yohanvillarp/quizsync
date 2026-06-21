@@ -1,0 +1,337 @@
+<!DOCTYPE html><html class="light" lang="es"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>QuizSync - Multiplayer Trivia (Sketchbook Edition)</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Architects+Daughter&amp;family=Patrick+Hand&amp;family=Bricolage+Grotesque:wght@600;700;800&amp;family=Karla:wght@400&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<style>
+        :root {
+            --paper: #faf9f5;
+            --ink: #1e293b;
+            --highlighter-yellow: rgba(253, 224, 71, 0.4);
+            --highlighter-mint: rgba(110, 231, 183, 0.4);
+            --highlighter-pink: rgba(249, 168, 212, 0.4);
+        }
+
+        body {
+            font-family: 'Karla', sans-serif;
+            background-color: var(--paper);
+            color: var(--ink);
+            cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%231e293b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z'></path></svg>") 0 22, auto;
+        }
+
+        .font-sketch {
+            font-family: 'Architects Daughter', cursive;
+        }
+        
+        .font-headline {
+            font-family: 'Bricolage Grotesque', sans-serif;
+        }
+
+        .notebook-grid {
+            background-image: 
+                linear-gradient(#e5e7eb 1px, transparent 1px),
+                linear-gradient(90deg, #e5e7eb 1px, transparent 1px);
+            background-size: 30px 30px;
+        }
+
+        /* Notebook Spiral Rings */
+        .notebook-spiral {
+            position: absolute;
+            left: 20px;
+            top: 0;
+            bottom: 0;
+            width: 30px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            padding: 20px 0;
+            z-index: 50;
+        }
+        .spiral-ring {
+            width: 25px;
+            height: 12px;
+            border: 2px solid #94a3b8;
+            border-radius: 10px;
+            background: linear-gradient(to right, #cbd5e1, #f1f5f9);
+            box-shadow: 2px 2px 0 rgba(0,0,0,0.1);
+        }
+
+        /* Washi Tape Texture */
+        .washi-tape {
+            background-color: var(--highlighter-pink);
+            opacity: 0.6;
+            transform: rotate(-3deg);
+            box-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+            position: absolute;
+            z-index: 20;
+        }
+
+        .hand-drawn-box {
+            border: 2px solid var(--ink);
+            border-radius: 255px 20px 225px 30px / 30px 225px 25px 255px;
+            box-shadow: 4px 4px 0px rgba(30, 41, 59, 0.05);
+            transition: all 0.2s ease;
+        }
+
+        .hand-drawn-box-alt {
+            border: 2px solid var(--ink);
+            border-radius: 20px 255px 30px 225px / 225px 30px 255px 25px;
+            transition: all 0.2s ease;
+        }
+
+        .double-outline {
+            position: relative;
+        }
+        .double-outline::after {
+            content: '';
+            position: absolute;
+            top: 4px; left: 4px; right: -4px; bottom: -4px;
+            border: 1.5px solid var(--ink);
+            opacity: 0.3;
+            border-radius: 250px 15px 220px 25px / 25px 220px 20px 250px;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .torn-paper {
+            background: white;
+            border: 2px solid var(--ink);
+            clip-path: polygon(
+                0% 2%, 5% 0%, 10% 3%, 15% 1%, 20% 4%, 25% 1%, 30% 3%, 35% 0%, 40% 4%, 45% 1%, 50% 3%, 55% 1%, 60% 4%, 65% 1%, 70% 3%, 75% 0%, 80% 4%, 85% 1%, 90% 3%, 95% 0%, 100% 2%,
+                100% 98%, 95% 100%, 90% 97%, 85% 99%, 80% 96%, 75% 100%, 70% 97%, 65% 99%, 60% 96%, 55% 100%, 50% 97%, 45% 99%, 40% 96%, 35% 100%, 30% 97%, 25% 99%, 20% 96%, 15% 100%, 10% 97%, 5% 99%, 0% 98%
+            );
+        }
+
+        .highlighter-hover:hover {
+            background-color: var(--highlighter-yellow);
+            background-image: radial-gradient(var(--ink) 0.5px, transparent 0.5px);
+            background-size: 10px 10px;
+            background-position: 0 0;
+            opacity: 0.9;
+        }
+
+        @keyframes subtle-jitter {
+            0% { transform: rotate(-0.5deg) translate(0,0); }
+            50% { transform: rotate(0.3deg) translate(0.5px, 0.2px); }
+            100% { transform: rotate(-0.5deg) translate(0,0); }
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px) rotate(-1deg); }
+            50% { transform: translateY(-5px) rotate(-0.5deg); }
+            100% { transform: translateY(0px) rotate(-1deg); }
+        }
+
+        @keyframes draw {
+            to { stroke-dashoffset: 0; }
+        }
+
+        .animate-sketch { animation: subtle-jitter 4s infinite ease-in-out; }
+        .animate-float { animation: float 6s infinite ease-in-out; }
+
+        .timer-progress {
+            stroke-dasharray: 100;
+            stroke-dashoffset: 30;
+            transition: stroke-dashoffset 1s linear;
+        }
+
+        .doodle-star {
+            stroke-dasharray: 100;
+            stroke-dashoffset: 100;
+            animation: draw 2s forwards ease-out, subtle-jitter 3s infinite 2s;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#091426",
+                        "secondary": "#695f02",
+                        "surface": "#faf9f5",
+                        "on-surface": "#1b1c1a",
+                        "accent-yellow": "#fde047",
+                        "accent-mint": "#6ee7b7",
+                        "accent-pink": "#f9a8d4",
+                        "ink": "#1e293b"
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    fontFamily: {
+                        "label-md": ["Bricolage Grotesque"],
+                        "body-md": ["Karla"],
+                        "headline-xl": ["Bricolage Grotesque"],
+                        "headline-lg": ["Bricolage Grotesque"]
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="notebook-grid min-h-screen flex flex-col relative overflow-x-hidden">
+<!-- Notebook Spiral Decoration -->
+<div class="notebook-spiral hidden lg:flex">
+<div class="spiral-ring"></div><div class="spiral-ring"></div><div class="spiral-ring"></div>
+<div class="spiral-ring"></div><div class="spiral-ring"></div><div class="spiral-ring"></div>
+<div class="spiral-ring"></div><div class="spiral-ring"></div><div class="spiral-ring"></div>
+<div class="spiral-ring"></div><div class="spiral-ring"></div><div class="spiral-ring"></div>
+<div class="spiral-ring"></div><div class="spiral-ring"></div><div class="spiral-ring"></div>
+<div class="spiral-ring"></div><div class="spiral-ring"></div><div class="spiral-ring"></div>
+</div>
+<!-- Margin Decorations -->
+<div class="fixed top-40 -left-6 opacity-20 pointer-events-none select-none hidden lg:block">
+<svg class="doodle-star" height="120" viewBox="0 0 100 100" width="120">
+<path d="M50 5 L63 40 L95 40 L70 60 L80 95 L50 75 L20 95 L30 60 L5 40 L37 40 Z" fill="none" stroke="currentColor" stroke-width="2"></path>
+</svg>
+</div>
+<div class="fixed top-1/2 -right-10 opacity-10 pointer-events-none select-none hidden lg:block">
+<span class="text-9xl font-sketch">?</span>
+</div>
+<!-- Header -->
+<header class="w-full px-8 py-6 flex justify-between items-center border-b-2 border-ink bg-white/80 backdrop-blur-sm z-40">
+<div class="flex items-center gap-3">
+<span class="text-3xl animate-bounce">✏️</span>
+<div class="text-3xl font-headline font-extrabold tracking-tight text-primary">QuizSync</div>
+</div>
+<div class="hidden md:block relative">
+<div class="washi-tape absolute -top-2 -left-4 w-12 h-6"></div>
+<div class="text-lg font-sketch font-bold uppercase border-2 border-ink px-6 py-1 rotate-1 bg-accent-yellow/30">
+                Ronda 5 de 10
+            </div>
+<div class="washi-tape absolute -bottom-2 -right-4 w-12 h-6 rotate-12 bg-accent-mint/40"></div>
+</div>
+<div class="relative w-16 h-16 flex items-center justify-center">
+<svg class="absolute inset-0 w-full h-full -rotate-90">
+<circle class="text-ink/10" cx="32" cy="32" fill="none" r="28" stroke="currentColor" stroke-dasharray="4 4" stroke-width="2"></circle>
+<circle class="text-ink timer-progress" cx="32" cy="32" fill="none" id="timerRing" r="28" stroke="currentColor" stroke-dasharray="176" stroke-dashoffset="0" stroke-width="3" style="stroke-linecap: round;"></circle>
+</svg>
+<span class="text-2xl font-headline font-bold text-ink" id="timerValue">30</span>
+</div>
+</header>
+<main class="flex-grow container mx-auto px-6 py-12 flex flex-col items-center gap-16 z-10">
+<!-- Question Panel -->
+<section class="w-full max-w-4xl animate-float relative">
+<!-- Decorative Pencil Doodle -->
+<div class="absolute -top-12 left-1/2 -translate-x-1/2 opacity-20 pointer-events-none">
+<span class="material-symbols-outlined text-6xl">edit_note</span>
+</div>
+<div class="torn-paper p-10 md:p-16 shadow-2xl relative double-outline group">
+<div class="absolute top-4 left-6 text-ink/30 text-xs font-sketch flex items-center gap-1">
+<span class="material-symbols-outlined text-xs">auto_stories</span>
+                    PÁGINA 42
+                </div>
+<div class="absolute -top-8 -right-8 text-5xl opacity-0 group-hover:opacity-100 transition-all duration-300 transform group-hover:rotate-12">💡</div>
+<h1 class="text-3xl md:text-5xl text-ink text-center leading-tight font-headline font-bold">
+                    ¿Qué propiedad de las transacciones ACID garantiza que los cambios persistan en caso de una falla?
+                </h1>
+</div>
+</section>
+<!-- Answer Grid -->
+<section class="grid grid-cols-1 md:grid-cols-2 gap-10 w-full max-w-5xl mb-24">
+<!-- Option A -->
+<button class="hand-drawn-box group p-10 bg-white flex items-center gap-8 highlighter-hover hover:scale-[1.03] active:scale-95 text-left relative overflow-hidden">
+<span class="text-4xl font-headline font-black text-ink/20 group-hover:text-ink/40 transition-colors">A.</span>
+<span class="text-2xl font-headline font-bold text-ink">Atomicidad</span>
+<div class="absolute bottom-2 right-2 p-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-ink/30">edit</span>
+</div>
+</button>
+<!-- Option B -->
+<button class="hand-drawn-box-alt group p-10 bg-white flex items-center gap-8 highlighter-hover hover:scale-[1.03] active:scale-95 text-left rotate-1 relative overflow-hidden">
+<span class="text-4xl font-headline font-black text-ink/20 group-hover:text-ink/40 transition-colors">B.</span>
+<span class="text-2xl font-headline font-bold text-ink">Consistencia</span>
+<div class="absolute bottom-2 right-2 p-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-ink/30">edit</span>
+</div>
+</button>
+<!-- Option C -->
+<button class="hand-drawn-box-alt group p-10 bg-white flex items-center gap-8 highlighter-hover hover:scale-[1.03] active:scale-95 text-left -rotate-1 relative overflow-hidden">
+<span class="text-4xl font-headline font-black text-ink/20 group-hover:text-ink/40 transition-colors">C.</span>
+<span class="text-2xl font-headline font-bold text-ink">Aislamiento</span>
+<div class="absolute bottom-2 right-2 p-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-ink/30">edit</span>
+</div>
+</button>
+<!-- Option D -->
+<button class="hand-drawn-box group p-10 bg-white flex items-center gap-8 highlighter-hover hover:scale-[1.03] active:scale-95 text-left relative overflow-hidden">
+<span class="text-4xl font-headline font-black text-ink/20 group-hover:text-ink/40 transition-colors">D.</span>
+<span class="text-2xl font-headline font-bold text-ink">Durabilidad</span>
+<div class="absolute bottom-2 right-2 p-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-ink/30">edit</span>
+</div>
+</button>
+</section>
+</main>
+<!-- Bottom Navigation Bar - Simplified -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-center items-center gap-16 px-4 py-6 bg-white border-t-2 border-ink shadow-[0_-8px_30px_rgba(0,0,0,0.1)]">
+<div class="flex flex-col items-center justify-center text-ink bg-accent-yellow px-12 py-3 rounded-full border-2 border-ink -rotate-1 shadow-md cursor-pointer transition-all hover:-translate-y-1 hover:rotate-0">
+<span class="material-symbols-outlined scale-125" style="font-variation-settings: 'FILL' 1;">draw</span>
+<span class="text-sm font-headline font-black uppercase tracking-widest mt-1">Jugar</span>
+</div>
+<div class="flex flex-col items-center justify-center text-ink/40 hover:text-ink transition-all cursor-pointer group">
+<span class="material-symbols-outlined group-hover:scale-125 transition-transform">analytics</span>
+<span class="text-sm font-headline font-bold uppercase tracking-widest mt-1">Ranking</span>
+</div>
+</nav>
+<script>
+        // Timer logic
+        let timeLeft = 30;
+        const totalTime = 30;
+        const timerVal = document.getElementById('timerValue');
+        const timerRing = document.getElementById('timerRing');
+        const circumference = 2 * Math.PI * 28;
+        
+        const countdown = setInterval(() => {
+            timeLeft--;
+            timerVal.textContent = timeLeft;
+            
+            // Update ring
+            const offset = circumference - (timeLeft / totalTime) * circumference;
+            timerRing.style.strokeDashoffset = offset;
+            
+            if (timeLeft <= 10) {
+                timerRing.style.stroke = '#ba1a1a';
+                timerVal.style.color = '#ba1a1a';
+                timerRing.parentElement.classList.add('animate-sketch');
+            }
+
+            if (timeLeft <= 0) {
+                clearInterval(countdown);
+                timerVal.textContent = "!!";
+                timerRing.parentElement.classList.add('animate-bounce');
+            }
+        }, 1000);
+
+        // Individualized rotations for buttons
+        document.querySelectorAll('.hand-drawn-box, .hand-drawn-box-alt').forEach(btn => {
+            const rot = (Math.random() * 3 - 1.5).toFixed(1);
+            btn.style.transform = `rotate(${rot}deg)`;
+            
+            btn.addEventListener('mouseenter', () => {
+                btn.style.transform = `rotate(${rot * 0.5}deg) translateY(-4px)`;
+            });
+            btn.addEventListener('mouseleave', () => {
+                btn.style.transform = `rotate(${rot}deg)`;
+            });
+        });
+
+        // Background doodles
+        const createDoodle = () => {
+            const doodles = ['★', '•', '◦', '✎', '〰', '?', '!', 'x', '+'];
+            const doodle = document.createElement('div');
+            doodle.className = 'fixed pointer-events-none opacity-5 font-sketch text-3xl select-none';
+            doodle.style.left = Math.random() * 95 + 'vw';
+            doodle.style.top = Math.random() * 95 + 'vh';
+            doodle.style.transform = `rotate(${Math.random() * 360}deg)`;
+            doodle.innerText = doodles[Math.floor(Math.random() * doodles.length)];
+            document.body.appendChild(doodle);
+        };
+        for(let i=0; i<15; i++) createDoodle();
+    </script>
+</body></html>

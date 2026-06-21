@@ -1,0 +1,358 @@
+<!DOCTYPE html><html class="light" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>QuizSync - Winners Podium</title>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;700;800&amp;family=Karla:wght@400;700&amp;display=swap" rel="stylesheet">
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-primary-fixed-variant": "#3c475a",
+                    "primary-fixed": "#d8e3fb",
+                    "on-tertiary-fixed-variant": "#5c3d51",
+                    "on-secondary-fixed-variant": "#4f4800",
+                    "surface-variant": "#e3e2df",
+                    "surface-container": "#efeeea",
+                    "secondary-fixed": "#f2e580",
+                    "on-secondary-container": "#6f650a",
+                    "primary": "#091426",
+                    "primary-container": "#1e293b",
+                    "tertiary-fixed": "#ffd8ed",
+                    "on-primary-container": "#8590a6",
+                    "inverse-primary": "#bcc7de",
+                    "on-tertiary": "#ffffff",
+                    "secondary": "#695f02",
+                    "error": "#ba1a1a",
+                    "surface-dim": "#dbdad6",
+                    "surface-container-highest": "#e3e2df",
+                    "error-container": "#ffdad6",
+                    "outline": "#75777d",
+                    "on-tertiary-container": "#ab859c",
+                    "on-surface": "#1b1c1a",
+                    "on-tertiary-fixed": "#2c1325",
+                    "on-secondary-fixed": "#201c00",
+                    "on-error": "#ffffff",
+                    "surface-tint": "#545f73",
+                    "surface-container-lowest": "#ffffff",
+                    "surface-container-low": "#f4f4f0",
+                    "background": "#faf9f5",
+                    "primary-fixed-dim": "#bcc7de",
+                    "on-error-container": "#93000a",
+                    "secondary-container": "#f2e580",
+                    "surface": "#faf9f5",
+                    "surface-container-high": "#e9e8e4",
+                    "on-background": "#1b1c1a",
+                    "inverse-on-surface": "#f2f1ed",
+                    "surface-bright": "#faf9f5",
+                    "inverse-surface": "#2f312e",
+                    "tertiary-container": "#3b2032",
+                    "on-surface-variant": "#45474c",
+                    "tertiary-fixed-dim": "#e5bad3",
+                    "on-primary-fixed": "#111c2d",
+                    "on-primary": "#ffffff",
+                    "tertiary": "#240b1d",
+                    "on-secondary": "#ffffff",
+                    "outline-variant": "#c5c6cd",
+                    "secondary-fixed-dim": "#d5c867"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "stack-sm": "0.5rem",
+                    "stack-md": "1.5rem",
+                    "stack-lg": "3rem",
+                    "margin-page": "2rem",
+                    "unit": "4px",
+                    "gutter": "1.5rem"
+            },
+            "fontFamily": {
+                    "headline-lg-mobile": ["Bricolage Grotesque"],
+                    "label-md": ["Bricolage Grotesque"],
+                    "headline-xl": ["Bricolage Grotesque"],
+                    "headline-lg": ["Bricolage Grotesque"],
+                    "body-md": ["Karla"]
+            },
+            "fontSize": {
+                    "headline-lg-mobile": ["28px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                    "label-md": ["14px", {"lineHeight": "1.0", "fontWeight": "600"}],
+                    "headline-xl": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "800"}],
+                    "headline-lg": ["32px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                    "body-md": ["18px", {"lineHeight": "1.5", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+
+        /* Graph Paper Texture */
+        .bg-graph-paper {
+            background-color: #faf9f5;
+            background-image: 
+                linear-gradient(#e5e7eb 1px, transparent 1px),
+                linear-gradient(90deg, #e5e7eb 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+
+        /* Hand-drawn Jitter Animation */
+        @keyframes jitter {
+            0% { transform: translate(0,0) rotate(0deg); }
+            25% { transform: translate(1px, -1px) rotate(-0.2deg); }
+            50% { transform: translate(-1px, 1px) rotate(0.1deg); }
+            75% { transform: translate(1px, 1px) rotate(-0.1deg); }
+            100% { transform: translate(0,0) rotate(0deg); }
+        }
+        .live-paper {
+            animation: jitter 0.3s infinite ease-in-out;
+        }
+
+        /* Hard Offset Shadow */
+        .hard-offset {
+            position: relative;
+        }
+        .hard-offset::after {
+            content: '';
+            position: absolute;
+            z-index: -1;
+            bottom: -6px;
+            right: -6px;
+            width: 100%;
+            height: 100%;
+            background-color: #1e293b;
+            border: 2px solid #1e293b;
+        }
+
+        /* Wobbly Border Effect */
+        .wobbly-border {
+            border: 3px solid #1e293b;
+            border-radius: 4px;
+            clip-path: polygon(0% 2%, 100% 0%, 98% 100%, 2% 98%);
+        }
+
+        /* Custom Highlighter Hover */
+        .btn-highlighter:hover {
+            background-color: #f2e580;
+            transition: background-color 0.1s ease-in;
+            transform: scale(1.02) rotate(-1deg);
+        }
+
+        /* Celebration Animation for characters */
+        .character-celebrate {
+            animation: bounce 0.6s infinite alternate ease-in-out;
+        }
+        @keyframes bounce {
+            from { transform: translateY(0); }
+            to { transform: translateY(-15px); }
+        }
+
+        /* Low Opacity Doodle Layer */
+        .doodle-overlay {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            opacity: 0.15;
+            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M10 10 L20 20 M80 80 L90 90' stroke='%231e293b' stroke-width='2' fill='none'/%3E%3Ccircle cx='50' cy='20' r='5' stroke='%231e293b' fill='none'/%3E%3Cpath d='M40 70 L50 80 L60 70' stroke='%231e293b' fill='none'/%3E%3C/svg%3E");
+            background-size: 200px 200px;
+        }
+    </style>
+</head>
+<body class="bg-graph-paper min-h-screen text-on-surface selection:bg-secondary-container relative overflow-x-hidden">
+<!-- Background Doodles -->
+<div class="doodle-overlay"></div>
+<!-- Top Navigation Shell -->
+<header class="bg-surface border-b-4 border-primary fixed top-0 w-full z-50 px-margin-page py-stack-sm flex justify-between items-center hard-offset-none">
+<div class="flex items-center gap-4">
+<span class="text-headline-lg font-headline-lg font-black text-primary italic transform -rotate-1">
+                QuizSync
+            </span>
+</div>
+<div class="flex items-center gap-4">
+<button class="bg-surface wobbly-border px-6 py-2 text-label-md font-label-md flex items-center gap-2 btn-highlighter active:scale-95 transition-transform" style="transition: transform 0.5s ease-in-out; transform: rotate(0.0404763deg);">
+<span class="material-symbols-outlined">refresh</span>
+                Play Again
+            </button>
+<button class="text-on-surface-variant opacity-70 hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined">settings</span>
+</button>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="pt-stack-lg min-h-screen flex flex-col items-center justify-center px-margin-page relative">
+<!-- Victory Title -->
+<div class="text-center mb-stack-lg transform rotate-1">
+<h1 class="text-headline-xl font-headline-xl text-primary uppercase tracking-tighter">
+                Final Standings
+            </h1>
+<p class="font-body-md text-on-surface-variant max-w-md mx-auto">
+                The pens are down! Here are the masterminds of today's synchronization session.
+            </p>
+</div>
+<!-- The Podium Container -->
+<div class="relative w-full max-w-5xl flex items-end justify-center gap-4 md:gap-8 pb-stack-lg">
+<!-- 2nd Place (Left) -->
+<div class="flex flex-col items-center flex-1 max-w-[240px]">
+<div class="mb-4 text-center character-celebrate" style="animation-delay: 0.1s"><div class="relative w-32 h-32 mx-auto mb-2">
+  <svg viewBox="0 0 100 100" class="w-full h-full drop-shadow-md">
+    <path d="M30,80 Q50,20 70,80" fill="none" stroke="#1e293b" stroke-width="3" stroke-linecap="round"></path>
+    <circle cx="40" cy="45" r="3" fill="#1e293b"></circle>
+    <circle cx="60" cy="45" r="3" fill="#1e293b"></circle>
+    <path d="M45,60 Q50,65 55,60" fill="none" stroke="#1e293b" stroke-width="2"></path>
+    <path d="M25,30 Q30,10 40,25" fill="none" stroke="#1e293b" stroke-width="2"></path>
+    <path d="M75,30 Q70,10 60,25" fill="none" stroke="#1e293b" stroke-width="2"></path>
+  </svg>
+</div>
+
+<div class="mt-2 wobbly-border bg-white px-3 py-1 font-headline-lg-mobile text-primary transform -rotate-2" style="transition: transform 0.5s ease-in-out; transform: rotate(-2.03849deg);">
+                        User_Beta
+                    </div>
+</div>
+<div class="w-full bg-surface-container-high wobbly-border h-48 flex flex-col items-center justify-center hard-offset" style="transition: transform 0.5s ease-in-out; transform: rotate(0.127495deg);">
+<span class="text-headline-xl font-headline-xl text-on-primary-container opacity-50">2</span>
+<span class="font-label-md uppercase tracking-widest text-on-surface-variant">Silver</span>
+</div>
+</div>
+<!-- 1st Place (Center) -->
+<div class="flex flex-col items-center flex-1 max-w-[280px] z-10">
+<div class="mb-4 text-center character-celebrate"><div class="relative w-40 h-40 mx-auto mb-2">
+  <svg viewBox="0 0 100 100" class="w-full h-full drop-shadow-md">
+    <path d="M20,80 Q50,10 80,80" fill="none" stroke="#1e293b" stroke-width="3" stroke-linecap="round"></path>
+    <circle cx="40" cy="40" r="4" fill="#1e293b"></circle>
+    <circle cx="60" cy="40" r="4" fill="#1e293b"></circle>
+    <path d="M40,60 Q50,75 60,60" fill="none" stroke="#1e293b" stroke-width="2"></path>
+    <path d="M15,40 Q5,20 25,30" fill="none" stroke="#1e293b" stroke-width="2"></path>
+    <path d="M85,40 Q95,20 75,30" fill="none" stroke="#1e293b" stroke-width="2"></path>
+  </svg>
+</div>
+<div class="relative">
+<!-- Crown Doodle -->
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 w-12 h-12 text-secondary">
+<span class="material-symbols-outlined text-4xl" data-weight="fill">workspace_premium</span>
+</div>
+
+</div>
+<div class="wobbly-border bg-secondary-container px-4 py-2 font-headline-lg text-primary transform rotate-1 mt-1" style="transition: transform 0.5s ease-in-out; transform: rotate(1.15797deg);">
+                        User_Alpha
+                    </div>
+</div>
+<div class="w-full bg-secondary-container wobbly-border h-72 flex flex-col items-center justify-center hard-offset" style="transition: transform 0.5s ease-in-out; transform: rotate(-0.19855deg);">
+<span class="text-headline-xl font-headline-xl text-on-secondary-container">1</span>
+<span class="font-label-md uppercase tracking-widest text-on-secondary-container">Champion</span>
+<!-- Scribble Detail -->
+<div class="mt-4 opacity-30">
+<span class="material-symbols-outlined text-4xl">star</span>
+<span class="material-symbols-outlined text-4xl">star</span>
+<span class="material-symbols-outlined text-4xl">star</span>
+</div>
+</div>
+</div>
+<!-- 3rd Place (Right) -->
+<div class="flex flex-col items-center flex-1 max-w-[240px]">
+<div class="mb-4 text-center character-celebrate" style="animation-delay: 0.2s"><div class="relative w-28 h-28 mx-auto mb-2">
+  <svg viewBox="0 0 100 100" class="w-full h-full drop-shadow-md">
+    <path d="M35,85 Q50,30 65,85" fill="none" stroke="#1e293b" stroke-width="3" stroke-linecap="round"></path>
+    <circle cx="45" cy="50" r="2" fill="#1e293b"></circle>
+    <circle cx="55" cy="50" r="2" fill="#1e293b"></circle>
+    <path d="M48,65 Q50,68 52,65" fill="none" stroke="#1e293b" stroke-width="2"></path>
+    <path d="M40,35 L45,42" stroke="#1e293b" stroke-width="2"></path>
+    <path d="M60,35 L55,42" stroke="#1e293b" stroke-width="2"></path>
+  </svg>
+</div>
+
+<div class="mt-2 wobbly-border bg-white px-3 py-1 font-headline-lg-mobile text-primary transform rotate-2" style="transition: transform 0.5s ease-in-out; transform: rotate(1.83684deg);">
+                        User_Gamma
+                    </div>
+</div>
+<div class="w-full bg-surface-container-low wobbly-border h-32 flex flex-col items-center justify-center hard-offset" style="transition: transform 0.5s ease-in-out; transform: rotate(-0.157355deg);">
+<span class="text-headline-xl font-headline-xl text-on-primary-container opacity-30">3</span>
+<span class="font-label-md uppercase tracking-widest text-on-surface-variant">Bronze</span>
+</div>
+</div>
+</div>
+<!-- Call to Action / Stats Section -->
+<div class="mt-stack-lg w-full max-w-2xl grid grid-cols-1 md:grid-cols-2 gap-stack-md">
+<!-- Share Card -->
+<div class="wobbly-border p-stack-sm bg-white hard-offset transform -rotate-1" style="transition: transform 0.5s ease-in-out; transform: rotate(-0.823535deg);">
+<div class="flex items-center gap-4">
+<div class="p-3 bg-tertiary-container rounded-full">
+<span class="material-symbols-outlined text-on-tertiary-container">share</span>
+</div>
+<div>
+<p class="font-label-md text-on-surface-variant">Bragging Rights</p>
+<h3 class="font-headline-lg-mobile text-primary">Share Results</h3>
+</div>
+</div>
+</div>
+<!-- Detailed Scores Card -->
+<div class="wobbly-border p-stack-sm bg-white hard-offset transform rotate-1" style="transition: transform 0.5s ease-in-out; transform: rotate(0.836509deg);">
+<div class="flex items-center gap-4">
+<div class="p-3 bg-primary-container rounded-full">
+<span class="material-symbols-outlined text-on-primary-container">leaderboard</span>
+</div>
+<div>
+<p class="font-label-md text-on-surface-variant">The Math</p>
+<h3 class="font-headline-lg-mobile text-primary">View Scorecard</h3>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation Shell (Persistent) -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-4 py-2 bg-surface border-t-4 border-primary z-50 md:hidden">
+<a class="flex flex-col items-center justify-center bg-secondary-container text-on-secondary-container rounded-xl p-2 transform -rotate-2" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="text-label-md font-label-md">Lobby</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant p-2" href="#">
+<span class="material-symbols-outlined">quiz</span>
+<span class="text-label-md font-label-md">Quizzes</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant p-2" href="#">
+<span class="material-symbols-outlined">face</span>
+<span class="text-label-md font-label-md">Characters</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant p-2" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-label-md font-label-md">Settings</span>
+</a>
+</nav>
+<!-- Simple Atmospheric Scripts -->
+<script>
+        // Atmospheric Jittering Logic
+        // Slightly randomizes rotation of wobbly-border elements periodically to simulate paper handling
+        setInterval(() => {
+            document.querySelectorAll('.wobbly-border').forEach(el => {
+                const currentRot = parseFloat(el.style.transform?.replace('rotate(', '').replace('deg)', '') || 0);
+                const jitter = (Math.random() - 0.5) * 0.5;
+                el.style.transition = 'transform 0.5s ease-in-out';
+                // Only slightly nudge the rotation
+                const baseRot = el.classList.contains('rotate-1') ? 1 : el.classList.contains('-rotate-1') ? -1 : el.classList.contains('rotate-2') ? 2 : el.classList.contains('-rotate-2') ? -2 : 0;
+                el.style.transform = `rotate(${baseRot + jitter}deg)`;
+            });
+        }, 2000);
+
+        // Click interaction for Play Again
+        document.querySelector('button.btn-highlighter').addEventListener('click', function() {
+            this.style.backgroundColor = '#ffd8ed'; // Pink highlighter flash
+            setTimeout(() => {
+                this.style.backgroundColor = '';
+            }, 300);
+        });
+    </script>
+
+
+</body></html>

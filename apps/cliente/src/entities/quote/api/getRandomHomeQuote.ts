@@ -1,9 +1,9 @@
 const quotesDatabase: string[] = [
-  "Sincronizando conocimientos a la velocidad de la luz...",
-  "Conecta, compite y sincroniza tus neuronas en tiempo real.",
-  "Un cuestionario al día mantiene el aburrimiento en la bahía.",
-  "Miles de preguntas te esperan. Cero excusas.",
-  "Tu cerebro necesita calentamiento antes de presionar 'Jugar'."
+  "¡A jugar!",
+  "¿Listo para el reto?",
+  "¡Demuestra lo que sabes!",
+  "¡A ganar!",
+  "¡Que comience el juego!"
 ];
 
 /**

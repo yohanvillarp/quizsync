@@ -17,6 +17,10 @@
 
   /* Animación Stop-Motion (Live Paper) */
   --animate-live-paper: jitter 0.15s infinite step-end;
+  
+  /* Animaciones para Interacciones (Lobby) */
+  --animate-float-up: float-up 1.5s ease-out forwards;
+  --animate-shake-violent: shake-violent 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
 }
 
 /* Definición de la animación de vibración de papel */
@@ -40,6 +44,19 @@
     transform: rotate(-0.2deg) skew(0deg);
     border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
   }
+}
+
+@keyframes float-up {
+  0% { transform: translateY(0) scale(0.5); opacity: 0; }
+  20% { transform: translateY(-20px) scale(1.2); opacity: 1; }
+  100% { transform: translateY(-80px) scale(1); opacity: 0; }
+}
+
+@keyframes shake-violent {
+  10%, 90% { transform: translate3d(-2px, 0, 0) rotate(-2deg); }
+  20%, 80% { transform: translate3d(3px, 0, 0) rotate(3deg); }
+  30%, 50%, 70% { transform: translate3d(-5px, 0, 0) rotate(-4deg); }
+  40%, 60% { transform: translate3d(5px, 0, 0) rotate(4deg); }
 }
 
 @keyframes fly-diagonal {
@@ -88,6 +105,30 @@ body {
   border-width: 3px;
 }
 
+/* =========================================
+   CURSOR INVENTORY STYLES
+   ========================================= */
+
+.sketch-card {
+  border: 2px solid var(--color-ink);
+  background: var(--color-paper-dim);
+  box-shadow: 4px 4px 0px var(--color-ink);
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  position: relative;
+}
+
+.sketch-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 8px 8px 0px var(--color-ink);
+}
+
+.sketch-card.selected {
+  background-color: var(--color-high-yellow);
+  transform: scale(1.03);
+  box-shadow: 6px 6px 0px var(--color-ink);
+  border-width: 3px;
+}
+
 .doodle-ink {
   stroke: var(--color-ink);
   fill: none;
@@ -123,3 +164,156 @@ body {
 .selected .owl-head { animation: tilt 2s infinite ease-in-out; transform-origin: 100px 80px; }
 .selected .bear-arm { animation: wave 0.6s infinite ease-in-out; transform-origin: 70px 110px; }
 .selected .cat-ear { animation: twitch 2s infinite; transform-origin: center; }
+
+/* =========================================
+   PODIUM STYLES
+   ========================================= */
+
+/* Hard Offset Shadow */
+.hard-offset {
+  position: relative;
+}
+.hard-offset::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  bottom: -6px;
+  right: -6px;
+  width: 100%;
+  height: 100%;
+  background-color: var(--color-ink);
+  border: 2px solid var(--color-ink);
+}
+
+/* Wobbly Border Effect */
+.wobbly-border {
+  border: 3px solid var(--color-ink);
+  border-radius: 4px;
+  clip-path: polygon(0% 2%, 100% 0%, 98% 100%, 2% 98%);
+}
+
+/* Celebration Animation for characters */
+.character-celebrate {
+  animation: bounce 0.6s infinite alternate ease-in-out;
+}
+@keyframes bounce {
+  from { transform: translateY(0); }
+  to { transform: translateY(-15px); }
+}
+/* =========================================
+   GAME PAGE STYLES
+   ========================================= */
+
+.notebook-spiral {
+  position: absolute;
+  left: 20px;
+  top: 0;
+  bottom: 0;
+  width: 30px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  padding: 20px 0;
+  z-index: 50;
+}
+
+.spiral-ring {
+  width: 25px;
+  height: 12px;
+  border: 2px solid var(--color-ink);
+  border-radius: 10px;
+  background: linear-gradient(to right, #cbd5e1, #f1f5f9);
+  box-shadow: 2px 2px 0 rgba(0,0,0,0.1);
+}
+
+.washi-tape {
+  background-color: var(--color-high-pink);
+  opacity: 0.6;
+  transform: rotate(-3deg);
+  box-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+  position: absolute;
+  z-index: 20;
+}
+
+.hand-drawn-box {
+  border: 2px solid var(--color-ink);
+  border-radius: 255px 20px 225px 30px / 30px 225px 25px 255px;
+  box-shadow: 4px 4px 0px rgba(9, 20, 38, 0.05);
+  transition: all 0.2s ease;
+}
+
+.hand-drawn-box-alt {
+  border: 2px solid var(--color-ink);
+  border-radius: 20px 255px 30px 225px / 225px 30px 255px 25px;
+  transition: all 0.2s ease;
+}
+
+.double-outline {
+  position: relative;
+}
+.double-outline::after {
+  content: '';
+  position: absolute;
+  top: 4px; left: 4px; right: -4px; bottom: -4px;
+  border: 1.5px solid var(--color-ink);
+  opacity: 0.3;
+  border-radius: 250px 15px 220px 25px / 25px 220px 20px 250px;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.torn-paper {
+  background: white;
+  border: 2px solid var(--color-ink);
+  clip-path: polygon(
+      0% 2%, 5% 0%, 10% 3%, 15% 1%, 20% 4%, 25% 1%, 30% 3%, 35% 0%, 40% 4%, 45% 1%, 50% 3%, 55% 1%, 60% 4%, 65% 1%, 70% 3%, 75% 0%, 80% 4%, 85% 1%, 90% 3%, 95% 0%, 100% 2%,
+      100% 98%, 95% 100%, 90% 97%, 85% 99%, 80% 96%, 75% 100%, 70% 97%, 65% 99%, 60% 96%, 55% 100%, 50% 97%, 45% 99%, 40% 96%, 35% 100%, 30% 97%, 25% 99%, 20% 96%, 15% 100%, 10% 97%, 5% 99%, 0% 98%
+  );
+}
+
+.highlighter-hover:hover {
+  background-color: var(--color-high-yellow);
+  background-image: radial-gradient(var(--color-ink) 0.5px, transparent 0.5px);
+  background-size: 10px 10px;
+  background-position: 0 0;
+  opacity: 0.9;
+}
+
+@keyframes subtle-jitter {
+  0% { transform: rotate(-0.5deg) translate(0,0); }
+  50% { transform: rotate(0.3deg) translate(0.5px, 0.2px); }
+  100% { transform: rotate(-0.5deg) translate(0,0); }
+}
+
+@keyframes float {
+  0% { transform: translateY(0px) rotate(-1deg); }
+  50% { transform: translateY(-5px) rotate(-0.5deg); }
+  100% { transform: translateY(0px) rotate(-1deg); }
+}
+
+@keyframes draw {
+  to { stroke-dashoffset: 0; }
+}
+
+.animate-sketch { animation: subtle-jitter 4s infinite ease-in-out; }
+.animate-float { animation: float 6s infinite ease-in-out; }
+
+.timer-progress {
+  stroke-dasharray: 100;
+  stroke-dashoffset: 30;
+  transition: stroke-dashoffset 1s linear;
+}
+
+.doodle-star {
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  animation: draw 2s forwards ease-out, subtle-jitter 3s infinite 2s;
+}
+
+@keyframes tick-pop {
+  0% { transform: scale(1.4); }
+  100% { transform: scale(1); }
+}
+
+.animate-tick { animation: tick-pop 0.3s ease-out; }
+
