@@ -13,6 +13,7 @@ export interface ApiCoreQuestion {
 
 export interface ApiCoreQuiz {
   id: string;
+  title: string;
   categoryId: string;
   category?: { name: string };
   questions: ApiCoreQuestion[];
