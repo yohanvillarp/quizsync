@@ -30,6 +30,7 @@ jobs:
       - name: npm install, build, and prune
         run: |
           npm install
+          npx prisma generate
           npm run build
           npm prune --production
 
