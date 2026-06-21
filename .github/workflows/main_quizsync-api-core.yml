@@ -20,26 +20,31 @@ jobs:
       - name: npm install
         working-directory: apps/api-core
         run: npm install
-      - name: prisma generate (before build)
+      - name: prisma generate
         working-directory: apps/api-core
         run: npx prisma generate
       - name: build
         working-directory: apps/api-core
         run: npm run build
-      - name: npm prune production
+      - name: Remove dev dependencies (keep only production)
         working-directory: apps/api-core
-        run: npm prune --production
-      - name: prisma generate (after prune)
-        working-directory: apps/api-core
-        run: npx prisma generate
-      - name: Verify build files exist
+        run: npm ci --omit=dev
+      - name: Verify critical files
         working-directory: apps/api-core
         run: |
           echo "Checking dist/src/main.js..."
-          ls -la dist/src/main.js || exit 1
-          echo "Checking .prisma/client..."
-          ls -la node_modules/.prisma/client/ || exit 1
-          echo "All files verified!"
+          test -f dist/src/main.js || (echo "ERROR: dist/src/main.js not found" && exit 1)
+          echo "✓ dist/src/main.js found"
+
+          echo "Checking node_modules/@prisma/client..."
+          test -d node_modules/@prisma/client || (echo "ERROR: @prisma/client not found" && exit 1)
+          echo "✓ @prisma/client found"
+
+          echo "Checking node_modules/.prisma/client..."
+          test -d node_modules/.prisma/client || (echo "ERROR: .prisma/client not found" && exit 1)
+          echo "✓ .prisma/client found"
+
+          echo "All critical files verified!"
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
