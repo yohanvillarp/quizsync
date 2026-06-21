@@ -83,7 +83,7 @@ export function PodiumWidget({ players }: PodiumWidgetProps) {
           <div className={`mb-4 w-full text-center transition-all duration-700 transform ${revealStep >= 3 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
             <div className={`w-full ${revealStep >= 4 && revealStep < 5 ? 'character-celebrate' : ''}`}>
               <div className="relative w-32 h-32 mx-auto mb-2 drop-shadow-md">
-                {getAvatarComponent(second.avatarId)}
+                {getAvatarComponent(second.avatarId as string)}
               </div>
               <div className="flex justify-center">
                 <div 
@@ -117,7 +117,7 @@ export function PodiumWidget({ players }: PodiumWidgetProps) {
           <div className={`mb-4 w-full text-center transition-all duration-700 transform ${revealStep >= 6 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-16'}`}>
             <div className={`w-full ${revealStep >= 7 ? 'character-celebrate' : ''}`}>
               <div className="relative w-40 h-40 mx-auto mb-2 drop-shadow-md">
-                {getAvatarComponent(first.avatarId)}
+                {getAvatarComponent(first.avatarId as string)}
               </div>
               <div className="relative flex justify-center">
                 <div className="absolute -top-10 text-[var(--color-high-yellow)] animate-pulse">
@@ -162,7 +162,7 @@ export function PodiumWidget({ players }: PodiumWidgetProps) {
           <div className={`mb-4 w-full text-center transition-all duration-700 transform ${revealStep >= 1 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
             <div className={`w-full ${revealStep >= 2 && revealStep < 5 ? 'character-celebrate' : ''}`}>
               <div className="relative w-28 h-28 mx-auto mb-2 drop-shadow-md">
-                {getAvatarComponent(third.avatarId)}
+                {getAvatarComponent(third.avatarId as string)}
               </div>
               <div className="flex justify-center">
                 <div 

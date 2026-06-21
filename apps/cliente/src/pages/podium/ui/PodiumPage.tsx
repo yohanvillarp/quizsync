@@ -42,9 +42,9 @@ export function PodiumPage() {
   const podiumData: PodiumPlayer[] = sortedPlayers.map((p, i) => ({
     id: p.deviceId,
     username: p.name,
-    avatarId: p.avatarId,
+    avatarId: p.avatarId as import("@/shared/store/useAvatarStore").AvatarType,
     score: p.score,
-    rank: i + 1
+    rank: (i + 1) as 1 | 2 | 3
   }));
 
   const rankingPlayers = sortedPlayers.map(p => ({

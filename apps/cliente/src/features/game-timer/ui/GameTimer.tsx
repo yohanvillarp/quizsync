@@ -14,8 +14,8 @@ export const GameTimer: React.FC<GameTimerProps> = ({
 }) => {
   const [timeLeft, setTimeLeft] = useState(initialTime);
   const totalTime = initialTime;
-  const radius = 28;
-  const circumference = 2 * Math.PI * radius;
+
+
 
   useEffect(() => {
     onTick?.(timeLeft);
@@ -31,7 +31,7 @@ export const GameTimer: React.FC<GameTimerProps> = ({
     return () => clearInterval(timer);
   }, [timeLeft, onTimeUp, onTick]);
 
-  const offset = circumference - (timeLeft / totalTime) * circumference;
+
   const isDanger = timeLeft <= 10;
   const isTimeUp = timeLeft <= 0;
 
