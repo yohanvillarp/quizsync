@@ -1,0 +1,27 @@
+@import "tailwindcss";
+
+@theme {
+  /* Fuentes del Design System */
+  --font-headline: "Bricolage Grotesque", sans-serif;
+  --font-body: "Karla", sans-serif;
+
+  /* Colores del Analog Sketchbook */
+  --color-paper: #faf9f5;
+  --color-paper-dim: #dbdad6;
+  --color-ink: #091426;
+  --color-ink-offset: #1e293b;
+
+  /* Resaltadores (Highlighters) */
+  --color-high-yellow: #f2e580;
+  --color-high-pink: #ffd8ed;
+}
+
+body {
+  background-color: var(--color-paper);
+  background-image:
+    linear-gradient(var(--color-paper-dim) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-paper-dim) 1px, transparent 1px);
+  background-size: 24px 24px;
+  color: var(--color-ink);
+  font-family: var(--font-body);
+}
