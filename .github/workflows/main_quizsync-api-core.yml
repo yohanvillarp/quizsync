@@ -17,30 +17,24 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: "22.x"
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 9
-      - name: pnpm install (all dependencies)
+      - name: npm install (all dependencies)
         working-directory: apps/api-core
-        run: pnpm install
+        run: npm install
       - name: prisma generate
         working-directory: apps/api-core
-        run: pnpm exec prisma generate
+        run: npx prisma generate
       - name: build
         working-directory: apps/api-core
-        run: pnpm run build
+        run: npm run build
       - name: Verify critical files
         working-directory: apps/api-core
         run: |
           echo "Checking dist/src/main.js..."
           test -f dist/src/main.js || (echo "ERROR: dist/src/main.js not found" && exit 1)
           echo "✓ dist/src/main.js found"
-
           echo "Checking node_modules/@prisma/client..."
           test -d node_modules/@prisma/client || (echo "ERROR: @prisma/client not found" && exit 1)
           echo "✓ @prisma/client found"
-
           echo "All critical files verified!"
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
