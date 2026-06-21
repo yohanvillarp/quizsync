@@ -26,7 +26,7 @@ jobs:
         run: pnpm install
       - name: prisma generate
         working-directory: apps/api-core
-        run: pnpm exec prisma generate
+        run: ./node_modules/.bin/prisma generate
       - name: build
         working-directory: apps/api-core
         run: pnpm run build
