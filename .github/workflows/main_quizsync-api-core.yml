@@ -30,9 +30,6 @@ jobs:
       - name: build
         working-directory: apps/api-core
         run: pnpm run build
-      - name: Remove dev dependencies with pnpm prune
-        working-directory: apps/api-core
-        run: pnpm prune --prod
       - name: Verify critical files
         working-directory: apps/api-core
         run: |
