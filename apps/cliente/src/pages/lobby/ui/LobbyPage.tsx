@@ -140,7 +140,7 @@ export function LobbyPage() {
           avatarId = keys[Math.floor(Math.random() * keys.length)];
         }
 
-        const joinRes = await joinRoom(code, savedName, avatarId, deviceId);
+        const joinRes = await joinRoom(code as string, savedName, avatarId as string, deviceId);
         if (joinRes && joinRes.status === 'success') {
           setRole(joinRes.isHost ? 'host' : 'player');
           setHasJoined(true);
@@ -173,7 +173,7 @@ export function LobbyPage() {
     const avatarId = useAvatarStore.getState().selectedAvatar || 'random';
     const deviceId = initializeDeviceId();
 
-    const response = await joinRoom(code!, playerName, avatarId, deviceId);
+    const response = await joinRoom(code as string, playerName, avatarId as string, deviceId);
     if (response && response.status === 'success') {
       setRole(response.isHost ? 'host' : 'player');
       setHasJoined(true);

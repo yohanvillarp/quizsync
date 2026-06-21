@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BarChart2, Pencil, X } from 'lucide-react';
+import { BarChart2, Pencil } from 'lucide-react';
 import { NotebookSpiral } from '@/shared/ui/NotebookSpiral';
 import { WashiTape } from '@/shared/ui/WashiTape';
 import { GameTimer } from '@/features/game-timer/ui/GameTimer';
@@ -111,7 +111,6 @@ export const GamePage: React.FC = () => {
             <GameTimer 
               key={endTime} 
               initialTime={initialTimeLeft} 
-              onTick={(timeLeft) => setCurrentTimeLeft(timeLeft)}
             />
           )}
         </div>

@@ -2,7 +2,7 @@ import { RouterProvider } from "react-router-dom";
 import { router } from "./router/router";
 import { HandDrawnFilter } from "@/shared/ui/HandDrawnFilter";
 import { CustomCursorWidget } from "@/widgets/cursor-trail/ui/CustomCursorWidget";
-import { AudioVisualizerWidget } from "@/widgets/audio-background/ui/AudioVisualizerWidget";
+
 import { GlobalAlert } from "@/shared/ui/GlobalAlert/GlobalAlert";
 import "./styles/App.css";
 

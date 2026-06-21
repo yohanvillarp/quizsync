@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import { Eye, Globe2, Home, Lock, User, Zap } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Globe2, Lock, Zap, User, Eye, Home } from "lucide-react";
-import { Logo } from "@/shared/ui/Logo";
+
 import { apiClient } from "@/shared/api/apiClient";
 import { engineClient } from "@/shared/api/engineClient";
 

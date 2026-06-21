@@ -1,5 +1,5 @@
 import { useAlertStore } from '@/shared/store/useAlertStore';
-import { AlertTriangle, CheckCircle, Info } from 'lucide-react';
+import { AlertTriangle, Info } from 'lucide-react';
 
 export function GlobalAlert() {
   const { isOpen, type, title, message, close } = useAlertStore();
