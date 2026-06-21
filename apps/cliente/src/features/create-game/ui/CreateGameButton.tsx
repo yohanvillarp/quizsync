@@ -1,15 +1,23 @@
+import { useNavigate } from "react-router-dom";
+import { Plus } from "lucide-react";
+
 export function CreateGameButton() {
+  const navigate = useNavigate();
+
   const handleCreate = () => {
-    // TODO: Connect with routing or server logic later
-    console.log("Navigating to create game...");
+    navigate("/create");
   };
 
   return (
     <button
       onClick={handleCreate}
-      className="w-full py-4 bg-transparent border-4 border-[var(--color-ink)] border-dashed rounded-lg hover:bg-[var(--color-paper-dim)] transition-transform hover:-rotate-1 active:scale-95 flex items-center justify-center font-headline text-2xl font-bold text-[var(--color-ink)]"
+      className="group w-full py-3 sm:py-4 bg-[var(--color-high-pink)] border-4 border-[var(--color-ink)] rounded-xl flex items-center justify-center gap-1.5 sm:gap-2 font-headline text-sm sm:text-lg md:text-xl font-black text-[var(--color-ink)] shadow-[4px_4px_0px_0px_var(--color-ink)] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_var(--color-ink)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all uppercase tracking-wide leading-tight"
+      title="Crear una nueva partida"
     >
-      CREAR
+      <div className="bg-[var(--color-ink)] rounded-full p-1 group-hover:rotate-90 transition-transform flex-shrink-0">
+        <Plus size={14} strokeWidth={3} className="text-[var(--color-high-pink)] sm:!w-4 sm:!h-4" />
+      </div>
+      <span>Crear Partida</span>
     </button>
   );
 }

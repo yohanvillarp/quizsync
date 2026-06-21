@@ -1,0 +1,111 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String
+  avatarId  String?  // Ej: 'fox', 'owl', 'bear'
+  avatar    Avatar?  @relation(fields: [avatarId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  quizzes   Quiz[]
+  
+  matchHistory MatchPlayer[]
+}
+
+model Quiz {
+  id          String     @id @default(uuid())
+  title       String
+  description String?
+  categoryId  String
+  category    Category   @relation(fields: [categoryId], references: [id])
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  author      User       @relation(fields: [authorId], references: [id])
+  authorId    String
+  questions   Question[]
+  
+  matches     MatchRecord[]
+}
+
+model Question {
+  id        String   @id @default(uuid())
+  text      String
+  timeLimit Int      @default(15) // Segundos límite para responder
+  maxPoints Int      @default(1000) // Puntos base sin descuento de tiempo
+  quiz      Quiz     @relation(fields: [quizId], references: [id])
+  quizId    String
+  options   Option[]
+}
+
+model Option {
+  id         String   @id @default(uuid())
+  text       String
+  isCorrect  Boolean  @default(false)
+  question   Question @relation(fields: [questionId], references: [id])
+  questionId String
+}
+
+model MatchRecord {
+  id        String   @id @default(uuid())
+  quizId    String
+  quiz      Quiz     @relation(fields: [quizId], references: [id])
+  startedAt DateTime @default(now())
+  endedAt   DateTime?
+  
+  players   MatchPlayer[]
+}
+
+model MatchPlayer {
+  id            String      @id @default(uuid())
+  matchId       String
+  match         MatchRecord @relation(fields: [matchId], references: [id])
+  userId        String?
+  user          User?       @relation(fields: [userId], references: [id])
+  nickname      String
+  avatarId      String
+  avatar        Avatar      @relation(fields: [avatarId], references: [id])
+  score         Int         @default(0)
+  rank          Int?
+}
+
+model SuperPower {
+  id          String   @id
+  name        String
+  description String
+  effectType  String
+  
+  avatars     Avatar[] 
+}
+
+model Avatar {
+  id           String      @id
+  name         String
+  phrase       String
+  
+  superPowerId String?
+  superPower   SuperPower? @relation(fields: [superPowerId], references: [id])
+  
+  users        User[]
+  matchPlayers MatchPlayer[]
+}
+
+model Quote {
+  id   String @id @default(uuid())
+  text String
+}
+
+model Category {
+  id          String @id
+  name        String
+  description String?
+  
+  quizzes     Quiz[]
+}

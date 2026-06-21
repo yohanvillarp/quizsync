@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: quizsync-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: quiz_user
+      POSTGRES_PASSWORD: quiz_password
+      POSTGRES_DB: quizsync_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    container_name: quizsync-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  api-core:
+    build:
+      context: ./apps/api-core
+      dockerfile: Dockerfile
+    container_name: quizsync-api-core
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      # Se usa el nombre del servicio "postgres" como host interno de Docker
+      DATABASE_URL: "postgresql://quiz_user:quiz_password@postgres:5432/quizsync_db?schema=public"
+    depends_on:
+      - postgres
+
+  game-engine:
+    build:
+      context: ./apps/game-engine
+      dockerfile: Dockerfile
+    container_name: quizsync-game-engine
+    restart: always
+    ports:
+      - "3002:3002"
+    environment:
+      REDIS_HOST: "redis"
+      REDIS_PORT: 6379
+      PORT: 3002
+    depends_on:
+      - redis
+      - api-core
+
+volumes:
+  postgres_data:
+  redis_data:

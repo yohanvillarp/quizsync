@@ -3,9 +3,10 @@ import { useState, useEffect, useRef } from 'react';
 export function useAudioAnalyzer() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [beatValue, setBeatValue] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(false);
+  // Cargamos el estado de reproducción y volumen
+  const savedIsPlaying = localStorage.getItem('quizsync_is_playing');
+  const [isPlaying, setIsPlaying] = useState(savedIsPlaying === 'true'); // Por defecto false si es null
   
-  // Cargamos el volumen de localStorage, o iniciamos muteados si no hay registro
   const savedVolume = localStorage.getItem('quizsync_volume');
   const [volume, setVolume] = useState(savedVolume ? parseFloat(savedVolume) : 0);
   
@@ -13,6 +14,11 @@ export function useAudioAnalyzer() {
   const analyserRef = useRef<AnalyserNode | null>(null);
   const sourceRef = useRef<MediaElementAudioSourceNode | null>(null);
   const requestRef = useRef<number>(0);
+
+  // Sincronizar estado isPlaying
+  useEffect(() => {
+    localStorage.setItem('quizsync_is_playing', isPlaying.toString());
+  }, [isPlaying]);
 
   useEffect(() => {
     if (!audioRef.current) return;
@@ -24,9 +30,8 @@ export function useAudioAnalyzer() {
       
       audioCtxRef.current = new AudioContextClass();
       analyserRef.current = audioCtxRef.current.createAnalyser();
-      analyserRef.current.fftSize = 256; // Definimos un tamaño de buffer pequeño para bajos rápidos
+      analyserRef.current.fftSize = 256; 
       
-      // Conectar el elemento de audio al analizador
       sourceRef.current = audioCtxRef.current.createMediaElementSource(audioRef.current);
       sourceRef.current.connect(analyserRef.current);
       analyserRef.current.connect(audioCtxRef.current.destination);
@@ -37,14 +42,12 @@ export function useAudioAnalyzer() {
       const dataArray = new Uint8Array(analyserRef.current.frequencyBinCount);
       analyserRef.current.getByteFrequencyData(dataArray);
       
-      // Extraemos la energía de las frecuencias muy bajas (Bass - primeros 3 bins)
       let sum = 0;
-      const bassCount = 3; // Menos bins para aislar solo los golpes graves
+      const bassCount = 3; 
       for (let i = 0; i < bassCount; i++) {
         sum += dataArray[i];
       }
       const avg = sum / bassCount;
-      // Exageramos los picos usando una curva de potencia para que los golpes se noten mucho más
       const normalized = Math.pow(avg / 255, 1.5); 
       
       setBeatValue(normalized);
@@ -55,7 +58,24 @@ export function useAudioAnalyzer() {
       if (audioCtxRef.current?.state === 'suspended') {
         audioCtxRef.current.resume();
       }
-      audioRef.current.play().catch(e => console.warn("Autoplay bloqueado por el navegador:", e));
+      
+      const tryPlay = () => {
+        audioRef.current?.play().catch(e => {
+          console.warn("Autoplay bloqueado. Esperando primera interacción...", e);
+          const playOnInteraction = () => {
+            audioRef.current?.play().catch(() => {});
+            if (audioCtxRef.current?.state === 'suspended') {
+              audioCtxRef.current.resume();
+            }
+            document.removeEventListener('click', playOnInteraction);
+            document.removeEventListener('keydown', playOnInteraction);
+          };
+          document.addEventListener('click', playOnInteraction);
+          document.addEventListener('keydown', playOnInteraction);
+        });
+      };
+
+      tryPlay();
       requestRef.current = requestAnimationFrame(update);
     } else {
       if (requestRef.current) cancelAnimationFrame(requestRef.current);

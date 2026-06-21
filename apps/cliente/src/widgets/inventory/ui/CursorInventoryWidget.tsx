@@ -1,6 +1,7 @@
 import { MousePointer2, Palette } from "lucide-react";
 import { useCursorStore, type CursorType } from "@/shared/store/useCursorStore";
 import type { ReactNode } from "react";
+import { useSFX } from "@/shared/lib/audio/useSFX";
 
 const CURSOR_OPTIONS: { id: CursorType; name: string; icon: ReactNode; desc: string }[] = [
   { 
@@ -120,6 +121,7 @@ const COLORS = [
 
 export function CursorInventoryWidget() {
   const { cursorType, setCursorType, cursorColor, setCursorColor } = useCursorStore();
+  const { playSelectSound } = useSFX();
 
   return (
     <div className="w-full flex flex-col items-center">
@@ -133,7 +135,10 @@ export function CursorInventoryWidget() {
             {COLORS.map((color) => (
               <button
                 key={color.id}
-                onClick={() => setCursorColor(color.id)}
+                onClick={() => {
+                  setCursorColor(color.id);
+                  playSelectSound();
+                }}
                 className={`w-12 h-12 rounded-full border-4 transition-all ${
                   cursorColor === color.id
                     ? 'border-[var(--color-ink)] scale-110 shadow-[4px_4px_0px_0px_var(--color-ink)]'
@@ -148,37 +153,30 @@ export function CursorInventoryWidget() {
       )}
 
       {/* Grid de Ratones fluido y escalable */}
-      <div className="w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 pb-20">
+      <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto items-center pb-20">
         {CURSOR_OPTIONS.map((cursor) => {
           const isSelected = cursorType === cursor.id;
           return (
-            <button
+            <div
               key={cursor.id}
-              onClick={() => setCursorType(cursor.id)}
-              className={`flex flex-col items-start p-6 rounded-2xl border-4 transition-all text-left group ${
-                isSelected 
-                  ? 'border-[var(--color-high-pink)] bg-white shadow-[8px_8px_0px_0px_var(--color-high-pink)] scale-105' 
-                  : 'border-[var(--color-ink)] bg-white shadow-[4px_4px_0px_0px_var(--color-ink)] hover:translate-y-[-4px] hover:shadow-[8px_8px_0px_0px_var(--color-ink)]'
+              className={`sketch-card p-5 pb-6 flex flex-col items-center cursor-pointer ${
+                isSelected ? 'selected jitter' : ''
               }`}
+              onClick={() => {
+                setCursorType(cursor.id);
+                playSelectSound();
+              }}
             >
-              <div className="h-24 w-full mb-4 bg-[var(--color-paper-dim)] rounded-xl border-2 border-[var(--color-ink)] flex items-center justify-center overflow-hidden group-hover:bg-slate-100 transition-colors">
+              <div className="w-full h-32 bg-white mb-4 flex items-center justify-center relative overflow-hidden border-2 border-[var(--color-ink)]">
                 {cursor.icon}
               </div>
-              <h2 className="text-2xl font-bold mb-2">{cursor.name}</h2>
-              <p className="text-gray-600 font-body text-sm leading-relaxed mb-4">
+              <h2 className="font-headline text-2xl font-bold text-[var(--color-ink)] uppercase text-center mb-2">
+                {cursor.name}
+              </h2>
+              <p className="text-gray-700 font-body text-xs text-center leading-relaxed">
                 {cursor.desc}
               </p>
-              
-              {isSelected ? (
-                <span className="mt-auto px-4 py-2 bg-[var(--color-high-pink)] border-2 border-[var(--color-ink)] rounded-full text-sm font-bold shadow-[2px_2px_0px_0px_var(--color-ink)] w-full text-center">
-                  Equipado
-                </span>
-              ) : (
-                <span className="mt-auto px-4 py-2 bg-white border-2 border-[var(--color-ink)] rounded-full text-sm font-bold shadow-[2px_2px_0px_0px_var(--color-ink)] w-full text-center group-hover:bg-[var(--color-high-yellow)] transition-colors">
-                  Seleccionar
-                </span>
-              )}
-            </button>
+            </div>
           );
         })}
       </div>
