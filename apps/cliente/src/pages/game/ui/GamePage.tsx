@@ -72,12 +72,13 @@ export const GamePage: React.FC = () => {
     const roundText = roundNames[index] ? `${roundNames[index]} RONDA` : `${index + 1}ª RONDA`;
     const text = index === 0 ? '¡PREPÁRATE!' : roundText;
 
+    // We use a fixed 4s timer for PREPARING to avoid clock skew issues with the server
     return (
       <div className="min-h-screen flex flex-col items-center justify-center relative w-full bg-ink">
-        <div className="absolute top-12 font-headline text-6xl text-white opacity-80 font-bold drop-shadow-md">
-          {timeLeft > 0 ? timeLeft : ''}
+        <div className="absolute top-16 z-20 flex items-center scale-150">
+          <GameTimer key={index} initialTime={4} />
         </div>
-        <h1 className="text-white font-display text-5xl md:text-7xl uppercase tracking-widest animate-pulse text-center px-4">
+        <h1 className="text-white font-display text-5xl md:text-7xl uppercase tracking-widest animate-pulse text-center px-4 mt-32">
           {text}
         </h1>
       </div>
@@ -135,15 +136,6 @@ export const GamePage: React.FC = () => {
           </div>
         </div>
         
-        {/* CENTER ABSOLUTE: TIMER */}
-        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 flex items-center scale-75 sm:scale-100">
-          {endTime && view === 'question' && currentQuestion && (
-            <GameTimer 
-              initialTime={timeLeft} 
-            />
-          )}
-        </div>
-
         {/* RIGHT SIDE */}
         <div className="relative items-center gap-8 mr-2 sm:mr-16 z-10 hidden md:flex">
           <div className="relative">
