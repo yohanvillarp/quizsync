@@ -105,6 +105,15 @@ export const useGameStore = create<GameState>((set, get) => {
     currentQuestion: null
   }));
 
+  socketClient.on('room_destroyed', () => set({
+    roomId: null,
+    gameStatus: 'LOBBY',
+    players: [],
+    currentQuestion: null,
+    endTime: null,
+    isConnected: true // Mantiene la conexión al socket, pero sale de la sala
+  }));
+
   socketClient.on('category_updated', (data: CategoryUpdatedPayload) => set({
     categoryName: data.categoryName
   }));
