@@ -136,7 +136,7 @@ export function PodiumPage() {
         {showRanking ? (
           <RankingBoard players={rankingPlayers} />
         ) : (
-          <PodiumWidget players={podiumData} />
+          <PodiumWidget players={podiumData} roomId={roomId!} />
         )}
       </div>
 
