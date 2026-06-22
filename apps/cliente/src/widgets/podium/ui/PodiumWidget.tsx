@@ -76,6 +76,10 @@ export function PodiumWidget({ players, roomId }: PodiumWidgetProps) {
   // Efecto de Jittering similar al de Podio.html
   const [jitterRotations, setJitterRotations] = useState([0, 0, 0]);
   useEffect(() => {
+    if (revealStep >= 7) {
+      setJitterRotations([0, 0, 0]);
+      return;
+    }
     const interval = setInterval(() => {
       setJitterRotations([
         (Math.random() - 0.5) * 1.5,
@@ -84,7 +88,7 @@ export function PodiumWidget({ players, roomId }: PodiumWidgetProps) {
       ]);
     }, 2000);
     return () => clearInterval(interval);
-  }, []);
+  }, [revealStep]);
 
   const isDimmed = revealStep === 5 || revealStep === 6;
 
@@ -149,7 +153,7 @@ export function PodiumWidget({ players, roomId }: PodiumWidgetProps) {
             </div>
           </div>
           <div 
-            className={`w-full hard-offset transition-all duration-1000 ${revealStep >= 5 && revealStep <= 6 ? 'scale-105 drop-shadow-[0_0_15px_var(--color-high-yellow)]' : ''}`}
+            className={`w-full hard-offset transition-all duration-1000 ${revealStep >= 5 ? 'scale-105 drop-shadow-[0_0_15px_var(--color-high-yellow)]' : ''}`}
             style={{ transition: 'transform 0.5s ease-in-out', transform: `rotate(${jitterRotations[0]}deg)` }}
           >
             <div 

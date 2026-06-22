@@ -1,5 +1,5 @@
 import { useUser, useClerk } from "@clerk/clerk-react";
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 import { ShieldAlert } from "lucide-react";
 
 interface AdminRouteProps {
