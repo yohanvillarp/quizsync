@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import { socketClient } from '@/shared/api/ws/socket.client';
 
 export interface Player {
@@ -68,10 +69,12 @@ interface GameState {
   setConnected: (status: boolean) => void;
 }
 
-export const useGameStore = create<GameState>((set, get) => {
-  // Inicializamos listeners globales del socket
-  socketClient.on('connect', () => set({ isConnected: true }));
-  socketClient.on('disconnect', () => set({ isConnected: false, roomId: null, players: [], gameStatus: 'LOBBY' }));
+export const useGameStore = create<GameState>()(
+  persist(
+    (set, get) => {
+      // Inicializamos listeners globales del socket
+      socketClient.on('connect', () => set({ isConnected: true }));
+      socketClient.on('disconnect', () => set({ isConnected: false }));
   const updatePlayersState = (data: { players: Player[] }) => {
     const deviceId = localStorage.getItem('quizsync_device_id') || '';
     const myPlayer = data.players.find(p => p.deviceId === deviceId);
@@ -266,4 +269,13 @@ export const useGameStore = create<GameState>((set, get) => {
     setPlayers: (players) => set({ players }),
     setConnected: (status) => set({ isConnected: status }),
   };
-});
+}, {
+  name: 'quizsync-game-store',
+  partialize: (state) => ({ 
+    roomId: state.roomId,
+    players: state.players,
+    isHost: state.isHost,
+    gameStatus: state.gameStatus,
+    categoryName: state.categoryName
+  })
+}));
