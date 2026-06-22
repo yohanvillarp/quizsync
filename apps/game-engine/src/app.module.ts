@@ -12,11 +12,11 @@ import { ThrottlerModule } from '@nestjs/throttler';
     LoggerModule.forRoot({
       pinoHttp: {
         name: 'GAME-ENGINE 🟠',
-        level: 'debug',
-        transport: { 
+        level: process.env.NODE_ENV !== 'production' ? 'debug' : 'info',
+        transport: process.env.NODE_ENV !== 'production' ? { 
           target: 'pino-pretty', 
           options: { colorize: true, singleLine: true, ignore: 'pid,hostname' } 
-        },
+        } : undefined,
       },
     }),
     GameModule,
