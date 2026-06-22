@@ -67,3 +67,4 @@ jobs:
           app-name: "quizsync-api-core"
           slot-name: "Production"
           package: .
+          clean: true
