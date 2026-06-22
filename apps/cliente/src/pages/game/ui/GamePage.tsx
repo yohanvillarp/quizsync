@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BarChart2, Pencil, Timer, Trophy } from 'lucide-react';
+import { Pencil, Timer, Trophy } from 'lucide-react';
 import { NotebookSpiral } from '@/shared/ui/NotebookSpiral';
 import { WashiTape } from '@/shared/ui/WashiTape';
 import { GameTimer } from '@/features/game-timer/ui/GameTimer';
@@ -139,7 +139,7 @@ export const GamePage: React.FC = () => {
         <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 flex items-center scale-75 sm:scale-100">
           {endTime && view === 'question' && currentQuestion && (
             <GameTimer 
-              timeLeft={timeLeft} 
+              initialTime={timeLeft} 
               totalTime={currentQuestion.timeLimit} 
               isWarning={timeLeft <= 3}
             />
