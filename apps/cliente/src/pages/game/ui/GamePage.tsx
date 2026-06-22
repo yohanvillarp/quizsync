@@ -140,8 +140,6 @@ export const GamePage: React.FC = () => {
           {endTime && view === 'question' && currentQuestion && (
             <GameTimer 
               initialTime={timeLeft} 
-              totalTime={currentQuestion.timeLimit} 
-              isWarning={timeLeft <= 3}
             />
           )}
         </div>
