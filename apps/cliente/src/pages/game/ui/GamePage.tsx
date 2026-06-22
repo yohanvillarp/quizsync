@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BarChart2, Pencil } from 'lucide-react';
+import { Pencil, Timer, Trophy } from 'lucide-react';
 import { NotebookSpiral } from '@/shared/ui/NotebookSpiral';
 import { WashiTape } from '@/shared/ui/WashiTape';
 import { GameTimer } from '@/features/game-timer/ui/GameTimer';
@@ -46,17 +46,39 @@ export const GamePage: React.FC = () => {
     await submitAnswer(optionId);
   };
 
-  const initialTimeLeft = endTime ? Math.max(1, Math.ceil((endTime - Date.now()) / 1000)) : 0;
+  const [timeLeft, setTimeLeft] = useState(0);
 
+  useEffect(() => {
+    if (!endTime) return;
+    const updateTimer = () => {
+      setTimeLeft(Math.max(0, Math.ceil((endTime - Date.now()) / 1000)));
+    };
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
+    return () => clearInterval(interval);
+  }, [endTime]);
   // Calculamos la vista a forzar (por ejemplo, si el server dice RANKING, mostramos RANKING)
   const view = gameStatus === 'RANKING' ? 'ranking' : 'question';
 
   // Mostrar la UI de Preparación
   if (gameStatus === 'PREPARING') {
+    const roundNames = [
+      'PRIMERA', 'SEGUNDA', 'TERCERA', 'CUARTA', 'QUINTA', 
+      'SEXTA', 'SÉPTIMA', 'OCTAVA', 'NOVENA', 'DÉCIMA'
+    ];
+    
+    // Fallback in case of > 10 questions
+    const index = useGameStore.getState().currentQuestionIndex || 0;
+    const roundText = roundNames[index] ? `${roundNames[index]} RONDA` : `${index + 1}ª RONDA`;
+    const text = index === 0 ? '¡PREPÁRATE!' : roundText;
+
     return (
       <div className="min-h-screen flex flex-col items-center justify-center relative w-full bg-ink">
-        <h1 className="text-white font-display text-7xl uppercase tracking-widest animate-pulse">
-          ¡PREPÁRATE!
+        <div className="absolute top-12 font-headline text-6xl text-white opacity-80 font-bold drop-shadow-md">
+          {timeLeft > 0 ? timeLeft : ''}
+        </div>
+        <h1 className="text-white font-display text-5xl md:text-7xl uppercase tracking-widest animate-pulse text-center px-4">
+          {text}
         </h1>
       </div>
     );
@@ -98,19 +120,26 @@ export const GamePage: React.FC = () => {
 
           <div className="flex items-center gap-2 font-headline font-bold uppercase tracking-wider bg-white border-2 border-ink text-ink px-3 py-1 sm:px-4 sm:py-2 rounded-full text-xs sm:text-base">
             {view === 'question' ? (
-              <><BarChart2 size={16} className="sm:w-5 sm:h-5" /> <span className="hidden sm:inline">Pregunta</span></>
+              <>
+                <Timer size={16} className={timeLeft <= 3 ? "text-red-500 animate-bounce" : ""} />
+                <span className={timeLeft <= 3 ? "text-red-500" : ""}>
+                  {timeLeft}s
+                </span>
+              </>
             ) : (
-              <><BarChart2 size={16} className="sm:w-5 sm:h-5" /> <span className="hidden sm:inline">Posiciones</span></>
+              <>
+                <Trophy size={16} />
+                <span>Ranking</span>
+              </>
             )}
           </div>
         </div>
         
         {/* CENTER ABSOLUTE: TIMER */}
         <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 flex items-center scale-75 sm:scale-100">
-          {endTime && (
+          {endTime && view === 'question' && currentQuestion && (
             <GameTimer 
-              key={endTime} 
-              initialTime={initialTimeLeft} 
+              initialTime={timeLeft} 
             />
           )}
         </div>

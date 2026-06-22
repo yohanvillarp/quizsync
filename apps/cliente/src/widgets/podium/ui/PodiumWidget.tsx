@@ -5,9 +5,10 @@ import { Trophy, Star } from "lucide-react";
 
 interface PodiumWidgetProps {
   players: PodiumPlayer[];
+  roomId: string;
 }
 
-export function PodiumWidget({ players }: PodiumWidgetProps) {
+export function PodiumWidget({ players, roomId }: PodiumWidgetProps) {
   // Encontramos los jugadores por su rank (1 = centro, 2 = izquierda, 3 = derecha)
   const first = players.find(p => p.rank === 1);
   const second = players.find(p => p.rank === 2);
@@ -34,9 +35,16 @@ export function PodiumWidget({ players }: PodiumWidgetProps) {
   // 5: Suspenso (ofuscar 2do y 3ro) (6.5s)
   // 6: Aparece 1ro (8.5s)
   // 7: 1ro salta, se quita ofuscamiento (10.0s)
-  const [revealStep, setRevealStep] = useState(0);
+  const [revealStep, setRevealStep] = useState(() => {
+    if (sessionStorage.getItem(`podium_played_${roomId}`)) {
+      return 7;
+    }
+    return 0;
+  });
 
   useEffect(() => {
+    if (sessionStorage.getItem(`podium_played_${roomId}`)) return;
+
     let t1: ReturnType<typeof setTimeout>, t2: ReturnType<typeof setTimeout>, t3: ReturnType<typeof setTimeout>, t4: ReturnType<typeof setTimeout>, t5: ReturnType<typeof setTimeout>, t6: ReturnType<typeof setTimeout>, t7: ReturnType<typeof setTimeout>;
     
     if (players.length >= 3) {
@@ -46,18 +54,24 @@ export function PodiumWidget({ players }: PodiumWidgetProps) {
       t4 = setTimeout(() => setRevealStep(4), 5000);
       t5 = setTimeout(() => setRevealStep(5), 6500);
       t6 = setTimeout(() => setRevealStep(6), 8500);
-      t7 = setTimeout(() => setRevealStep(7), 10000);
+      t7 = setTimeout(() => {
+        setRevealStep(7);
+        sessionStorage.setItem(`podium_played_${roomId}`, 'true');
+      }, 10000);
     } else {
       // Si solo hay 2 jugadores, saltamos los pasos 1 y 2
       t3 = setTimeout(() => setRevealStep(3), 1500);
       t4 = setTimeout(() => setRevealStep(4), 2500);
       t5 = setTimeout(() => setRevealStep(5), 4000);
       t6 = setTimeout(() => setRevealStep(6), 6000);
-      t7 = setTimeout(() => setRevealStep(7), 7500);
+      t7 = setTimeout(() => {
+        setRevealStep(7);
+        sessionStorage.setItem(`podium_played_${roomId}`, 'true');
+      }, 7500);
     }
     
     return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(t4); clearTimeout(t5); clearTimeout(t6); clearTimeout(t7); };
-  }, [players.length]);
+  }, [players.length, roomId]);
 
   // Efecto de Jittering similar al de Podio.html
   const [jitterRotations, setJitterRotations] = useState([0, 0, 0]);
@@ -115,7 +129,7 @@ export function PodiumWidget({ players }: PodiumWidgetProps) {
       {first && (
         <div className="flex flex-col items-center flex-1 max-w-[280px] z-10">
           <div className={`mb-4 w-full text-center transition-all duration-700 transform ${revealStep >= 6 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-16'}`}>
-            <div className={`w-full ${revealStep >= 7 ? 'character-celebrate' : ''}`}>
+            <div className={`w-full`}>
               <div className="relative w-40 h-40 mx-auto mb-2 drop-shadow-md">
                 {getAvatarComponent(first.avatarId as string)}
               </div>

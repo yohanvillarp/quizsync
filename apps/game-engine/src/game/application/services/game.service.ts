@@ -393,8 +393,8 @@ export class GameService {
     if (!room || room.hostId !== hostId) return null;
 
     room.status = 'LOBBY';
-    room.currentQuestionIndex = 0;
-    room.questions = []; // Se limpiarán hasta que el host cambie o inicie con la misma
+    room.currentQuestionIndex = -1;
+    // No limpiamos room.questions para permitir jugar de nuevo con la misma categoría
     room.currentEndTime = null;
 
     // Resetear jugadores

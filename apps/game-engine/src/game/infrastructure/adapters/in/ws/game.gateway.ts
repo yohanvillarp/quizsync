@@ -23,7 +23,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   private questionTimeouts: Map<string, NodeJS.Timeout> = new Map();
   private lastEmoteTime: Map<string, number> = new Map();
-  private readonly EMOTE_COOLDOWN_MS = 1500;
+  private readonly EMOTE_COOLDOWN_MS = 800;
   private readonly logger = new Logger(GameGateway.name);
 
   constructor(private readonly gameService: GameService) {}
@@ -230,6 +230,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       this.server.to(payload.roomId).emit('game_started', {
         status: room.status,
         endTime: room.currentEndTime,
+        currentQuestionIndex: room.currentQuestionIndex,
       });
 
       this.runGameLoop(payload.roomId);
@@ -296,6 +297,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
             this.server.to(roomId).emit('game_started', {
               status: nRoom.status,
               endTime: nRoom.currentEndTime,
+              currentQuestionIndex: nRoom.currentQuestionIndex,
             });
             this.runGameLoop(roomId);
           }

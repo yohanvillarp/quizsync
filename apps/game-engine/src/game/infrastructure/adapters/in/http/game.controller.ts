@@ -71,7 +71,7 @@ export class GameController {
           previousRoomId: error.previousRoomId
         }, HttpStatus.CONFLICT);
       }
-      this.logger.error('Error al invocar ApiCore o crear sala:', error);
+      this.logger.error('Error al invocar ApiCore o crear sala: ' + (error?.stack || error?.message || error));
       throw new InternalServerErrorException('No se pudo inicializar la partida');
     }
   }

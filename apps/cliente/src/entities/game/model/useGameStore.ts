@@ -25,7 +25,7 @@ export interface Question {
   options: Option[];
 }
 
-interface GameStartedPayload { status: 'PREPARING'; endTime: number; }
+interface GameStartedPayload { status: 'PREPARING'; endTime: number; currentQuestionIndex?: number; }
 interface QuestionStartedPayload { status: 'QUESTION'; question: Question; endTime: number; }
 interface ShowRankingPayload { status: 'RANKING'; endTime: number; players: Player[]; }
 interface GameFinishedPayload { status: 'FINISHED'; players: Player[]; categoryName?: string; }
@@ -41,6 +41,7 @@ interface GameState {
   // Estado del juego
   gameStatus: 'LOBBY' | 'PREPARING' | 'QUESTION' | 'RANKING' | 'FINISHED';
   currentQuestion: Question | null;
+  currentQuestionIndex: number;
   endTime: number | null;
   categoryName: string;
   
@@ -81,7 +82,12 @@ export const useGameStore = create<GameState>((set, get) => {
   socketClient.on('player_left', updatePlayersState);
   socketClient.on('player_updated', updatePlayersState);
 
-  socketClient.on('game_started', (data: GameStartedPayload) => set({ gameStatus: data.status, endTime: data.endTime, currentQuestion: null }));
+  socketClient.on('game_started', (data: GameStartedPayload) => set((state) => ({ 
+    gameStatus: data.status, 
+    endTime: data.endTime, 
+    currentQuestion: null,
+    currentQuestionIndex: data.currentQuestionIndex !== undefined ? data.currentQuestionIndex : (state.gameStatus === 'LOBBY' || state.gameStatus === 'FINISHED' ? 0 : state.currentQuestionIndex + 1)
+  })));
   socketClient.on('question_started', (data: QuestionStartedPayload) => set({ gameStatus: data.status, currentQuestion: data.question, endTime: data.endTime }));
   socketClient.on('show_ranking', (data: ShowRankingPayload) => set({ gameStatus: data.status, endTime: data.endTime, players: data.players }));
   socketClient.on('game_finished', (data: GameFinishedPayload) => set({ 
@@ -99,6 +105,15 @@ export const useGameStore = create<GameState>((set, get) => {
     currentQuestion: null
   }));
 
+  socketClient.on('room_destroyed', () => set({
+    roomId: null,
+    gameStatus: 'LOBBY',
+    players: [],
+    currentQuestion: null,
+    endTime: null,
+    isConnected: true // Mantiene la conexión al socket, pero sale de la sala
+  }));
+
   socketClient.on('category_updated', (data: CategoryUpdatedPayload) => set({
     categoryName: data.categoryName
   }));
@@ -110,6 +125,7 @@ export const useGameStore = create<GameState>((set, get) => {
     isConnected: false,
     gameStatus: 'LOBBY',
     currentQuestion: null,
+    currentQuestionIndex: 0,
     endTime: null,
     categoryName: '',
 
