@@ -74,11 +74,11 @@ export const GamePage: React.FC = () => {
 
     // We use a fixed 4s timer for PREPARING to avoid clock skew issues with the server
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center relative w-full bg-ink">
-        <div className="absolute top-16 z-20 flex items-center scale-150">
+      <div className="min-h-screen flex flex-col items-center justify-center gap-16 w-full bg-ink relative">
+        <div className="z-20 flex items-center justify-center scale-[2.5] md:scale-[3]">
           <GameTimer key={index} initialTime={4} />
         </div>
-        <h1 className="text-white font-display text-5xl md:text-7xl uppercase tracking-widest animate-pulse text-center px-4 mt-32">
+        <h1 className="text-white font-display text-4xl md:text-6xl uppercase tracking-widest animate-pulse text-center px-4 mt-12 drop-shadow-lg">
           {text}
         </h1>
       </div>

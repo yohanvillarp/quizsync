@@ -267,11 +267,30 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   private triggerRankingPhase(roomId: string) {
-    // Si se llama antes de tiempo, cancelamos el timeout
     const existingTimeout = this.questionTimeouts.get(roomId);
     if (existingTimeout) {
       clearTimeout(existingTimeout);
       this.questionTimeouts.delete(roomId);
+    }
+
+    try {
+      const room = this.gameService.getRoom(roomId);
+      const isLastQuestion = room.currentQuestionIndex >= room.questions.length - 1;
+      
+      if (isLastQuestion) {
+        // En la última pregunta saltamos directo al final para crear suspenso
+        const nRoom = this.gameService.nextQuestion(roomId);
+        if (nRoom && nRoom.status === 'FINISHED') {
+          this.server.to(roomId).emit('game_finished', {
+            status: nRoom.status,
+            players: Array.from(nRoom.players.values()).sort((a, b) => b.score - a.score),
+            categoryName: nRoom.categoryName
+          });
+        }
+        return;
+      }
+    } catch {
+      return;
     }
 
     const rRoom = this.gameService.showRanking(roomId);
