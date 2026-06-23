@@ -10,11 +10,13 @@ if (!PUBLISHABLE_KEY) {
 }
 
 import { ClerkAxiosInterceptor } from "@/shared/api/ClerkAxiosInterceptor";
+import { GlobalAlert } from "@/shared/ui/GlobalAlert/GlobalAlert";
 
 function App() {
   return (
     <ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl="/">
       <ClerkAxiosInterceptor>
+        <GlobalAlert />
         <RouterProvider router={router} />
       </ClerkAxiosInterceptor>
     </ClerkProvider>

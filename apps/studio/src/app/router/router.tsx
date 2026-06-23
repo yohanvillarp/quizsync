@@ -4,6 +4,7 @@ import { Navbar } from "@/widgets/navbar/ui/Navbar";
 import { DashboardPage } from "@/pages/dashboard/ui/DashboardPage";
 import { CreateQuizPage } from "@/pages/create-quiz/ui/CreateQuizPage";
 import { AdminRoute } from "@/shared/ui/AdminRoute";
+import { CategoriesPage } from "@/pages/categories/ui/CategoriesPage";
 
 // Layout principal protegido por Clerk y por Rol
 function RootLayout() {
@@ -30,6 +31,10 @@ export const router = createBrowserRouter([
       {
         index: true,
         element: <DashboardPage />,
+      },
+      {
+        path: "categories",
+        element: <CategoriesPage />,
       },
       {
         path: "quizzes/new",
