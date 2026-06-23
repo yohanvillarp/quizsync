@@ -35,6 +35,8 @@ model Quiz {
   questions   Question[]
   
   matches     MatchRecord[]
+
+  @@index([categoryId])
 }
 
 model Question {
