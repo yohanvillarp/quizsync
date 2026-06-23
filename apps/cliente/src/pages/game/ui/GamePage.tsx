@@ -8,6 +8,7 @@ import { AnswerOption } from '@/entities/game/ui/AnswerOption';
 import { RankingBoard } from '@/widgets/game-board/ui/RankingBoard';
 import { useGameStore } from '@/entities/game/model/useGameStore';
 import { useNavigate } from 'react-router-dom';
+import { SoundButton } from '@/shared/ui/SoundButton';
 
 export const GamePage: React.FC = () => {
   const navigate = useNavigate();
@@ -101,9 +102,9 @@ export const GamePage: React.FC = () => {
           ¡FIN DEL JUEGO!
         </h1>
         <RankingBoard players={rankingPlayers} />
-        <button onClick={() => navigate('/')} className="mt-12 bg-high-yellow px-8 py-4 border-4 border-ink font-bold text-2xl uppercase shadow-[6px_6px_0px_0px_var(--color-ink)]">
+        <SoundButton clickSound="click" onClick={() => navigate('/')} className="mt-12 bg-high-yellow px-8 py-4 border-4 border-ink font-bold text-2xl uppercase shadow-[6px_6px_0px_0px_var(--color-ink)]">
           Volver a Inicio
-        </button>
+        </SoundButton>
       </div>
     );
   }

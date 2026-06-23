@@ -1,6 +1,7 @@
 import { useAvatarStore, type AvatarType } from "@/shared/store/useAvatarStore";
 import { FoxAvatar, OwlAvatar, BearAvatar, CatAvatar, RabbitAvatar, DogAvatar } from "@/shared/ui/avatars/AvatarIcons";
-import { useSFX } from "@/shared/lib/audio/useSFX";
+import { useState } from "react";
+import { audioManager } from "@/core/audio/AudioManager";
 
 const AVATAR_OPTIONS: { id: AvatarType; name: string; component: React.ReactNode; rotation: number }[] = [
   { id: 'fox', name: 'Zorro', component: <FoxAvatar />, rotation: -1.5 },
@@ -23,7 +24,7 @@ const AVATAR_OPTIONS: { id: AvatarType; name: string; component: React.ReactNode
 
 export function AvatarInventoryWidget() {
   const { selectedAvatar, setSelectedAvatar } = useAvatarStore();
-  const { playSelectSound } = useSFX();
+  const [showEffect, setShowEffect] = useState(false);
 
   return (
     <div className="w-full relative">
@@ -48,8 +49,17 @@ export function AvatarInventoryWidget() {
               }`}
               style={{ transform: isSelected ? 'none' : `rotate(${avatar.rotation}deg)` }}
               onClick={() => {
+                if (avatar.id === 'random' && selectedAvatar !== 'random') {
+                  setShowEffect(true);
+                  setTimeout(() => setShowEffect(false), 800);
+                }
                 setSelectedAvatar(avatar.id);
-                playSelectSound();
+                if (avatar.id !== 'random') {
+                  audioManager.playAvatarSound(avatar.id as string);
+                } else {
+                  // Opcional: Sonido genérico para "Sorpréndeme"
+                  audioManager.playUISound('random-select');
+                }
               }}
             >
               <div className="w-full aspect-square bg-white mb-4 flex items-center justify-center relative overflow-visible">
@@ -62,6 +72,16 @@ export function AvatarInventoryWidget() {
           );
         })}
       </div>
+
+      {showEffect && (
+        <div className="fixed inset-0 z-[200] pointer-events-none flex items-center justify-center bg-black/10 animate-in fade-in duration-200">
+          <div className="animate-bounce -rotate-12">
+            <div className="text-[250px] sm:text-[350px] font-black text-[var(--color-high-yellow)] drop-shadow-[15px_15px_0_var(--color-ink)]">
+              ?
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

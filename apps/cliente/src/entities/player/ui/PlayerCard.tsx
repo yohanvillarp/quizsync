@@ -2,6 +2,7 @@ import { useState } from "react";
 import { FoxAvatar, OwlAvatar, BearAvatar, CatAvatar, RabbitAvatar, DogAvatar } from "@/shared/ui/avatars/AvatarIcons";
 import { Crown, Edit2, UserMinus, Ban, VolumeX, RotateCcw } from "lucide-react";
 import { useRole } from "@/shared/lib/rbac/useRole";
+import { SoundButton } from "@/shared/ui/SoundButton";
 
 export interface Player {
   socketId: string;
@@ -77,8 +78,9 @@ export function PlayerCard({ player, emotes = [], isPoked = false, onPoke, isMe 
       {isMe && showPicker && (
         <div className="absolute -top-14 sm:-top-16 z-50 bg-white border-4 border-[var(--color-ink)] p-1 sm:p-2 rounded-3xl flex gap-0.5 sm:gap-1 shadow-[4px_4px_0px_var(--color-ink)] animate-in zoom-in duration-200">
           {Object.keys(ICONS).map((key) => (
-            <button
+            <SoundButton
               key={key}
+              clickSound="click"
               onClick={(e) => {
                 e.stopPropagation();
                 if (onChangeAvatar) onChangeAvatar(key);
@@ -89,7 +91,7 @@ export function PlayerCard({ player, emotes = [], isPoked = false, onPoke, isMe 
               <div className="w-6 h-6 sm:w-8 sm:h-8 pointer-events-none flex items-center justify-center">
                 {ICONS[key]}
               </div>
-            </button>
+            </SoundButton>
           ))}
         </div>
       )}
@@ -98,7 +100,8 @@ export function PlayerCard({ player, emotes = [], isPoked = false, onPoke, isMe 
       {!isMe && amIHost && showAdminPicker && (
         <div className="absolute -top-14 sm:-top-16 z-50 bg-white border-4 border-[var(--color-ink)] p-1 sm:p-2 rounded-3xl flex flex-wrap justify-center gap-1 shadow-[4px_4px_0px_var(--color-ink)] animate-in zoom-in duration-200 max-w-[180px] sm:max-w-none">
           {!isHost && (
-            <button
+            <SoundButton
+              clickSound="confirm"
               onClick={(e) => {
                 e.stopPropagation();
                 if (onTransferHost) onTransferHost();
@@ -108,9 +111,10 @@ export function PlayerCard({ player, emotes = [], isPoked = false, onPoke, isMe 
               title="Dar Host"
             >
               <Crown size={18} className="text-[var(--color-ink)] sm:!w-5 sm:!h-5 md:!w-6 md:!h-6" strokeWidth={2.5} />
-            </button>
+            </SoundButton>
           )}
-          <button
+          <SoundButton
+            clickSound="error"
             onClick={(e) => {
               e.stopPropagation();
               if (onKick) onKick();
@@ -120,8 +124,9 @@ export function PlayerCard({ player, emotes = [], isPoked = false, onPoke, isMe 
             title="Expulsar Jugador (Puede volver)"
           >
             <UserMinus size={18} className="text-white sm:!w-5 sm:!h-5 md:!w-6 md:!h-6" strokeWidth={2.5} />
-          </button>
-          <button
+          </SoundButton>
+          <SoundButton
+            clickSound="click"
             onClick={(e) => {
               e.stopPropagation();
               if (onMuteEmotes) onMuteEmotes();
@@ -133,8 +138,9 @@ export function PlayerCard({ player, emotes = [], isPoked = false, onPoke, isMe 
             {player.emotesMuted
               ? <RotateCcw size={18} className="text-white sm:!w-5 sm:!h-5 md:!w-6 md:!h-6" strokeWidth={2.5} />
               : <VolumeX size={18} className="text-white sm:!w-5 sm:!h-5 md:!w-6 md:!h-6" strokeWidth={2.5} />}
-          </button>
-          <button
+          </SoundButton>
+          <SoundButton
+            clickSound="error"
             onClick={(e) => {
               e.stopPropagation();
               if (onBan) onBan();
@@ -144,7 +150,7 @@ export function PlayerCard({ player, emotes = [], isPoked = false, onPoke, isMe 
             title="Vetar Jugador (No puede volver)"
           >
             <Ban size={18} className="text-white sm:!w-5 sm:!h-5 md:!w-6 md:!h-6" strokeWidth={2.5} />
-          </button>
+          </SoundButton>
         </div>
       )}
 

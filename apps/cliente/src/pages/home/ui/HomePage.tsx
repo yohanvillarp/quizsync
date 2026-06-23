@@ -11,6 +11,7 @@ import { useEffect, useState } from "react";
 import { getRandomHomeQuote } from "@/entities/quote/api/getRandomHomeQuote";
 import { engineClient } from "@/shared/api/engineClient";
 import { Play, Trash2, X, AlertCircle } from "lucide-react";
+import { SoundButton } from "@/shared/ui/SoundButton";
 
 export function HomePage() {
   const navigate = useNavigate();
@@ -63,13 +64,14 @@ export function HomePage() {
       <AudioVisualizerWidget />
 
       {/* Botón de Inventario (Esquina superior izquierda) */}
-      <button 
+      <SoundButton 
+        clickSound="click"
         onClick={() => navigate('/inventory')}
         className="absolute top-4 left-4 sm:top-6 sm:left-6 z-50 flex items-center gap-2 bg-white/90 backdrop-blur-md px-3 sm:px-4 py-2 sm:py-3 rounded-full border-[3px] border-[var(--color-ink)] shadow-[4px_4px_0px_0px_var(--color-ink-offset)] sm:shadow-[6px_6px_0px_0px_var(--color-ink-offset)] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_var(--color-ink-offset)] sm:hover:shadow-[8px_8px_0px_0px_var(--color-ink-offset)] hover:bg-[var(--color-high-yellow)] transition-all font-bold text-base sm:text-lg"
       >
         <Backpack size={20} strokeWidth={2.5} className="sm:!w-6 sm:!h-6" />
         <span className="hidden sm:inline">Inventario</span>
-      </button>
+      </SoundButton>
       
       {/* Central Action Area */}
       <div className="w-full max-w-md sm:max-w-xl md:max-w-2xl lg:max-w-3xl flex flex-col items-center gap-3 sm:gap-5 z-10 flex-shrink-0">
@@ -95,7 +97,8 @@ export function HomePage() {
 
       {/* Active Room Floating Widget */}
       {activeRoom && (
-        <button
+        <SoundButton
+          hoverSound="hover"
           onClick={() => setShowActiveRoomModal(true)}
           className="fixed bottom-6 right-6 sm:bottom-10 sm:right-10 z-50 flex items-center gap-3 bg-[var(--color-high-yellow)] border-4 border-black px-4 py-3 rounded-2xl shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transition-all animate-bounce"
         >
@@ -108,7 +111,7 @@ export function HomePage() {
               {activeRoom.quizTitle}
             </span>
           </div>
-        </button>
+        </SoundButton>
       )}
 
       {/* Active Room Modal */}
@@ -126,27 +129,30 @@ export function HomePage() {
             </p>
 
             <div className="flex flex-col w-full gap-3">
-              <button 
+              <SoundButton 
+                clickSound="confirm"
                 onClick={() => navigate(`/lobby/${activeRoom.roomId}`)}
                 className="w-full bg-[var(--color-neon-green)] text-black border-4 border-black font-display text-xl py-4 rounded-xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all flex items-center justify-center gap-2"
               >
                 <Play size={24} fill="currentColor" /> Volver a la Sala
-              </button>
+              </SoundButton>
 
-              <button 
+              <SoundButton 
+                clickSound="error"
                 onClick={handleDestroyRoom}
                 disabled={isDestroying}
                 className="w-full bg-[#FF4747] text-white border-4 border-black font-display text-xl py-4 rounded-xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
               >
                 <Trash2 size={24} /> {isDestroying ? "Destruyendo..." : "Destruir Sala"}
-              </button>
+              </SoundButton>
 
-              <button 
+              <SoundButton 
+                clickSound="click"
                 onClick={() => setShowActiveRoomModal(false)}
                 className="w-full bg-gray-100 text-gray-500 border-4 border-gray-300 font-display text-lg py-3 rounded-xl hover:bg-gray-200 transition-all flex items-center justify-center gap-2 mt-2"
               >
                 <X size={20} /> Ignorar
-              </button>
+              </SoundButton>
             </div>
             
           </div>
