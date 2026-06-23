@@ -1,7 +1,8 @@
 import { MousePointer2, Palette } from "lucide-react";
 import { useCursorStore, type CursorType } from "@/shared/store/useCursorStore";
+import { useState } from "react";
 import type { ReactNode } from "react";
-import { useSFX } from "@/shared/lib/audio/useSFX";
+import { audioManager } from "@/core/audio/AudioManager";
 
 const CURSOR_OPTIONS: { id: CursorType; name: string; icon: ReactNode; desc: string }[] = [
   { 
@@ -121,7 +122,7 @@ const COLORS = [
 
 export function CursorInventoryWidget() {
   const { cursorType, setCursorType, cursorColor, setCursorColor } = useCursorStore();
-  const { playSelectSound } = useSFX();
+  const [showEffect, setShowEffect] = useState(false);
 
   return (
     <div className="w-full flex flex-col items-center">
@@ -137,7 +138,7 @@ export function CursorInventoryWidget() {
                 key={color.id}
                 onClick={() => {
                   setCursorColor(color.id);
-                  playSelectSound();
+                  audioManager.playUISound('cursor-select');
                 }}
                 className={`w-12 h-12 rounded-full border-4 transition-all ${
                   cursorColor === color.id
@@ -163,8 +164,16 @@ export function CursorInventoryWidget() {
                 isSelected ? 'selected jitter' : ''
               }`}
               onClick={() => {
+                if (cursor.id === 'random' && cursorType !== 'random') {
+                  setShowEffect(true);
+                  setTimeout(() => setShowEffect(false), 800);
+                }
                 setCursorType(cursor.id);
-                playSelectSound();
+                if (cursor.id === 'random') {
+                  audioManager.playUISound('random-select');
+                } else {
+                  audioManager.playUISound('cursor-select');
+                }
               }}
             >
               <div className="w-full h-32 bg-white mb-4 flex items-center justify-center relative overflow-hidden border-2 border-[var(--color-ink)]">
@@ -180,6 +189,16 @@ export function CursorInventoryWidget() {
           );
         })}
       </div>
+
+      {showEffect && (
+        <div className="fixed inset-0 z-[200] pointer-events-none flex items-center justify-center bg-black/10 animate-in fade-in duration-200">
+          <div className="animate-bounce -rotate-12">
+            <div className="text-[250px] sm:text-[350px] font-black text-[var(--color-high-pink)] drop-shadow-[15px_15px_0_var(--color-ink)]">
+              ?
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
