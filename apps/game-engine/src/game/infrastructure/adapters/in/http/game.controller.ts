@@ -1,4 +1,4 @@
-import { Controller, Post, Body, InternalServerErrorException, Get, HttpException, HttpStatus, UseGuards, Logger } from '@nestjs/common';
+import { Controller, Post, Body, InternalServerErrorException, Get, HttpException, HttpStatus, UseGuards, Logger, Param, Delete, Query } from '@nestjs/common';
 import { GameService, Question, RoomAlreadyExistsException } from '@/game/application/services/game.service';
 import { ThrottlerGuard } from '@nestjs/throttler';
 import type { ApiCoreQuiz } from '@/game/domain/models/api-core.dto';
@@ -14,51 +14,99 @@ export class GameController {
     return this.gameService.getPublicRooms();
   }
 
+  @Get('active-host/:hostId')
+  getActiveHostRoom(@Param('hostId') hostId: string) {
+    const room = this.gameService.getActiveRoomForHost(hostId);
+    if (!room) {
+      throw new HttpException('No active room', HttpStatus.NOT_FOUND);
+    }
+    return { roomId: room.roomId, quizTitle: room.quizTitle };
+  }
+
+  @Delete(':roomId')
+  deleteRoom(@Param('roomId') roomId: string, @Query('hostId') hostId: string) {
+    try {
+      const room = this.gameService.getRoom(roomId);
+      if (room.hostId === hostId) {
+        this.gameService.destroyRoom(roomId, 'El anfitrión ha destruido la sala manualmente.');
+        return { success: true };
+      }
+      throw new HttpException('No tienes permisos', HttpStatus.FORBIDDEN);
+    } catch (e) {
+      throw new HttpException('Sala no encontrada', HttpStatus.NOT_FOUND);
+    }
+  }
+
   @Post()
-  async createRoom(@Body() payload: { categoryId: string; gameMode: string; visibility: string; hostId: string; force?: boolean }) {
+  async createRoom(@Body() payload: { categoryId: string; quizId?: string; gameMode: string; visibility: string; hostId: string; force?: boolean; maxPlayers?: number; questionCount?: number }) {
     try {
       // Invocación Remota a ApiCore para obtener las preguntas
       const apiCoreUrl = process.env.API_CORE_URL || 'http://localhost:3000/api';
-      const res = await fetch(`${apiCoreUrl}/quizzes`);
+      const fetchUrl = payload.categoryId && payload.categoryId !== 'random' 
+        ? `${apiCoreUrl}/quizzes?categoryId=${payload.categoryId}` 
+        : `${apiCoreUrl}/quizzes`;
+      const res = await fetch(fetchUrl);
       if (!res.ok) throw new Error('Error al conectar con ApiCore');
       const allQuizzes: ApiCoreQuiz[] = await res.json();
-      
-      // Lógica simple para elegir un quiz: el primero, o filtramos por categoría luego
-      // (asumimos que el payload.categoryId podría ser 'random' u otro)
-      let selectedQuiz = allQuizzes.find((q) => q.categoryId === payload.categoryId);
-      if (!selectedQuiz && allQuizzes.length > 0) {
-        selectedQuiz = allQuizzes[0]; // Fallback
+      // Filter quizzes by category, or use all if random
+      let filteredQuizzes: ApiCoreQuiz[] = [];
+      let roomTitle = 'Trivia Mixta Mix';
+      let categoryName = 'Trivia Mixta';
+
+      if (payload.quizId && payload.quizId !== 'random') {
+        const exactQuiz = allQuizzes.find(q => q.id === payload.quizId);
+        if (exactQuiz) {
+          filteredQuizzes = [exactQuiz];
+          roomTitle = exactQuiz.title;
+          categoryName = exactQuiz.category?.name || 'Categoría Libre';
+        } else {
+          throw new Error('No se encontró el cuestionario específico solicitado');
+        }
+      } else if (payload.categoryId === 'random' || !payload.categoryId) {
+        filteredQuizzes = allQuizzes;
+      } else {
+        filteredQuizzes = allQuizzes.filter((q) => q.categoryId === payload.categoryId);
+        if (filteredQuizzes.length > 0) {
+          categoryName = filteredQuizzes[0].category?.name || 'Categoría Libre';
+          roomTitle = categoryName + ' Mix';
+        } else {
+          filteredQuizzes = allQuizzes; // fallback if category not found or has no quizzes
+        }
       }
 
-      if (!selectedQuiz) {
+      if (filteredQuizzes.length === 0) {
         throw new Error('No hay quizzes disponibles en la base de datos');
       }
 
-      // Mapear las preguntas desde el formato de ApiCore al formato de GameEngine
-      let questions: Question[] = selectedQuiz.questions.map((q) => ({
-        id: q.id,
-        text: q.text,
-        timeLimit: q.timeLimit || 15,
-        options: q.options.map((o) => ({
-          id: o.id,
-          text: o.text,
-          isCorrect: o.isCorrect
-        }))
-      }));
-
-      // Si hay más de 10 preguntas, seleccionar 10 aleatorias
-      if (questions.length > 10) {
-        questions = questions.sort(() => 0.5 - Math.random()).slice(0, 10);
+      // Collect all questions from all filtered quizzes
+      let allQuestions: Question[] = [];
+      for (const quiz of filteredQuizzes) {
+        const mapped = quiz.questions.map((q) => ({
+          id: q.id,
+          text: q.text,
+          timeLimit: q.timeLimit || 15,
+          options: q.options.map((o) => ({
+            id: o.id,
+            text: o.text,
+            isCorrect: o.isCorrect
+          }))
+        }));
+        allQuestions = allQuestions.concat(mapped);
       }
 
+      // Shuffle and pick requested amount (default 10)
+      const count = payload.questionCount && payload.questionCount > 0 ? payload.questionCount : 10;
+      let questions = allQuestions.sort(() => 0.5 - Math.random()).slice(0, count);
+
       const roomId = this.gameService.createRoom(
-        selectedQuiz.id,
-        selectedQuiz.title,
-        selectedQuiz.category?.name || 'Categoría Libre',
+        payload.categoryId || 'random',
+        roomTitle,
+        categoryName,
         payload.visibility as 'PUBLIC' | 'PRIVATE',
         payload.hostId,
         questions,
-        payload.force
+        payload.force,
+        payload.maxPlayers || 10
       );
       
       return { roomId, status: 'success' };

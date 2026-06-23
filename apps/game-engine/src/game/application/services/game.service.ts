@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { GAME_CONSTANTS } from '@/game/domain/game.constants';
+import { Subject } from 'rxjs';
 
 export interface Player {
   socketId: string;
@@ -43,6 +44,7 @@ export interface RoomState {
   questions: Question[];
   currentQuestionIndex: number;
   currentEndTime: number | null; // Tiempo UNIX en que termina la fase actual
+  maxPlayers: number;
 }
 
 export interface PublicRoomDto {
@@ -65,6 +67,7 @@ export class GameService {
   private rooms: Map<string, RoomState> = new Map();
   private activeHosts: Map<string, string> = new Map(); // hostId -> roomId
   private roomCreationTimeouts: Map<string, NodeJS.Timeout> = new Map();
+  public readonly roomDestroyed$ = new Subject<{roomId: string, message: string}>();
 
   createRoom(
     quizId: string, 
@@ -73,7 +76,8 @@ export class GameService {
     visibility: 'PUBLIC' | 'PRIVATE', 
     hostId: string,
     questions: Question[],
-    force: boolean = false
+    force: boolean = false,
+    maxPlayers: number = 10
   ): string {
     const existingRoomId = this.activeHosts.get(hostId);
     if (existingRoomId) {
@@ -99,15 +103,19 @@ export class GameService {
       questions: questions,
       currentQuestionIndex: -1,
       currentEndTime: null,
+      maxPlayers: maxPlayers || 10,
     });
 
     this.activeHosts.set(hostId, roomId);
 
-    // Auto-destruir la sala si nadie se une dentro del timeout
+    // Auto-destruir la sala si el host no se une dentro del timeout
     const timeoutId = setTimeout(() => {
       const currentRoom = this.rooms.get(roomId);
-      if (currentRoom && currentRoom.players.size === 0) {
-        this.destroyRoom(roomId);
+      if (currentRoom) {
+        const hostJoined = currentRoom.players.has(hostId);
+        if (!hostJoined) {
+          this.destroyRoom(roomId, 'El creador de la sala nunca se conectó. La sala ha caducado.');
+        }
       }
     }, GAME_CONSTANTS.HOST_WAIT_TIMEOUT_MS);
     this.roomCreationTimeouts.set(roomId, timeoutId);
@@ -115,7 +123,7 @@ export class GameService {
     return roomId;
   }
 
-  destroyRoom(roomId: string): void {
+  destroyRoom(roomId: string, reason: string = 'La sala ha sido cerrada.'): void {
     const room = this.rooms.get(roomId);
     if (room) {
       this.activeHosts.delete(room.hostId);
@@ -126,7 +134,15 @@ export class GameService {
         clearTimeout(timeoutId);
         this.roomCreationTimeouts.delete(roomId);
       }
+      
+      this.roomDestroyed$.next({ roomId, message: reason });
     }
+  }
+
+  getActiveRoomForHost(hostId: string): RoomState | null {
+    const roomId = this.activeHosts.get(hostId);
+    if (!roomId) return null;
+    return this.rooms.get(roomId) || null;
   }
 
   getPublicRooms(): PublicRoomDto[] {
@@ -138,7 +154,7 @@ export class GameService {
           quizTitle: room.quizTitle,
           categoryName: room.categoryName,
           playersCount: room.players.size,
-          maxPlayers: 10
+          maxPlayers: room.maxPlayers
         });
       }
     }
@@ -158,9 +174,9 @@ export class GameService {
       throw new Error('Has sido vetado de esta sala.');
     }
     
-    // Validar capacidad máxima (10 jugadores) si es un nuevo jugador
-    if (!room.players.has(deviceId) && room.players.size >= 10) {
-      throw new Error('La sala ya ha alcanzado el límite máximo de 10 jugadores.');
+    // Validar capacidad máxima si es un nuevo jugador
+    if (!room.players.has(deviceId) && room.players.size >= room.maxPlayers) {
+      throw new Error(`La sala ya ha alcanzado el límite máximo de ${room.maxPlayers} jugadores.`);
     }
     
     // Reconexión si el deviceId ya existe
@@ -178,11 +194,13 @@ export class GameService {
 
     room.players.set(deviceId, { socketId, deviceId, name, avatarId, isHost, connected: true, score: 0, answered: false, emotesMuted: false });
 
-    // Cancelar el timeout de auto-destrucción cuando alguien se une
-    const timeoutId = this.roomCreationTimeouts.get(roomId);
-    if (timeoutId) {
-      clearTimeout(timeoutId);
-      this.roomCreationTimeouts.delete(roomId);
+    // Cancelar el timeout de auto-destrucción SOLO si el host se une
+    if (isHost) {
+      const timeoutId = this.roomCreationTimeouts.get(roomId);
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+        this.roomCreationTimeouts.delete(roomId);
+      }
     }
 
     return room;
@@ -267,15 +285,18 @@ export class GameService {
     return null;
   }
 
-  removePlayerDefinitively(roomId: string, deviceId: string): { room: RoomState, destroyed: boolean } | null {
+  removePlayerDefinitively(roomId: string, deviceId: string, forceLeave: boolean = false): { room: RoomState, destroyed: boolean } | null {
     const room = this.rooms.get(roomId);
     if (!room) return null;
 
     const player = room.players.get(deviceId);
     if (!player) return null;
 
-    // Solo lo removemos si sigue desconectado (pudo haberse reconectado durante el timeout)
-    if (player.connected) return null;
+    // Solo lo removemos si sigue desconectado (o si es salida forzosa) y la partida no ha terminado (si terminó, lo dejamos para el podio)
+    if (!forceLeave) {
+      if (player.connected) return null;
+      if (room.status === 'FINISHED' && !player.isHost) return null;
+    }
 
     room.players.delete(deviceId);
     
@@ -292,8 +313,13 @@ export class GameService {
 
   startGame(roomId: string, hostId: string): RoomState | null {
     const room = this.rooms.get(roomId);
-    if (!room || room.hostId !== hostId || room.players.size < 2) return null;
+    if (!room || room.hostId !== hostId) return null;
+    
+    // Contamos solo a los jugadores que estén actualmente conectados
+    const connectedPlayers = Array.from(room.players.values()).filter(p => p.connected);
+    if (connectedPlayers.length < 2) return null;
 
+    if (room.status !== 'LOBBY') return null;
     room.status = 'PREPARING';
     room.currentQuestionIndex = 0;
     // 4 segundos de preparación (se enviará el evento y el frontend hará 3, 2, 1)

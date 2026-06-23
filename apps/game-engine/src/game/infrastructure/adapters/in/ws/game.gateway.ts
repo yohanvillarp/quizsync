@@ -9,7 +9,7 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { Logger } from '@nestjs/common';
-import { GameService } from '@/game/application/services/game.service';
+import { GameService, Question } from '@/game/application/services/game.service';
 import type { ApiCoreQuiz } from '@/game/domain/models/api-core.dto';
 
 @WebSocketGateway({
@@ -26,7 +26,14 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   private readonly EMOTE_COOLDOWN_MS = 800;
   private readonly logger = new Logger(GameGateway.name);
 
-  constructor(private readonly gameService: GameService) {}
+  constructor(private readonly gameService: GameService) {
+    this.gameService.roomDestroyed$.subscribe(({ roomId, message }) => {
+      this.server?.to(roomId).emit('room_destroyed', {
+        roomId,
+        message
+      });
+    });
+  }
 
   handleConnection(client: Socket) {
     this.logger.log(`Client connected: ${client.id}`);
@@ -45,7 +52,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
         players: Array.from(room.players.values())
       });
 
-      // Esperar 5 segundos antes de remover definitivamente
+      // Esperar 20 segundos antes de remover definitivamente para permitir recargas
       setTimeout(() => {
         const removeResult = this.gameService.removePlayerDefinitively(room.roomId, player.deviceId);
         
@@ -64,7 +71,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
             });
           }
         }
-      }, 5000);
+      }, 20000);
     }
   }
 
@@ -182,6 +189,25 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
+  @SubscribeMessage('leave_room')
+  handleLeaveRoom(@MessageBody() payload: { roomId: string; deviceId: string }) {
+    const removeResult = this.gameService.removePlayerDefinitively(payload.roomId, payload.deviceId, true);
+    if (removeResult) {
+      const { room: updatedRoom, destroyed } = removeResult;
+      if (destroyed) {
+        this.server.to(updatedRoom.roomId).emit('room_destroyed', {
+          roomId: updatedRoom.roomId,
+          message: 'La sala ha sido destruida.'
+        });
+      } else {
+        this.server.to(updatedRoom.roomId).emit('player_left', {
+          deviceId: payload.deviceId,
+          players: Array.from(updatedRoom.players.values())
+        });
+      }
+    }
+  }
+
   @SubscribeMessage('join_room')
   handleJoinRoom(
     @ConnectedSocket() client: Socket,
@@ -201,7 +227,27 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
         players: Array.from(room.players.values())
       });
 
-      return { status: 'success', roomId: payload.roomId, isHost: myPlayer?.isHost || false, categoryName: room.categoryName };
+      let safeQuestion: any = null;
+      if (room.status === 'QUESTION' && room.questions && room.questions.length > room.currentQuestionIndex) {
+        const currentQ = room.questions[room.currentQuestionIndex];
+        safeQuestion = {
+          id: currentQ.id,
+          text: currentQ.text,
+          timeLimit: currentQ.timeLimit,
+          options: currentQ.options.map(o => ({ id: o.id, text: o.text }))
+        };
+      }
+
+      return { 
+        status: 'success', 
+        roomId: payload.roomId, 
+        isHost: myPlayer?.isHost || false, 
+        categoryName: room.categoryName,
+        gameStatus: room.status,
+        currentQuestionIndex: room.currentQuestionIndex,
+        endTime: room.currentEndTime,
+        currentQuestion: safeQuestion
+      };
     } catch (error) {
       return { status: 'error', message: error.message };
     }
@@ -355,33 +401,51 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   async handleUpdateCategory(@MessageBody() payload: { roomId: string; hostId: string; categoryId: string }) {
     try {
       const apiCoreUrl = process.env.API_CORE_URL || 'http://localhost:3000/api';
-      const res = await fetch(`${apiCoreUrl}/quizzes`);
+      const fetchUrl = payload.categoryId && payload.categoryId !== 'random' 
+        ? `${apiCoreUrl}/quizzes?categoryId=${payload.categoryId}` 
+        : `${apiCoreUrl}/quizzes`;
+      const res = await fetch(fetchUrl);
       if (!res.ok) throw new Error('Error al conectar con ApiCore');
       
       const allQuizzes: ApiCoreQuiz[] = await res.json();
-      let selectedQuiz = allQuizzes.find((q) => q.categoryId === payload.categoryId);
-      if (!selectedQuiz && allQuizzes.length > 0) {
-        selectedQuiz = allQuizzes[0]; // Fallback
+      // Filter quizzes by category, or use all if random
+      let filteredQuizzes: ApiCoreQuiz[] = [];
+      let categoryName = 'Trivia Mixta';
+
+      if (payload.categoryId === 'random' || !payload.categoryId) {
+        filteredQuizzes = allQuizzes;
+      } else {
+        filteredQuizzes = allQuizzes.filter((q) => q.categoryId === payload.categoryId);
+        if (filteredQuizzes.length > 0) {
+          categoryName = filteredQuizzes[0].category?.name || 'Categoría Libre';
+        } else {
+          filteredQuizzes = allQuizzes; // fallback si la categoria no se encuentra
+        }
       }
 
-      if (!selectedQuiz) throw new Error('No hay quizzes disponibles');
-
-      let questions = selectedQuiz.questions.map((q) => ({
-        id: q.id,
-        text: q.text,
-        timeLimit: q.timeLimit || 15,
-        options: q.options.map((o) => ({
-          id: o.id,
-          text: o.text,
-          isCorrect: o.isCorrect
-        }))
-      }));
-
-      if (questions.length > 10) {
-        questions = questions.sort(() => 0.5 - Math.random()).slice(0, 10);
+      if (filteredQuizzes.length === 0) {
+        throw new Error('No hay quizzes disponibles en la base de datos');
       }
 
-      const categoryName = selectedQuiz.category?.name || 'Categoría Libre';
+      // Collect all questions from all filtered quizzes
+      let allQuestions: Question[] = [];
+      for (const quiz of filteredQuizzes) {
+        const mapped = quiz.questions.map((q) => ({
+          id: q.id,
+          text: q.text,
+          timeLimit: q.timeLimit || 15,
+          options: q.options.map((o) => ({
+            id: o.id,
+            text: o.text,
+            isCorrect: o.isCorrect
+          }))
+        }));
+        allQuestions = allQuestions.concat(mapped);
+      }
+
+      // Shuffle and pick 10
+      let questions = allQuestions.sort(() => 0.5 - Math.random()).slice(0, 10);
+
       const room = this.gameService.updateRoomCategory(payload.roomId, payload.hostId, categoryName, questions);
       
       if (room) {
