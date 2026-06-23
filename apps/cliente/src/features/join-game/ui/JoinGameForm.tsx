@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { SoundButton } from "@/shared/ui/SoundButton";
 
 export function JoinGameForm() {
   const navigate = useNavigate();
@@ -40,7 +41,8 @@ export function JoinGameForm() {
       </div>
 
       {/* UNIRSE Button (Highlighted) */}
-      <button
+      <SoundButton
+        clickSound="confirm"
         onClick={handleJoin}
         disabled={!isPinValid}
         className={`w-full relative py-3 sm:py-4 bg-[var(--color-high-yellow)] border-4 border-[var(--color-ink)] rounded-lg flex items-center justify-center group overflow-hidden md:p-6 shadow-[4px_4px_0px_0px_var(--color-ink-offset)] sm:shadow-[6px_6px_0px_0px_var(--color-ink-offset)] font-headline text-xl sm:text-3xl font-bold text-[var(--color-ink)] transition-all ${
@@ -50,7 +52,7 @@ export function JoinGameForm() {
         }`}
       >
         UNIRSE
-      </button>
+      </SoundButton>
     </div>
   );
 }

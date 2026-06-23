@@ -13,6 +13,7 @@ import { Loader } from "@/shared/ui/Loader/Loader";
 import { useAlertStore } from "@/shared/store/useAlertStore";
 import { HomeButton } from "@/shared/ui/HomeButton";
 import { apiClient } from "@/shared/api/apiClient";
+import { SoundButton } from "@/shared/ui/SoundButton";
 
 export function LobbyPage() {
   const { code } = useParams<{ code: string }>();
@@ -326,12 +327,13 @@ export function LobbyPage() {
                 onChange={(e) => setPlayerName(e.target.value)}
                 className="w-full border-4 border-[var(--color-ink)] bg-white p-3 sm:p-4 rounded-xl font-headline font-bold text-lg sm:text-2xl text-center text-[var(--color-ink)] focus:outline-none focus:ring-4 focus:ring-[var(--color-high-yellow)] placeholder:text-gray-400 shadow-[inset_0px_4px_0px_0px_rgba(0,0,0,0.05)]"
               />
-              <button 
+              <SoundButton 
                 type="submit"
+                clickSound="confirm"
                 className="w-full py-3 sm:py-4 bg-[var(--color-high-pink)] border-4 border-[var(--color-ink)] rounded-xl font-headline font-black text-xl sm:text-2xl text-[var(--color-ink)] shadow-[4px_4px_0px_0px_var(--color-ink)] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_var(--color-ink)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all uppercase tracking-wider"
               >
                 ¡A Jugar!
-              </button>
+              </SoundButton>
             </form>
           </div>
         </div>
@@ -372,7 +374,8 @@ export function LobbyPage() {
               Entra en <span className="font-bold text-gray-500">{window.location.origin}</span> y usa este código
             </p>
             <div className="flex items-center gap-2 sm:gap-3 flex-wrap justify-center">
-              <button 
+              <SoundButton 
+                clickSound="click"
                 onClick={handleCopy}
                 className="flex items-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 border-3 border-[var(--color-ink)] rounded-xl hover:bg-[var(--color-paper-dim)] transition-all font-headline font-bold text-sm sm:text-base"
                 style={{ borderWidth: '3px' }}
@@ -380,8 +383,9 @@ export function LobbyPage() {
               >
                 {copied ? <Check size={20} className="text-green-600 sm:!w-5 sm:!h-5" /> : <Copy size={20} className="sm:!w-5 sm:!h-5" />}
                 <span>{copied ? '¡Copiado!' : 'Copiar Enlace'}</span>
-              </button>
-              <button
+              </SoundButton>
+              <SoundButton
+                clickSound="click"
                 onClick={handleWhatsAppShare}
                 className="flex items-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 border-3 rounded-xl bg-[#25D366] text-white hover:bg-[#20bd5a] transition-all font-headline font-bold text-sm sm:text-base"
                 style={{ borderWidth: '3px', borderColor: 'var(--color-ink)' }}
@@ -389,7 +393,7 @@ export function LobbyPage() {
               >
                 <Share2 size={20} className="sm:!w-5 sm:!h-5" />
                 <span>WhatsApp</span>
-              </button>
+              </SoundButton>
             </div>
           </RoleGuard>
         </header>
@@ -435,13 +439,15 @@ export function LobbyPage() {
             players.length > 1 ? (
               <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 flex items-center gap-2 sm:gap-4 bg-white border-4 border-[var(--color-ink)] p-2 sm:p-3 px-3 sm:px-6 rounded-full shadow-[4px_4px_0px_0px_var(--color-ink)] sm:shadow-[6px_6px_0px_0px_var(--color-ink)] max-w-[95vw] overflow-x-auto">
                 {AVAILABLE_EMOTES.map(emoji => (
-                  <button
+                  <SoundButton
                     key={emoji}
+                    clickSound="click"
+                    hoverSound="none"
                     onClick={() => handleEmote(emoji)}
                     className="text-2xl sm:text-3xl hover:scale-125 transition-transform active:scale-95 flex-shrink-0"
                   >
                     {emoji}
-                  </button>
+                  </SoundButton>
                 ))}
               </div>
             ) : null
@@ -466,7 +472,8 @@ export function LobbyPage() {
               </div>
             </div>
 
-            <button 
+            <SoundButton 
+              clickSound="confirm"
               onClick={handleStartGame}
               disabled={players.filter(p => p.connected).length < 2}
               className={`flex items-center gap-2 py-2 sm:py-2.5 px-4 sm:px-6 border-3 rounded-xl font-display text-base sm:text-xl transition-all uppercase whitespace-nowrap flex-shrink-0 ${
@@ -477,7 +484,7 @@ export function LobbyPage() {
               style={{ borderWidth: '3px' }}
             >
               <Play size={18} fill="currentColor" className="sm:!w-5 sm:!h-5" /> Iniciar
-            </button>
+            </SoundButton>
           </div>
         </RoleGuard>
 

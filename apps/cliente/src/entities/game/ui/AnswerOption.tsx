@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { PenTool } from 'lucide-react';
+import { SoundButton } from '@/shared/ui/SoundButton';
 
 interface AnswerOptionProps {
   letter: string;
@@ -22,7 +23,8 @@ export const AnswerOption: React.FC<AnswerOptionProps> = ({
   const baseBoxClass = styleType === 'default' ? 'hand-drawn-box' : 'hand-drawn-box-alt';
 
   return (
-    <button 
+    <SoundButton 
+      clickSound="confirm"
       onClick={onClick}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
@@ -41,6 +43,6 @@ export const AnswerOption: React.FC<AnswerOptionProps> = ({
       <div className="absolute bottom-2 right-2 p-2 opacity-0 group-hover:opacity-100 transition-opacity">
         <PenTool size={20} className="text-ink/30" />
       </div>
-    </button>
+    </SoundButton>
   );
 };

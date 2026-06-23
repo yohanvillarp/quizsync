@@ -8,6 +8,7 @@ import { useGameStore } from "@/entities/game/model/useGameStore";
 import { socketClient } from "@/shared/api/ws/socket.client";
 import { RankingBoard } from "@/widgets/game-board/ui/RankingBoard";
 import { useState } from "react";
+import { SoundButton } from "@/shared/ui/SoundButton";
 
 export function PodiumPage() {
   const navigate = useNavigate();
@@ -119,27 +120,30 @@ export function PodiumPage() {
       
       {/* Controles */}
       <div className="absolute top-4 sm:top-8 left-4 sm:left-8 right-4 sm:right-8 flex justify-between items-center z-50">
-        <button 
+        <SoundButton 
+          clickSound="click"
           onClick={handleLeave}
           className="p-2.5 sm:p-3 bg-white border-[3px] sm:border-2 border-[var(--color-ink)] rounded-xl shadow-[2px_2px_0px_var(--color-ink)] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[4px_4px_0px_var(--color-ink)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all flex items-center gap-2 font-headline font-bold text-sm sm:text-base"
         >
           <Home size={20} strokeWidth={2.5} /> <span className="hidden sm:inline">Inicio</span>
-        </button>
+        </SoundButton>
 
         {isHost && (
           <div className="flex gap-2 sm:gap-4">
-            <button 
+            <SoundButton 
+              clickSound="confirm"
               onClick={handleReturnToLobby}
               className="p-2.5 sm:p-3 bg-[var(--color-high-yellow)] border-[3px] sm:border-2 border-[var(--color-ink)] rounded-xl shadow-[2px_2px_0px_var(--color-ink)] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[4px_4px_0px_var(--color-ink)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all flex items-center gap-2 font-headline font-bold text-sm sm:text-base"
             >
               <RotateCcw size={20} strokeWidth={2.5} /> <span className="hidden sm:inline">Volver al Lobby</span>
-            </button>
-            <button 
+            </SoundButton>
+            <SoundButton 
+              clickSound="error"
               onClick={handleEndRoom}
               className="p-2.5 sm:p-3 bg-[var(--color-high-pink)] border-[3px] sm:border-2 border-[var(--color-ink)] rounded-xl shadow-[2px_2px_0px_var(--color-ink)] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[4px_4px_0px_var(--color-ink)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all flex items-center gap-2 font-headline font-bold text-[var(--color-ink)] text-sm sm:text-base"
             >
               <Trash2 size={20} strokeWidth={2.5} /> <span className="hidden sm:inline">Destruir Sala</span>
-            </button>
+            </SoundButton>
           </div>
         )}
       </div>
@@ -156,12 +160,13 @@ export function PodiumPage() {
 
       {/* Podium or Ranking Toggle */}
       <div className="mb-6 z-10 animate-in fade-in duration-500">
-        <button
+        <SoundButton
+          clickSound="click"
           onClick={() => setShowRanking(!showRanking)}
           className="px-6 py-3 bg-[var(--color-high-yellow)] border-4 border-[var(--color-ink)] rounded-full font-headline font-bold flex items-center gap-2 shadow-[4px_4px_0px_0px_var(--color-ink)] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_var(--color-ink)] transition-all uppercase"
         >
           {showRanking ? <><Trophy size={20}/> Ver Podio</> : <><List size={20}/> Ver Ranking Completo</>}
-        </button>
+        </SoundButton>
       </div>
 
       {/* Components */}
