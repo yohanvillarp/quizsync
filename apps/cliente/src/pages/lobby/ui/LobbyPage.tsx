@@ -48,11 +48,12 @@ export function LobbyPage() {
     isHost,
     gameStatus,
     updateCategory,
-    destroyRoom
+    destroyRoom,
+    categoryName
   } = useGameStore();
 
   useEffect(() => {
-    apiClient.get("/quizzes/categories")
+    apiClient.get("/quizzes/categories?hasQuestions=true")
       .then(res => setCategories(res.data))
       .catch(console.error);
   }, []);
@@ -220,6 +221,7 @@ export function LobbyPage() {
 
   const handleChangeAvatar = (avatarId: string) => {
     changeAvatar(avatarId);
+    useAvatarStore.getState().setSelectedAvatar(avatarId as AvatarType);
   };
 
   const lastEmoteTime = useRef(0);
@@ -282,6 +284,8 @@ export function LobbyPage() {
       );
       if (!confirmed) return;
       destroyRoom();
+    } else {
+      useGameStore.getState().leaveRoom();
     }
     navigate('/');
   };
@@ -393,7 +397,7 @@ export function LobbyPage() {
         {/* Notificador de Categoría Actual (Visible para todos) */}
         <div className="text-center">
           <span className="font-headline font-bold text-[var(--color-ink)] uppercase tracking-widest text-sm sm:text-lg bg-[var(--color-paper)] px-4 sm:px-6 py-1.5 sm:py-2 rounded-xl border-4 border-[var(--color-ink)] shadow-[4px_4px_0px_0px_var(--color-high-yellow)] inline-flex flex-wrap items-center gap-1 sm:gap-2 justify-center">
-            <span>Tema:</span> <span className="text-[var(--color-ink)] bg-[var(--color-high-pink)] font-black px-2 sm:px-3 py-0.5 sm:py-1 rounded-md border-2 border-[var(--color-ink)] shadow-[2px_2px_0px_0px_var(--color-ink)]">{useGameStore.getState().categoryName || 'Trivia'}</span>
+            <span>Tema:</span> <span className="text-[var(--color-ink)] bg-[var(--color-high-pink)] font-black px-2 sm:px-3 py-0.5 sm:py-1 rounded-md border-2 border-[var(--color-ink)] shadow-[2px_2px_0px_0px_var(--color-ink)]">{categoryName || 'Trivia'}</span>
           </span>
         </div>
 
@@ -464,9 +468,9 @@ export function LobbyPage() {
 
             <button 
               onClick={handleStartGame}
-              disabled={players.length < 2}
+              disabled={players.filter(p => p.connected).length < 2}
               className={`flex items-center gap-2 py-2 sm:py-2.5 px-4 sm:px-6 border-3 rounded-xl font-display text-base sm:text-xl transition-all uppercase whitespace-nowrap flex-shrink-0 ${
-                players.length < 2 
+                players.filter(p => p.connected).length < 2 
                   ? 'bg-gray-200 text-gray-400 cursor-not-allowed border-gray-400' 
                   : 'bg-[var(--color-high-yellow)] text-[var(--color-ink)] border-[var(--color-ink)] shadow-[3px_3px_0px_0px_var(--color-ink)] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[4px_4px_0px_0px_var(--color-ink)]'
               }`}

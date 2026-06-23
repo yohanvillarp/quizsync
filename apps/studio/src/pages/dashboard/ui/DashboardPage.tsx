@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { PlusCircle, ListChecks, Trash2, Edit, ChevronDown, ChevronUp } from "lucide-react";
 import { apiClient } from "@/shared/api/apiClient";
+import { useAlertStore } from "@/shared/store/useAlertStore";
 import { useNavigate } from "react-router-dom";
 
 export interface Option {
@@ -31,11 +32,16 @@ export function DashboardPage() {
   const [expandedQuizIds, setExpandedQuizIds] = useState<Set<string>>(new Set());
   const navigate = useNavigate();
 
+  const { showAlert, showConfirm } = useAlertStore();
+
   const fetchQuizzes = () => {
     setIsLoading(true);
     apiClient.get('/quizzes')
       .then(res => setQuizzes(res.data))
-      .catch(err => console.error("Error al cargar quizzes", err))
+      .catch(err => {
+        console.error("Error al cargar quizzes", err);
+        showAlert("No se pudieron cargar los cuestionarios.");
+      })
       .finally(() => setIsLoading(false));
   };
 
@@ -44,17 +50,16 @@ export function DashboardPage() {
   }, []);
 
   const handleDelete = async (id: string, title: string) => {
-    if (!window.confirm(`¿Estás seguro de que deseas eliminar permanentemente el cuestionario "${title}" y todas sus preguntas?`)) {
-      return;
-    }
+    const confirmed = await showConfirm(`¿Estás seguro de que deseas eliminar permanentemente el cuestionario "${title}" y todas sus preguntas?`, "Eliminar Cuestionario");
+    if (!confirmed) return;
     
     try {
       await apiClient.delete(`/quizzes/${id}`);
       setQuizzes(prev => prev.filter(q => q.id !== id));
-      alert("Cuestionario eliminado exitosamente.");
+      showAlert("Cuestionario eliminado exitosamente.", "Éxito");
     } catch (error) {
       console.error(error);
-      alert("Error al eliminar el cuestionario.");
+      showAlert("Error al eliminar el cuestionario.", "Error");
     }
   };
 

@@ -13,7 +13,7 @@ export const GamePage: React.FC = () => {
   const navigate = useNavigate();
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
 
-  const { players, gameStatus, currentQuestion, endTime, submitAnswer } = useGameStore();
+  const { players, gameStatus, currentQuestion, endTime, submitAnswer, connect, isConnected } = useGameStore();
 
   const isMe = (p: any) => p.deviceId === localStorage.getItem('quizsync_device_id');
   
@@ -29,8 +29,16 @@ export const GamePage: React.FC = () => {
     .sort((a, b) => b.score - a.score);
 
   useEffect(() => {
+    if (!isConnected) {
+      const engineWsUrl = import.meta.env.VITE_ENGINE_WS_URL || 'http://localhost:3002';
+      connect(engineWsUrl);
+    }
+  }, [isConnected, connect]);
+
+  useEffect(() => {
     if (gameStatus === 'FINISHED') {
-      navigate('/podium');
+      const { roomId } = useGameStore.getState();
+      navigate('/podium/' + roomId);
     } else if (gameStatus === 'LOBBY' || !gameStatus) {
       navigate('/');
     }
@@ -151,7 +159,7 @@ export const GamePage: React.FC = () => {
       {/* Main Content */}
       <main className="flex-grow container mx-auto px-6 py-6 flex flex-col items-center justify-center z-10 w-full max-w-7xl relative">
         {/* Vista de Pregunta */}
-        <div className={`w-full flex flex-col items-center gap-8 transition-all duration-500 absolute inset-0 pt-6 px-6 ${
+        <div className={`w-full h-full overflow-y-auto pb-24 flex flex-col items-center gap-8 transition-all duration-500 absolute inset-0 pt-6 px-6 ${
           view === 'question' ? 'opacity-100 translate-y-0 pointer-events-auto' : 'opacity-0 translate-y-8 pointer-events-none'
         }`}>
           {currentQuestion && (
@@ -186,7 +194,7 @@ export const GamePage: React.FC = () => {
         </div>
 
         {/* Vista de Ranking */}
-        <div className={`w-full flex flex-col items-center gap-8 transition-all duration-500 absolute inset-0 pt-6 px-6 ${
+        <div className={`w-full h-full overflow-y-auto pb-24 flex flex-col items-center gap-8 transition-all duration-500 absolute inset-0 pt-6 px-6 ${
           view === 'ranking' ? 'opacity-100 translate-y-0 pointer-events-auto delay-150' : 'opacity-0 translate-y-8 pointer-events-none'
         }`}>
           <RankingBoard players={rankingPlayers} />

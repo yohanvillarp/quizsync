@@ -1,55 +1,74 @@
-# QuizSync
+# QuizSync ⚡
 
 <p align="center">
   <img src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React" />
+  <img src="https://img.shields.io/badge/NestJS-E0234E?style=for-the-badge&logo=nestjs&logoColor=white" alt="NestJS" />
   <img src="https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
-  <img src="https://img.shields.io/badge/Vite-B73BFE?style=for-the-badge&logo=vite&logoColor=FFD62E" alt="Vite" />
-  <img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind CSS" />
+  <img src="https://img.shields.io/badge/Socket.io-010101?style=for-the-badge&logo=socket.io&logoColor=white" alt="Socket.io" />
+  <img src="https://img.shields.io/badge/Prisma-2D3748?style=for-the-badge&logo=prisma&logoColor=white" alt="Prisma" />
 </p>
 
-## Resumen del Proyecto
+## 📖 Resumen del Proyecto
 
-**QuizSync** es una aplicación cliente de alto rendimiento construida para interactividad y fluidez. Diseñada bajo una arquitectura escalable, utiliza una estética analógica de trazados a mano ("sketchy") proporcionando una experiencia de usuario única y altamente interactiva.
+**QuizSync** es una plataforma interactiva de trivia multijugador en tiempo real (estilo Kahoot), diseñada bajo una arquitectura moderna, escalable y con una estética única de trazados a mano ("sketchy"). Permite a los anfitriones crear salas, y a los jugadores unirse instantáneamente mediante un código para competir respondiendo preguntas.
 
-## Arquitectura
+## 🏗 Arquitectura (Monorepo)
 
-El frontend de la aplicación sigue estrictamente el patrón arquitectónico **Feature-Sliced Design (FSD)**. Esta metodología garantiza que el código fuente mantenga alta cohesión y bajo acoplamiento al separar responsabilidades por capas (App, Pages, Widgets, Features, Entities, Shared). 
+El proyecto está estructurado como un monorepo, dividiendo responsabilidades en cuatro aplicaciones clave:
 
-El uso estandarizado de alias absolutos (ej. `@/shared/...`) facilita la importación e interconexión de módulos y recursos visuales globales de forma escalable.
+### Frontends
+- 🎮 **Cliente (`apps/cliente`)**: Aplicación principal para los usuarios (Anfitriones y Jugadores). Maneja el lobby en tiempo real, selección de avatares, sistema de reacciones y el flujo del juego. *(Arquitectura FSD - Feature-Sliced Design)*.
+- 🎨 **Studio (`apps/studio`)**: Panel de control administrativo para creadores de contenido. Permite crear, editar y categorizar cuestionarios. Integrado con **Clerk** para autenticación segura.
 
-## Configuración del Entorno de Desarrollo
+### Backends (Microservicios)
+- 💾 **API Core (`apps/api-core`)**: Servidor RESTful construido con **NestJS**. Se encarga de la persistencia de datos (Cuestionarios, Preguntas, Categorías) utilizando **Prisma ORM** y **PostgreSQL**.
+- ⚡ **Game Engine (`apps/game-engine`)**: Motor de juego en tiempo real basado en **NestJS y WebSockets**. Gestiona el estado efímero de las salas, los límites dinámicos, desconexiones, reconexiones y el broadcast instantáneo de las jugadas.
 
-Este repositorio utiliza `pnpm` como gestor de paquetes principal. Asegúrese de tener instalada la versión correspondiente antes de inicializar el entorno.
+## 🛠 Desarrollo Local
+
+El proyecto utiliza `pnpm` como gestor de paquetes. 
 
 ### Requisitos Previos
+- Node.js (v18+)
+- pnpm (`npm install -g pnpm`)
+- PostgreSQL (Local o en la nube)
+- Cuenta en Clerk (para credenciales de desarrollo)
 
-- Node.js (v18 o superior recomendado)
-- pnpm
+### Instalación
+1. Clonar el repositorio.
+2. Ejecutar `pnpm install` desde la raíz para instalar las dependencias de todas las aplicaciones.
+3. Configurar las variables de entorno `.env` en cada respectiva aplicación (base de datos, Clerk keys, URLs de API y WebSockets).
+4. Sincronizar la base de datos:
+   ```bash
+   cd apps/api-core
+   npx prisma db push
+   ```
+5. Iniciar los servicios en desarrollo.
 
-### Pasos de Instalación
+## 🌍 Despliegue (Deployment)
 
-1.  **Instalar dependencias:**
-    Desde el directorio de la aplicación cliente (`apps/cliente`):
-    ```bash
-    pnpm install
-    ```
+Debido a su arquitectura modular, QuizSync se despliega en componentes separados para maximizar el rendimiento:
 
-2.  **Iniciar el servidor de desarrollo:**
-    ```bash
-    pnpm dev
-    ```
-    La aplicación se expondrá de manera predeterminada en el puerto de Vite, típicamente `http://localhost:5173/`.
+### 1. Frontends (Vercel / Netlify)
+Tanto `apps/cliente` como `apps/studio` son aplicaciones Single Page Application (Vite) estáticas.
+- **Hosting recomendado:** Vercel, Netlify o Cloudflare Pages.
+- Ambas requerirán configurar las variables de entorno que apunten a los backends en producción.
 
-3.  **Compilación para producción:**
-    ```bash
-    pnpm build
-    ```
-    Este comando ejecuta la validación estricta de TypeScript y posteriormente empaqueta la aplicación en el directorio `dist`.
+### 2. API Core (Render / Railway)
+Al ser una API REST sin estado (stateless), es altamente escalable.
+- **Hosting recomendado:** Render, Railway o DigitalOcean App Platform.
+- Se debe configurar la URL de la base de datos en producción.
 
-## Normativa de Contribución
+### 3. Game Engine (Servidor con soporte WebSockets)
+Este es el corazón en tiempo real. Requiere un entorno que soporte conexiones persistentes (WebSockets).
+- **Hosting recomendado:** Render (Web Service), Railway o AWS EC2/Fargate.
+- *Nota:* Asegúrate de habilitar afinidad de sesión (Sticky Sessions) o usar un adaptador de Redis si escalas este servicio a múltiples instancias.
 
-Todo el equipo de desarrollo debe adherirse a nuestro flujo de trabajo oficial basado en ramas y convenciones estrictas de control de versiones. Todo cambio de código debe someterse a revisión.
+### 4. Base de Datos (PostgreSQL)
+- **Hosting recomendado:** Supabase, Neon Database o AWS RDS.
 
-Para mayor detalle, consulte:
+## 🤝 Normativa de Contribución
+
+Sigue el flujo de trabajo estándar de Git Flow.
 - [Guía de Contribución](.github/CONTRIBUTING.md)
-- [Plantilla de Pull Requests](.github/PULL_REQUEST_TEMPLATE.md)
+- Los commits deben seguir la convención Semantic Commits e indicar el alcance (ej. `feat(cliente): ...`).
