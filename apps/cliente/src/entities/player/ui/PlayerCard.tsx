@@ -51,10 +51,12 @@ export function PlayerCard({ player, emotes = [], isPoked = false, onPoke, isMe 
         ${(onPoke || isMe || amIHost) ? 'cursor-pointer hover:scale-105 active:scale-95 transition-transform' : ''}
       `}
       onClick={() => {
-        if (!isDisconnected) {
-          if (isMe) setShowPicker(!showPicker);
-          else if (amIHost) setShowAdminPicker(!showAdminPicker);
-          else if (onPoke) onPoke();
+        if (isMe && !isDisconnected) {
+          setShowPicker(!showPicker);
+        } else if (amIHost) {
+          setShowAdminPicker(!showAdminPicker);
+        } else if (onPoke && !isDisconnected) {
+          onPoke();
         }
       }}
     >

@@ -3,7 +3,7 @@ import type { PodiumPlayer } from "@/entities/game/model/types";
 import { PodiumWidget } from "@/widgets/podium/ui/PodiumWidget";
 import { useAlertStore } from "@/shared/store/useAlertStore";
 import { Home, Trash2, List, Trophy, RotateCcw } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useGameStore } from "@/entities/game/model/useGameStore";
 import { socketClient } from "@/shared/api/ws/socket.client";
 import { RankingBoard } from "@/widgets/game-board/ui/RankingBoard";
@@ -11,13 +11,35 @@ import { useState } from "react";
 
 export function PodiumPage() {
   const navigate = useNavigate();
+  const { code } = useParams<{ code: string }>();
   const [showRanking, setShowRanking] = useState(false);
-  const { players, isHost, gameStatus, disconnect, roomId, categoryName } = useGameStore();
+  const { players, isHost, gameStatus, disconnect, roomId, categoryName, connect, isConnected } = useGameStore();
 
-  // Redirigir al inicio si no hay datos de juego
+  // Redirigir al inicio si no hay datos de juego o no coincide la sala
   useEffect(() => {
+    if (!roomId || roomId !== code) {
+      navigate('/');
+    }
+  }, [roomId, code, navigate]);
+
+  useEffect(() => {
+    if (!isConnected) {
+      const engineWsUrl = import.meta.env.VITE_ENGINE_WS_URL || 'http://localhost:3002';
+      connect(engineWsUrl);
+    }
+  }, [isConnected, connect]);
+
+  useEffect(() => {
+    if (code && roomId && code !== roomId) {
+      navigate('/');
+      return;
+    }
     if (gameStatus === 'LOBBY' && roomId) {
       navigate(`/lobby/${roomId}`);
+      return;
+    }
+    if (gameStatus === 'PREPARING' || gameStatus === 'QUESTION' || gameStatus === 'RANKING') {
+      navigate(`/game/${roomId}`);
       return;
     }
     if (gameStatus !== 'FINISHED' && gameStatus !== 'LOBBY') {
@@ -55,7 +77,18 @@ export function PodiumPage() {
     isMe: p.deviceId === localStorage.getItem('quizsync_device_id')
   }));
 
-  const handleLeave = () => {
+  const handleLeave = async () => {
+    if (isHost) {
+      const confirmed = await useAlertStore.getState().showConfirm(
+        "Si sales de la sala, esta se destruirá y todos los jugadores serán expulsados. ¿Estás seguro?",
+        "Cerrar Sala"
+      );
+      if (!confirmed) return;
+      const deviceId = localStorage.getItem('quizsync_device_id');
+      socketClient.emit('destroy_room', { roomId, hostId: deviceId });
+    } else {
+      useGameStore.getState().leaveRoom();
+    }
     disconnect();
     navigate('/');
   };

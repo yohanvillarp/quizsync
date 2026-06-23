@@ -53,6 +53,7 @@ interface GameState {
   checkRoom: (roomId: string, deviceId?: string) => Promise<{ exists: boolean, isBanned: boolean }>;
   banPlayer: (targetId: string) => void;
   startGame: () => void;
+  leaveRoom: () => void;
   submitAnswer: (answerId: string) => Promise<{ status: string, points?: number, isCorrect?: boolean }>;
   kickPlayer: (targetId: string) => void;
   transferHost: (targetId: string) => void;
@@ -63,6 +64,7 @@ interface GameState {
   returnToLobby: () => Promise<void>;
   updateCategory: (categoryId: string) => Promise<void>;
   destroyRoom: () => void;
+  clearGameState: () => void;
   
   // Setters internos para los listeners del socket
   setPlayers: (players: Player[]) => void;
@@ -72,8 +74,30 @@ interface GameState {
 export const useGameStore = create<GameState>()(
   persist(
     (set, get) => {
+      // Función para manejar la conexión y auto-reconexión
+      const handleConnect = () => {
+        set({ isConnected: true });
+        // Auto-reconexión silenciosa si tenemos un roomId
+        const state = get();
+        if (state.roomId) {
+          const deviceId = localStorage.getItem('quizsync_device_id');
+          const name = localStorage.getItem(`quizsync_player_name_${state.roomId}`);
+          if (deviceId && name) {
+            const me = state.players.find(p => p.deviceId === deviceId);
+            const avatarId = me?.avatarId || 'fox';
+            state.joinRoom(state.roomId, name, avatarId, deviceId);
+          }
+        }
+      };
+
       // Inicializamos listeners globales del socket
-      socketClient.on('connect', () => set({ isConnected: true }));
+      socketClient.on('connect', handleConnect);
+      
+      // Si el socket ya estaba conectado antes de registrar el evento, forzamos la ejecución
+      if (socketClient.connected) {
+        handleConnect();
+      }
+
       socketClient.on('disconnect', () => set({ isConnected: false }));
   const updatePlayersState = (data: { players: Player[] }) => {
     const deviceId = localStorage.getItem('quizsync_device_id') || '';
@@ -101,12 +125,18 @@ export const useGameStore = create<GameState>()(
     categoryName: data.categoryName || get().categoryName
   }));
   
-  socketClient.on('room_reset_to_lobby', (data: RoomResetPayload) => set({
-    gameStatus: data.status,
-    players: data.players,
-    endTime: null,
-    currentQuestion: null
-  }));
+  socketClient.on('room_reset_to_lobby', (data: RoomResetPayload) => {
+    const currentRoom = get().roomId;
+    if (currentRoom) {
+      sessionStorage.removeItem(`podium_played_${currentRoom}`);
+    }
+    set({
+      gameStatus: data.status,
+      players: data.players,
+      endTime: null,
+      currentQuestion: null
+    });
+  });
 
   socketClient.on('room_destroyed', () => set({
     roomId: null,
@@ -144,7 +174,15 @@ export const useGameStore = create<GameState>()(
       return new Promise((resolve) => {
         socketClient.emit('join_room', { roomId, name, avatarId, deviceId }, (response: any) => {
           if (response.status === 'success') {
-            set({ roomId, isHost: response.isHost, categoryName: response.categoryName });
+            set({ 
+              roomId, 
+              isHost: response.isHost, 
+              categoryName: response.categoryName,
+              gameStatus: response.gameStatus || get().gameStatus,
+              currentQuestionIndex: response.currentQuestionIndex || 0,
+              endTime: response.endTime || null,
+              currentQuestion: response.currentQuestion || null
+            });
           }
           resolve(response);
         });
@@ -164,6 +202,13 @@ export const useGameStore = create<GameState>()(
       if (!roomId || !isHost) return;
       const deviceId = localStorage.getItem('quizsync_device_id') || '';
       socketClient.emit('start_game', { roomId, hostId: deviceId });
+    },
+
+    leaveRoom: () => {
+      const { roomId } = get();
+      if (!roomId) return;
+      const deviceId = localStorage.getItem('quizsync_device_id') || '';
+      socketClient.emit('leave_room', { roomId, deviceId });
     },
 
     submitAnswer: (answerId) => {
@@ -264,6 +309,19 @@ export const useGameStore = create<GameState>()(
       if (roomId) {
         socketClient.emit('destroy_room', { roomId, hostId });
       }
+    },
+
+    clearGameState: () => {
+      set({
+        roomId: null,
+        players: [],
+        isHost: false,
+        gameStatus: 'LOBBY',
+        currentQuestion: null,
+        currentQuestionIndex: 0,
+        endTime: null,
+        categoryName: ''
+      });
     },
 
     setPlayers: (players) => set({ players }),

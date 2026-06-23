@@ -43,6 +43,10 @@ class SocketClient {
     }
   }
 
+  get connected() {
+    return this.socket?.connected ?? false;
+  }
+
   on(event: string, callback: Function) {
     if (!this.listeners.has(event)) {
       this.listeners.set(event, []);

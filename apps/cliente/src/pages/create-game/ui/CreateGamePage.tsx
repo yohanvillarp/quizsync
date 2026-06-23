@@ -1,9 +1,10 @@
-import { Eye, Globe2, Home, Lock, User, Zap } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Eye, Globe2, Home, Lock, User, Zap, Settings, ChevronDown, ChevronUp } from "lucide-react";
+import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { apiClient } from "@/shared/api/apiClient";
 import { engineClient } from "@/shared/api/engineClient";
+import { useGameStore } from "@/entities/game/model/useGameStore";
 
 type Visibility = "PUBLIC" | "PRIVATE";
 type GameMode = "NORMAL" | "POWER_MODE";
@@ -17,17 +18,58 @@ export function CreateGamePage() {
   const [gameMode, setGameMode] = useState<GameMode>("NORMAL");
   const [role, setRole] = useState<Role>("PLAYER");
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>("random");
+  const [selectedQuizId, setSelectedQuizId] = useState<string>("random");
   const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
+  const [quizzes, setQuizzes] = useState<{ id: string; title: string; description: string; questions: any[] }[]>([]);
+  const [maxPlayers, setMaxPlayers] = useState<number>(10);
+  const [questionCount, setQuestionCount] = useState<number>(10);
+  const [showAdvancedSettings, setShowAdvancedSettings] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
   
-
-
   useEffect(() => {
-    apiClient.get("/quizzes/categories")
+    useGameStore.getState().clearGameState();
+    
+    apiClient.get("/quizzes/categories?hasQuestions=true")
       .then(res => setCategories(res.data))
       .catch(err => console.error("Error cargando categorías:", err));
   }, []);
 
+  useEffect(() => {
+    if (selectedCategoryId === "random") {
+      setQuizzes([]);
+      setSelectedQuizId("random");
+      return;
+    }
+
+    apiClient.get(`/quizzes?categoryId=${selectedCategoryId}`)
+      .then(res => {
+        setQuizzes(res.data);
+        setSelectedQuizId("random");
+      })
+      .catch(err => console.error("Error cargando quizzes:", err));
+  }, [selectedCategoryId]);
+
+  // Calculate max available questions
+  const maxAvailableQuestions = useMemo(() => {
+    if (selectedCategoryId === "random") return 50;
+    if (selectedQuizId !== "random") {
+      const quiz = quizzes.find(q => q.id === selectedQuizId);
+      return quiz ? quiz.questions.length : 10;
+    }
+    // Mix category
+    return quizzes.reduce((acc, q) => acc + q.questions.length, 0) || 10;
+  }, [selectedCategoryId, selectedQuizId, quizzes]);
+
+  // Ensure questionCount respects the new max
+  useEffect(() => {
+    if (questionCount > maxAvailableQuestions) {
+      setQuestionCount(maxAvailableQuestions);
+    }
+  }, [maxAvailableQuestions]);
+
   const handleCreate = async (force: boolean = false) => {
+    if (isCreating) return;
+    setIsCreating(true);
     try {
       let deviceId = localStorage.getItem('quizsync_device_id');
       if (!deviceId) {
@@ -38,9 +80,12 @@ export function CreateGamePage() {
       // Petición al game-engine para crear la sala en memoria usando el cliente modular
       const response = await engineClient.post("/rooms", {
         categoryId: selectedCategoryId,
+        quizId: selectedQuizId,
         gameMode,
         visibility,
         hostId: deviceId,
+        maxPlayers,
+        questionCount,
         force
       });
       
@@ -63,7 +108,9 @@ export function CreateGamePage() {
       }
 
       console.error("Error al crear la sala:", error);
-      useAlertStore.getState().showAlert("No se pudo crear la sala. Verifica tu conexión o intenta con otra categoría.", "Error");
+      useAlertStore.getState().showAlert(error.response?.data?.message || "No se pudo crear la sala. Verifica tu conexión o intenta con otra categoría.", "Error");
+    } finally {
+      setIsCreating(false);
     }
   };
 
@@ -80,7 +127,7 @@ export function CreateGamePage() {
       </button>
 
       <div className="w-full max-w-lg lg:max-w-4xl flex flex-col gap-8 bg-white/90 backdrop-blur-md p-6 sm:p-8 border-4 border-black rounded-3xl shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-        <h1 className="font-display text-4xl lg:text-5xl text-center uppercase tracking-wide">Configurar Partida</h1>
+        <h1 className="font-display text-4xl lg:text-5xl text-center uppercase tracking-wide">Crear Partida</h1>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
           {/* Columna Izquierda: Configuraciones Básicas */}
@@ -154,8 +201,58 @@ export function CreateGamePage() {
             </div>
           </div>
 
-          {/* Columna Derecha: Tema y Acción */}
+          {/* Columna Derecha: Configuraciones Avanzadas y Tema */}
           <div className="flex flex-col gap-6 justify-between lg:border-l-4 lg:border-dashed lg:border-gray-200 lg:pl-12 pt-6 lg:pt-0 border-t-4 border-dashed border-gray-200 lg:border-t-0">
+
+            {/* Botón de Configuraciones Avanzadas */}
+            <button
+              onClick={() => setShowAdvancedSettings(!showAdvancedSettings)}
+              className="flex items-center justify-between w-full py-3 px-4 bg-gray-50 border-2 border-dashed border-gray-300 rounded-xl hover:bg-gray-100 transition-all text-gray-600 font-display text-lg"
+            >
+              <div className="flex items-center gap-2">
+                <Settings size={20} />
+                <span>Configuraciones Avanzadas</span>
+              </div>
+              {showAdvancedSettings ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+            </button>
+
+            {/* Configuraciones Dinámicas (Colapsables) */}
+            {showAdvancedSettings && (
+              <div className="flex flex-col gap-4 animate-in slide-in-from-top-2 duration-300 p-4 border-2 border-gray-200 rounded-xl bg-gray-50/50">
+                <div className="flex flex-col gap-2">
+                  <div className="flex justify-between items-center">
+                    <label className="font-display text-lg">Límite de Jugadores</label>
+                    <span className="font-body font-bold text-lg bg-white px-3 py-1 rounded-lg border-2 border-gray-200">{maxPlayers}</span>
+                  </div>
+                  <input 
+                    type="range" 
+                    min="2" 
+                    max="20" 
+                    value={maxPlayers}
+                    onChange={(e) => setMaxPlayers(parseInt(e.target.value))}
+                    className="w-full accent-black cursor-pointer"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <div className="flex justify-between items-center">
+                    <label className="font-display text-lg">Número de Preguntas</label>
+                    <span className="font-body font-bold text-lg bg-white px-3 py-1 rounded-lg border-2 border-gray-200">{questionCount}</span>
+                  </div>
+                  <input 
+                    type="range" 
+                    min="1" 
+                    max={maxAvailableQuestions} 
+                    value={questionCount}
+                    onChange={(e) => setQuestionCount(parseInt(e.target.value))}
+                    className="w-full accent-black cursor-pointer"
+                  />
+                  <p className="text-xs font-body font-bold text-gray-500">
+                    Máximo disponible según tu selección: {maxAvailableQuestions}
+                  </p>
+                </div>
+              </div>
+            )}
             
             <div className="flex flex-col gap-2">
               <label className="font-display text-xl">Tema del Cuestionario</label>
@@ -183,15 +280,51 @@ export function CreateGamePage() {
               </p>
             </div>
 
-            <div className="flex-grow hidden lg:flex items-center justify-center opacity-20">
-              <Zap size={120} />
-            </div>
+            {/* Cuestionario Específico (Solo visible si hay una categoría seleccionada) */}
+            {selectedCategoryId !== "random" && quizzes.length > 0 && (
+              <div className="flex flex-col gap-2 animate-in slide-in-from-top-2 duration-300">
+                <label className="font-display text-lg text-gray-600">Cuestionario Específico (Opcional)</label>
+                <div className="relative">
+                  <select 
+                    value={selectedQuizId}
+                    onChange={(e) => setSelectedQuizId(e.target.value)}
+                    className="w-full appearance-none bg-white border-2 border-dashed border-gray-400 rounded-xl py-3 px-4 font-body font-medium text-md hover:bg-gray-50 focus:outline-none focus:border-black focus:ring-2 focus:ring-black transition-all cursor-pointer truncate"
+                  >
+                    <option value="random">🎲 Mezclar todos los de esta categoría</option>
+                    {quizzes.map(quiz => (
+                      <option key={quiz.id} value={quiz.id}>
+                        {quiz.title}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500">
+                    <svg className="fill-current h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                      <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            )}
+
+
 
             <button 
               onClick={() => handleCreate(false)}
-              className="w-full py-4 bg-[var(--color-high-yellow)] border-4 border-black rounded-xl font-display text-2xl shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all uppercase tracking-wide mt-auto"
+              disabled={isCreating}
+              className={`w-full py-4 border-4 border-black rounded-xl font-display text-2xl uppercase tracking-wide mt-auto flex items-center justify-center gap-2 transition-all ${
+                isCreating 
+                  ? "bg-gray-300 text-gray-500 cursor-not-allowed" 
+                  : "bg-[var(--color-high-yellow)] shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
+              }`}
             >
-              Crear Sala
+              {isCreating ? (
+                <>
+                  <div className="w-6 h-6 border-4 border-gray-500 border-t-transparent rounded-full animate-spin"></div>
+                  <span>Creando...</span>
+                </>
+              ) : (
+                "Crear Sala"
+              )}
             </button>
           </div>
         </div>

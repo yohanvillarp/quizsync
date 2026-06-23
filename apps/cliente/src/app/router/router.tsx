@@ -16,7 +16,7 @@ export const router = createBrowserRouter([
     element: <InventoryPage />,
   },
   {
-    path: "/podium",
+    path: "/podium/:code",
     element: <PodiumPage />,
   },
   {
