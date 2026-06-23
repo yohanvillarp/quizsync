@@ -1,6 +1,7 @@
 import { X, Users, Globe2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { engineClient } from "@/shared/api/engineClient";
+import { SoundButton } from "@/shared/ui/SoundButton";
 
 interface PublicGamesModalProps {
   isOpen: boolean;
@@ -42,12 +43,13 @@ export function PublicGamesModal({ isOpen, onClose, onJoin }: PublicGamesModalPr
             <Globe2 size={28} strokeWidth={2.5} />
             <h2 className="font-display text-2xl uppercase tracking-wide">Partidas Públicas</h2>
           </div>
-          <button 
+          <SoundButton 
+            clickSound="click"
             onClick={onClose}
             className="p-1 hover:bg-black/10 rounded-lg transition-colors"
           >
             <X size={28} strokeWidth={2.5} />
-          </button>
+          </SoundButton>
         </div>
 
         {/* Content */}
@@ -70,13 +72,14 @@ export function PublicGamesModal({ isOpen, onClose, onJoin }: PublicGamesModalPr
                   </div>
                 </div>
                 
-                <button 
+                <SoundButton 
+                  clickSound="confirm"
                   onClick={() => onJoin(game.id)}
                   disabled={game.playersCount >= game.maxPlayers}
                   className="px-6 py-2 w-full sm:w-auto bg-[var(--color-high-yellow)] border-2 border-black rounded-lg font-display text-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all disabled:opacity-50 disabled:pointer-events-none text-black"
                 >
                   Unirse
-                </button>
+                </SoundButton>
               </div>
             ))
           )}

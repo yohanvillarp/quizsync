@@ -1,6 +1,7 @@
 import { Eye, Globe2, Home, Lock, User, Zap, Settings, ChevronDown, ChevronUp } from "lucide-react";
 import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import { SoundButton } from "@/shared/ui/SoundButton";
 
 import { apiClient } from "@/shared/api/apiClient";
 import { engineClient } from "@/shared/api/engineClient";
@@ -118,13 +119,14 @@ export function CreateGamePage() {
 
   return (
     <main className="flex-grow flex flex-col items-center justify-center relative px-4 sm:px-8 py-12 min-h-screen z-10 w-full animate-in fade-in duration-300">
-      <button 
+      <SoundButton 
+        clickSound="click"
         onClick={() => navigate('/')}
         className="absolute top-6 left-6 z-50 flex items-center gap-2 px-4 py-3 bg-white border-4 border-black rounded-full shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-gray-100 hover:translate-x-[-1px] hover:translate-y-[-1px] transition-all font-display font-bold uppercase text-black"
       >
         <Home size={24} strokeWidth={2.5} />
         <span className="hidden sm:inline">Inicio</span>
-      </button>
+      </SoundButton>
 
       <div className="w-full max-w-lg lg:max-w-4xl flex flex-col gap-8 bg-white/90 backdrop-blur-md p-6 sm:p-8 border-4 border-black rounded-3xl shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
         <h1 className="font-display text-4xl lg:text-5xl text-center uppercase tracking-wide">Crear Partida</h1>
@@ -136,18 +138,20 @@ export function CreateGamePage() {
             <div className="flex flex-col gap-2">
               <label className="font-display text-xl">Visibilidad</label>
               <div className="grid grid-cols-2 gap-3">
-                <button 
+                <SoundButton 
+                  clickSound="click"
                   onClick={() => setVisibility("PRIVATE")}
                   className={`flex items-center justify-center gap-2 py-3 rounded-xl border-4 transition-all font-bold ${visibility === "PRIVATE" ? "bg-[#3730A3] border-[#3730A3] text-white" : "bg-white border-gray-300 text-gray-500 hover:border-black"}`}
                 >
                   <Lock size={20} strokeWidth={2.5} /> Privada
-                </button>
-                <button 
+                </SoundButton>
+                <SoundButton 
+                  clickSound="click"
                   onClick={() => setVisibility("PUBLIC")}
                   className={`flex items-center justify-center gap-2 py-3 rounded-xl border-4 transition-all font-bold ${visibility === "PUBLIC" ? "bg-[#3730A3] border-[#3730A3] text-white" : "bg-white border-gray-300 text-gray-500 hover:border-black"}`}
                 >
                   <Globe2 size={20} strokeWidth={2.5} /> Pública
-                </button>
+                </SoundButton>
               </div>
               <p className="text-sm font-body font-bold text-gray-500">
                 {visibility === "PUBLIC" ? "Cualquiera podrá unirse desde el explorador." : "Solo podrán unirse con tu código."}
@@ -158,19 +162,21 @@ export function CreateGamePage() {
             <div className="flex flex-col gap-2">
               <label className="font-display text-xl">Modo de Juego</label>
               <div className="grid grid-cols-2 gap-3">
-                <button 
+                <SoundButton 
+                  clickSound="click"
                   onClick={() => setGameMode("NORMAL")}
                   className={`flex items-center justify-center gap-2 py-3 rounded-xl border-4 transition-all font-bold ${gameMode === "NORMAL" ? "bg-[var(--color-high-yellow)] border-black text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]" : "bg-white border-gray-300 text-gray-500 hover:border-black"}`}
                 >
                   Normal
-                </button>
-                <button 
+                </SoundButton>
+                <SoundButton 
+                  clickSound="error"
                   disabled
                   className={`flex items-center justify-center gap-2 py-3 rounded-xl border-4 transition-all font-bold bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed`}
                   title="Próximamente"
                 >
                   <Zap size={20} strokeWidth={2.5} fill="currentColor" /> Poderes
-                </button>
+                </SoundButton>
               </div>
               <p className="text-sm font-body font-bold text-gray-500">
                 El modo Poderes estará disponible próximamente.
@@ -181,19 +187,21 @@ export function CreateGamePage() {
             <div className="flex flex-col gap-2">
               <label className="font-display text-xl">Tu Participación</label>
               <div className="grid grid-cols-2 gap-3">
-                <button 
+                <SoundButton 
+                  clickSound="click"
                   onClick={() => setRole("PLAYER")}
                   className={`flex items-center justify-center gap-2 py-3 rounded-xl border-4 transition-all font-bold ${role === "PLAYER" ? "bg-black border-black text-white" : "bg-white border-gray-300 text-gray-500 hover:border-black"}`}
                 >
                   <User size={20} strokeWidth={2.5} /> Jugador
-                </button>
-                <button 
+                </SoundButton>
+                <SoundButton 
+                  clickSound="error"
                   disabled
                   className={`flex items-center justify-center gap-2 py-3 rounded-xl border-4 transition-all font-bold bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed`}
                   title="Próximamente"
                 >
                   <Eye size={20} strokeWidth={2.5} /> Espectador
-                </button>
+                </SoundButton>
               </div>
               <p className="text-sm font-body font-bold text-gray-500">
                 {role === "SPECTATOR" ? "El modo espectador (pantalla gigante) estará disponible pronto." : "Competirás y responderás preguntas con tu Avatar."}
@@ -205,7 +213,9 @@ export function CreateGamePage() {
           <div className="flex flex-col gap-6 justify-between lg:border-l-4 lg:border-dashed lg:border-gray-200 lg:pl-12 pt-6 lg:pt-0 border-t-4 border-dashed border-gray-200 lg:border-t-0">
 
             {/* Botón de Configuraciones Avanzadas */}
-            <button
+            <SoundButton
+              clickSound="click"
+              hoverSound="hover"
               onClick={() => setShowAdvancedSettings(!showAdvancedSettings)}
               className="flex items-center justify-between w-full py-3 px-4 bg-gray-50 border-2 border-dashed border-gray-300 rounded-xl hover:bg-gray-100 transition-all text-gray-600 font-display text-lg"
             >
@@ -214,7 +224,7 @@ export function CreateGamePage() {
                 <span>Configuraciones Avanzadas</span>
               </div>
               {showAdvancedSettings ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
-            </button>
+            </SoundButton>
 
             {/* Configuraciones Dinámicas (Colapsables) */}
             {showAdvancedSettings && (
@@ -308,7 +318,8 @@ export function CreateGamePage() {
 
 
 
-            <button 
+            <SoundButton 
+              clickSound="confirm"
               onClick={() => handleCreate(false)}
               disabled={isCreating}
               className={`w-full py-4 border-4 border-black rounded-xl font-display text-2xl uppercase tracking-wide mt-auto flex items-center justify-center gap-2 transition-all ${
@@ -325,7 +336,7 @@ export function CreateGamePage() {
               ) : (
                 "Crear Sala"
               )}
-            </button>
+            </SoundButton>
           </div>
         </div>
       </div>
