@@ -1,8 +1,19 @@
 import { useAlertStore } from '@/shared/store/useAlertStore';
 import { AlertTriangle, Info } from 'lucide-react';
+import { useEffect } from 'react';
+import { audioManager } from '@/core/audio/AudioManager';
+import { SoundButton } from '@/shared/ui/SoundButton';
 
 export function GlobalAlert() {
   const { isOpen, type, title, message, close } = useAlertStore();
+
+  // Reproducir sonido al aparecer la alerta
+  useEffect(() => {
+    if (isOpen) {
+      const isError = title.toLowerCase().includes('error') || type === 'alert';
+      audioManager.playUISound(isError ? 'error' : 'hover');
+    }
+  }, [isOpen, type, title]);
 
   if (!isOpen) return null;
 
@@ -28,22 +39,24 @@ export function GlobalAlert() {
         {/* Footer Actions */}
         <div className="p-4 bg-[var(--color-paper-dim)] border-t-4 border-[var(--color-ink)] flex items-center justify-end gap-4">
           {type === 'confirm' && (
-            <button
+            <SoundButton
+              clickSound="click"
               onClick={() => close(false)}
               className="px-6 py-2 bg-gray-200 border-4 border-[var(--color-ink)] rounded-xl font-headline font-bold text-lg text-[var(--color-ink)] shadow-[4px_4px_0px_0px_var(--color-ink)] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_var(--color-ink)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all uppercase"
             >
               Cancelar
-            </button>
+            </SoundButton>
           )}
           
-          <button
+          <SoundButton
+            clickSound={type === 'confirm' ? 'confirm' : 'click'}
             onClick={() => close(true)}
             className={`px-6 py-2 border-4 border-[var(--color-ink)] rounded-xl font-headline font-bold text-lg text-[var(--color-ink)] shadow-[4px_4px_0px_0px_var(--color-ink)] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_var(--color-ink)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all uppercase ${
               type === 'alert' ? 'bg-[var(--color-high-yellow)]' : 'bg-[var(--color-high-green)]'
             }`}
           >
             {type === 'alert' ? 'Entendido' : 'Confirmar'}
-          </button>
+          </SoundButton>
         </div>
 
       </div>

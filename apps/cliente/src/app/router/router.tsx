@@ -5,15 +5,21 @@ import { InventoryPage } from "@/pages/inventory/ui/InventoryPage";
 import { PodiumPage } from "@/pages/podium/ui/PodiumPage";
 import { CreateGamePage } from "@/pages/create-game/ui/CreateGamePage";
 import { LobbyPage } from "@/pages/lobby/ui/LobbyPage";
+import { AppLayout } from "./AppLayout";
 
 export const router = createBrowserRouter([
   {
-    path: "/",
-    element: <HomePage />,
-  },
-  {
-    path: "/inventory",
-    element: <InventoryPage />,
+    element: <AppLayout />,
+    children: [
+      {
+        path: "/",
+        element: <HomePage />,
+      },
+      {
+        path: "/inventory",
+        element: <InventoryPage />,
+      },
+    ]
   },
   {
     path: "/podium/:code",

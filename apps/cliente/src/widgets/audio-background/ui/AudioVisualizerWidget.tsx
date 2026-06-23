@@ -18,7 +18,7 @@ function generateSpheres() {
 }
 
 export function AudioVisualizerWidget() {
-  const { audioRef, beatValue, start, stop, volume, setVolume, isPlaying } = useAudioAnalyzer();
+  const { beatValue, start, stop, volume, setVolume, isPlaying } = useAudioAnalyzer();
   const spheres = useMemo(() => generateSpheres(), []);
 
   // Matemáticas para deformar las esferas con el beat de la música
@@ -30,11 +30,6 @@ export function AudioVisualizerWidget() {
   return (
     <>
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-        <audio ref={audioRef} loop crossOrigin="anonymous">
-          <source src="/audio/home-theme.webm" type="audio/webm" />
-          <source src="/audio/home-theme.ogg" type="audio/ogg" />
-          <source src="/audio/home-theme.mp3" type="audio/mpeg" />
-        </audio>
         
         {spheres.map((sphere) => (
           <div

@@ -1,44 +1,38 @@
 import { useState, useEffect, useRef } from 'react';
+import { Howler } from 'howler';
+import { useAudioStore } from '@/core/audio/useAudioStore';
+import { audioManager } from '@/core/audio/AudioManager';
 
 export function useAudioAnalyzer() {
-  const audioRef = useRef<HTMLAudioElement | null>(null);
   const [beatValue, setBeatValue] = useState(0);
-  // Cargamos el estado de reproducción y volumen
-  const savedIsPlaying = localStorage.getItem('quizsync_is_playing');
-  const [isPlaying, setIsPlaying] = useState(savedIsPlaying === 'true'); // Por defecto false si es null
+  const { isMuted, masterVolume, toggleMute, setVolume } = useAudioStore();
   
-  const savedVolume = localStorage.getItem('quizsync_volume');
-  const [volume, setVolume] = useState(savedVolume ? parseFloat(savedVolume) : 0);
-  
-  const audioCtxRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
-  const sourceRef = useRef<MediaElementAudioSourceNode | null>(null);
   const requestRef = useRef<number>(0);
 
-  // Sincronizar estado isPlaying
   useEffect(() => {
-    localStorage.setItem('quizsync_is_playing', isPlaying.toString());
-  }, [isPlaying]);
-
-  useEffect(() => {
-    if (!audioRef.current) return;
-    
-    // Crear el AudioContext solo una vez (requiere interacción previa)
-    if (!audioCtxRef.current && isPlaying) {
-      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
-      if (!AudioContextClass) return; // Fallback si no soporta Web Audio API
+    const setupAnalyzer = () => {
+      // Howler.ctx se crea cuando Howler se inicializa
+      const ctx = Howler.ctx;
+      if (!ctx || analyserRef.current) return;
       
-      audioCtxRef.current = new AudioContextClass();
-      analyserRef.current = audioCtxRef.current.createAnalyser();
-      analyserRef.current.fftSize = 256; 
-      
-      sourceRef.current = audioCtxRef.current.createMediaElementSource(audioRef.current);
-      sourceRef.current.connect(analyserRef.current);
-      analyserRef.current.connect(audioCtxRef.current.destination);
-    }
+      try {
+        analyserRef.current = ctx.createAnalyser();
+        analyserRef.current.fftSize = 256; 
+        // Conectamos el nodo principal de Howler al analizador para visualización
+        Howler.masterGain.connect(analyserRef.current);
+      } catch (e) {
+        console.warn("No se pudo conectar el analizador de audio", e);
+      }
+    };
 
     const update = () => {
-      if (!analyserRef.current) return;
+      if (!analyserRef.current) {
+        setupAnalyzer();
+        requestRef.current = requestAnimationFrame(update);
+        return;
+      }
+
       const dataArray = new Uint8Array(analyserRef.current.frequencyBinCount);
       analyserRef.current.getByteFrequencyData(dataArray);
       
@@ -54,49 +48,64 @@ export function useAudioAnalyzer() {
       requestRef.current = requestAnimationFrame(update);
     };
 
-    if (isPlaying) {
-      if (audioCtxRef.current?.state === 'suspended') {
-        audioCtxRef.current.resume();
-      }
+    let resumeOnInteraction: () => void;
+
+    if (!isMuted) {
+      setupAnalyzer();
+      // Intentamos reproducir, pero el navegador puede bloquearlo hasta que el usuario interactúe
+      audioManager.playMusic('lobby');
       
-      const tryPlay = () => {
-        audioRef.current?.play().catch(e => {
-          console.warn("Autoplay bloqueado. Esperando primera interacción...", e);
-          const playOnInteraction = () => {
-            audioRef.current?.play().catch(() => {});
-            if (audioCtxRef.current?.state === 'suspended') {
-              audioCtxRef.current.resume();
-            }
-            document.removeEventListener('click', playOnInteraction);
-            document.removeEventListener('keydown', playOnInteraction);
-          };
-          document.addEventListener('click', playOnInteraction);
-          document.addEventListener('keydown', playOnInteraction);
-        });
+      // Agregamos listeners para asegurar que suene al primer click o tecla
+      resumeOnInteraction = () => {
+        const ctx = Howler.ctx;
+        if (ctx && ctx.state === 'suspended') {
+          ctx.resume();
+        }
+        // Nos aseguramos de volver a llamarlo por si falló la primera vez
+        audioManager.playMusic('lobby');
+        
+        document.removeEventListener('click', resumeOnInteraction);
+        document.removeEventListener('keydown', resumeOnInteraction);
+        document.removeEventListener('touchstart', resumeOnInteraction);
       };
 
-      tryPlay();
+      document.addEventListener('click', resumeOnInteraction);
+      document.addEventListener('keydown', resumeOnInteraction);
+      document.addEventListener('touchstart', resumeOnInteraction);
+
       requestRef.current = requestAnimationFrame(update);
     } else {
       if (requestRef.current) cancelAnimationFrame(requestRef.current);
-      audioRef.current?.pause();
+      audioManager.stopMusic();
     }
 
     return () => {
       if (requestRef.current) cancelAnimationFrame(requestRef.current);
+      // Limpiar listeners por si acaso
+      if (resumeOnInteraction) {
+        document.removeEventListener('click', resumeOnInteraction);
+        document.removeEventListener('keydown', resumeOnInteraction);
+        document.removeEventListener('touchstart', resumeOnInteraction);
+      }
     };
-  }, [isPlaying]);
+  }, [isMuted]);
 
-  // Actualizar el volumen físico y guardar en localStorage
-  useEffect(() => {
-    if (audioRef.current) {
-      audioRef.current.volume = volume;
-    }
-    localStorage.setItem('quizsync_volume', volume.toString());
-  }, [volume]);
+  const start = () => {
+    if (isMuted) toggleMute();
+    audioManager.playMusic('lobby');
+  };
+  
+  const stop = () => {
+    if (!isMuted) toggleMute();
+    audioManager.stopMusic();
+  };
 
-  const start = () => setIsPlaying(true);
-  const stop = () => setIsPlaying(false);
-
-  return { audioRef, beatValue, start, stop, isPlaying, volume, setVolume };
+  return { 
+    beatValue, 
+    start, 
+    stop, 
+    isPlaying: !isMuted, 
+    volume: masterVolume, 
+    setVolume 
+  };
 }
