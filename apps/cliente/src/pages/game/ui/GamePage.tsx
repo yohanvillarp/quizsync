@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Pencil, Timer, Trophy } from 'lucide-react';
 import { NotebookSpiral } from '@/shared/ui/NotebookSpiral';
 import { WashiTape } from '@/shared/ui/WashiTape';
-import { GameTimer } from '@/features/game-timer/ui/GameTimer';
 import { QuestionCard } from '@/entities/game/ui/QuestionCard';
 import { AnswerOption } from '@/entities/game/ui/AnswerOption';
 import { RankingBoard } from '@/widgets/game-board/ui/RankingBoard';

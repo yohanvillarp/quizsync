@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { FoxAvatar, OwlAvatar, BearAvatar, CatAvatar, RabbitAvatar, DogAvatar } from "@/shared/ui/avatars/AvatarIcons";
 import { Crown, Edit2, UserMinus, Ban, VolumeX, RotateCcw } from "lucide-react";
-import { useRole } from "@/shared/lib/rbac/useRole";
+
 import { SoundButton } from "@/shared/ui/SoundButton";
 import { useGameStore } from "@/entities/game/model/useGameStore";
 import { getCompanionById } from "@/entities/player/model/companions.mock";

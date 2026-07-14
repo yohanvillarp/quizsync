@@ -1,4 +1,4 @@
-import { useAvatarStore, type AvatarType } from "@/shared/store/useAvatarStore";
+import { useAvatarStore } from "@/shared/store/useAvatarStore";
 import { FoxAvatar, OwlAvatar, BearAvatar, CatAvatar, RabbitAvatar, DogAvatar } from "@/shared/ui/avatars/AvatarIcons";
 import { useState } from "react";
 import { audioManager } from "@/core/audio/AudioManager";
@@ -16,7 +16,7 @@ const COMPONENT_MAP: Record<string, React.ReactNode> = {
 const AVATAR_OPTIONS = [
   ...COMPANIONS_MOCK.map(c => ({
     ...c,
-    component: COMPONENT_MAP[c.id]
+    component: c.id ? COMPONENT_MAP[c.id] : null
   })),
   { 
     id: 'random', 
@@ -63,7 +63,7 @@ export function AvatarInventoryWidget() {
                   setShowEffect(true);
                   setTimeout(() => setShowEffect(false), 800);
                 }
-                setSelectedAvatar(avatar.id);
+                setSelectedAvatar(avatar.id as any);
                 if (avatar.id !== 'random') {
                   audioManager.playAvatarSound(avatar.id as string);
                 } else {

@@ -1,4 +1,4 @@
-import { Eye, Globe2, Home, Lock, User, Zap, Settings, ChevronDown, ChevronUp } from "lucide-react";
+import { Eye, Globe2, Home, Lock, User, Settings, ChevronDown, ChevronUp } from "lucide-react";
 import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { SoundButton } from "@/shared/ui/SoundButton";

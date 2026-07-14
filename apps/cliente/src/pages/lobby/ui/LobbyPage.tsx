@@ -251,14 +251,6 @@ export function LobbyPage() {
 
   const [isStarting, setIsStarting] = useState(false);
 
-  const handleLeaveLobby = async () => {
-    const confirmed = await useAlertStore.getState().showConfirm("¿Estás seguro de que deseas salir de la sala?", "Salir");
-    if (confirmed) {
-      leaveRoom();
-      navigate('/');
-    }
-  };
-
   const handleTransferHost = async (targetId: string) => {
     const confirmed = await useAlertStore.getState().showConfirm("¿Transferir los privilegios de anfitrión a este jugador?", "Transferir Host");
     if (confirmed) {

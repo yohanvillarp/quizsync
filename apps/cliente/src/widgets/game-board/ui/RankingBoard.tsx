@@ -118,7 +118,6 @@ export const RankingBoard: React.FC<RankingBoardProps> = ({ players, roundKey = 
             const currentScore = getDisplayScore(player);
             
             // Lógica de visibilidad por fases
-            const showBase = phase >= 1 && (player.basePoints || 0) > 0;
             const showPositivePower = phase >= 2 && (player.powerPoints || 0) > 0;
             const showNegativePower = phase >= 3 && (player.powerPoints || 0) < 0;
             const showAnyPower = showPositivePower || showNegativePower;

@@ -17,6 +17,7 @@ export interface Player {
   activeEffects?: string[];
   lastRoundScore?: number;
   lastRoundPowerPoints?: number;
+  lastRoundPowerMessage?: string;
 }
 
 export interface Option {
@@ -149,9 +150,6 @@ export const useGameStore = create<GameState>()(
   });
   socketClient.on('room_state', (data: { room: any }) => {
     // Sync when powers modify active effects and player status
-    const deviceId = localStorage.getItem('quizsync_device_id') || '';
-    const myPlayer = data.room.players[deviceId] || Array.from(data.room.players || []).find((p:any) => p[1]?.deviceId === deviceId)?.[1];
-    
     // In our implementation room.players is sent as an object/array depending on backend.
     // If it's a map in backend, nestjs sends it as an object or we might need to parse.
     // We already have 'player_updated' or we can just update players array.
@@ -206,6 +204,7 @@ export const useGameStore = create<GameState>()(
     isHost: false,
     isConnected: false,
     gameStatus: 'LOBBY',
+    gameModeId: 'NORMAL',
     currentQuestion: null,
     currentQuestionIndex: 0,
     endTime: null,
