@@ -36,7 +36,7 @@ export function InventoryPage() {
             activeTab === 'avatars' ? 'bg-[var(--color-high-yellow)]' : 'bg-white hover:bg-slate-100'
           }`}
         >
-          <User size={24} /> Avatares
+          <User size={24} /> Compañeros
         </SoundButton>
         <SoundButton 
           clickSound="click"

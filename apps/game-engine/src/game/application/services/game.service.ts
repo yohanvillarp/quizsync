@@ -1,6 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, forwardRef, Inject } from '@nestjs/common';
+import { PowerService } from './power.service';
 import { GAME_CONSTANTS } from '@/game/domain/game.constants';
 import { Subject } from 'rxjs';
+import { GameModeId } from '@/game/domain/models/game-mode';
 
 export interface Player {
   socketId: string;
@@ -12,6 +14,12 @@ export interface Player {
   score: number;
   answered: boolean;
   emotesMuted: boolean;
+  powerStatus: 'AVAILABLE' | 'USED';
+  activeEffects: string[];
+  lastRoundScore?: number;
+  lastRoundIsCorrect?: boolean;
+  lastRoundPowerPoints?: number;
+  lastRoundPowerMessage?: string;
 }
 
 export interface Option {
@@ -24,6 +32,7 @@ export interface Question {
   id: string;
   text: string;
   timeLimit: number;
+  maxPoints?: number;
   options: Option[];
 }
 
@@ -35,6 +44,7 @@ export interface RoomState {
   quizTitle: string;
   categoryName: string;
   visibility: 'PUBLIC' | 'PRIVATE';
+  gameModeId: GameModeId;
   hostId: string;
   players: Map<string, Player>; // Map by deviceId
   bannedDeviceIds: Set<string>;
@@ -51,6 +61,7 @@ export interface PublicRoomDto {
   id: string;
   quizTitle: string;
   categoryName: string;
+  gameModeId: GameModeId;
   playersCount: number;
   maxPlayers: number;
 }
@@ -67,13 +78,35 @@ export class GameService {
   private rooms: Map<string, RoomState> = new Map();
   private activeHosts: Map<string, string> = new Map(); // hostId -> roomId
   private roomCreationTimeouts: Map<string, NodeJS.Timeout> = new Map();
+  private lobbyIdleTimeouts: Map<string, NodeJS.Timeout> = new Map();
   public readonly roomDestroyed$ = new Subject<{roomId: string, message: string}>();
+
+  constructor(
+    private readonly powerService: PowerService
+  ) {}
+
+  private resetLobbyIdleTimeout(roomId: string): void {
+    this.cancelLobbyIdleTimeout(roomId);
+    const timeoutId = setTimeout(() => {
+      this.destroyRoom(roomId, 'La sala se ha cerrado automáticamente por inactividad.');
+    }, GAME_CONSTANTS.LOBBY_IDLE_TIMEOUT_MS);
+    this.lobbyIdleTimeouts.set(roomId, timeoutId);
+  }
+
+  private cancelLobbyIdleTimeout(roomId: string): void {
+    const timeoutId = this.lobbyIdleTimeouts.get(roomId);
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+      this.lobbyIdleTimeouts.delete(roomId);
+    }
+  }
 
   createRoom(
     quizId: string, 
     quizTitle: string, 
     categoryName: string, 
     visibility: 'PUBLIC' | 'PRIVATE', 
+    gameModeId: GameModeId,
     hostId: string,
     questions: Question[],
     force: boolean = false,
@@ -96,6 +129,7 @@ export class GameService {
       quizTitle,
       categoryName,
       visibility,
+      gameModeId,
       hostId,
       players: new Map(),
       bannedDeviceIds: new Set(),
@@ -135,6 +169,8 @@ export class GameService {
         this.roomCreationTimeouts.delete(roomId);
       }
       
+      this.cancelLobbyIdleTimeout(roomId);
+      
       this.roomDestroyed$.next({ roomId, message: reason });
     }
   }
@@ -153,6 +189,7 @@ export class GameService {
           id: room.roomId,
           quizTitle: room.quizTitle,
           categoryName: room.categoryName,
+          gameModeId: room.gameModeId,
           playersCount: room.players.size,
           maxPlayers: room.maxPlayers
         });
@@ -192,7 +229,7 @@ export class GameService {
     // El host oficial de la sala es aquel cuyo deviceId coincida con el hostId
     const isHost = room.hostId === deviceId;
 
-    room.players.set(deviceId, { socketId, deviceId, name, avatarId, isHost, connected: true, score: 0, answered: false, emotesMuted: false });
+    room.players.set(deviceId, { socketId, deviceId, name, avatarId, isHost, connected: true, score: 0, answered: false, emotesMuted: false, powerStatus: 'AVAILABLE', activeEffects: [] });
 
     // Cancelar el timeout de auto-destrucción SOLO si el host se une
     if (isHost) {
@@ -201,6 +238,11 @@ export class GameService {
         clearTimeout(timeoutId);
         this.roomCreationTimeouts.delete(roomId);
       }
+    }
+
+    // Reiniciar timeout de inactividad si seguimos en el Lobby
+    if (room.status === 'LOBBY') {
+      this.resetLobbyIdleTimeout(roomId);
     }
 
     return room;
@@ -320,6 +362,9 @@ export class GameService {
     if (connectedPlayers.length < 2) return null;
 
     if (room.status !== 'LOBBY') return null;
+    
+    this.cancelLobbyIdleTimeout(roomId);
+    
     room.status = 'PREPARING';
     room.currentQuestionIndex = 0;
     // 4 segundos de preparación (se enviará el evento y el frontend hará 3, 2, 1)
@@ -339,6 +384,11 @@ export class GameService {
     // Reiniciar estado de respuesta de los jugadores
     for (const player of room.players.values()) {
       player.answered = false;
+      player.lastRoundScore = 0;
+      player.lastRoundIsCorrect = undefined;
+      player.lastRoundPowerPoints = 0;
+      player.lastRoundPowerMessage = undefined;
+      this.powerService.applyStartQuestionEffects(player);
     }
 
     room.currentEndTime = Date.now() + (currentQ.timeLimit * 1000);
@@ -349,6 +399,10 @@ export class GameService {
     const room = this.rooms.get(roomId);
     if (!room) return null;
 
+    for (const player of room.players.values()) {
+      this.powerService.applyEndQuestionEffects(player);
+    }
+
     room.status = 'RANKING';
     // 5 segundos mostrando ranking
     room.currentEndTime = Date.now() + 5000;
@@ -358,6 +412,9 @@ export class GameService {
   nextQuestion(roomId: string): RoomState | null {
     const room = this.rooms.get(roomId);
     if (!room) return null;
+
+    // Limpiar efectos de poder de la ronda anterior
+    this.powerService.clearEffects(room);
 
     room.currentQuestionIndex++;
     if (room.currentQuestionIndex >= room.questions.length) {
@@ -380,21 +437,45 @@ export class GameService {
     player.answered = true;
 
     const currentQ = room.questions[room.currentQuestionIndex];
+    
+    // Check for race condition where timer expired but state hasn't changed yet
+    const timeLeft = Math.max(0, (room.currentEndTime || 0) - Date.now());
+    if (timeLeft <= 0) {
+      return null;
+    }
+
     const option = currentQ.options.find(o => o.id === answerId);
     
     let isCorrect = false;
     let points = 0;
+    const timeLimitMs = currentQ.timeLimit * 1000;
+    const timeTakenMs = timeLimitMs - timeLeft;
+    const maxPoints = currentQ.maxPoints || 1000;
 
     if (option?.isCorrect) {
       isCorrect = true;
-      // Puntaje basado en velocidad (max 1000, min 500 si acierta en el último segundo)
-      const timeLeft = Math.max(0, (room.currentEndTime || 0) - Date.now());
-      const timeLimitMs = currentQ.timeLimit * 1000;
+      // Puntaje basado en velocidad (maxPoints, min maxPoints/2 si acierta en el último segundo)
       const timeFactor = timeLeft / timeLimitMs; // De 0 a 1
-      points = Math.floor(500 + (500 * timeFactor));
-      
-      player.score += points;
+      points = Math.floor((maxPoints / 2) + ((maxPoints / 2) * timeFactor));
     }
+    
+    let powerPoints = 0;
+    
+    const modifierResult = this.powerService.calculatePointsModifier(room, player, points, timeTakenMs, isCorrect, maxPoints);
+    points = modifierResult.basePoints;
+    powerPoints = modifierResult.powerPoints;
+
+    player.lastRoundScore = points;
+    player.lastRoundIsCorrect = isCorrect;
+    player.lastRoundPowerPoints = (player.lastRoundPowerPoints || 0) + powerPoints;
+    if (modifierResult.message) {
+      if (player.lastRoundPowerMessage) {
+        player.lastRoundPowerMessage += ` | ${modifierResult.message}`;
+      } else {
+        player.lastRoundPowerMessage = modifierResult.message;
+      }
+    }
+    player.score += points + powerPoints;
 
     return { isCorrect, points, room };
   }
@@ -428,6 +509,8 @@ export class GameService {
       player.score = 0;
       player.answered = false;
     }
+
+    this.resetLobbyIdleTimeout(roomId);
 
     return room;
   }

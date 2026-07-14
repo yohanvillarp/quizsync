@@ -1,5 +1,6 @@
 import { Controller, Post, Body, InternalServerErrorException, Get, HttpException, HttpStatus, UseGuards, Logger, Param, Delete, Query } from '@nestjs/common';
 import { GameService, Question, RoomAlreadyExistsException } from '@/game/application/services/game.service';
+import { GameModeId } from '@/game/domain/models/game-mode';
 import { ThrottlerGuard } from '@nestjs/throttler';
 import type { ApiCoreQuiz } from '@/game/domain/models/api-core.dto';
 
@@ -38,7 +39,7 @@ export class GameController {
   }
 
   @Post()
-  async createRoom(@Body() payload: { categoryId: string; quizId?: string; gameMode: string; visibility: string; hostId: string; force?: boolean; maxPlayers?: number; questionCount?: number }) {
+  async createRoom(@Body() payload: { categoryId: string; quizId?: string; gameModeId: GameModeId; visibility: string; hostId: string; force?: boolean; maxPlayers?: number; questionCount?: number }) {
     try {
       // Invocación Remota a ApiCore para obtener las preguntas
       const apiCoreUrl = process.env.API_CORE_URL || 'http://localhost:3000/api';
@@ -102,7 +103,8 @@ export class GameController {
         payload.categoryId || 'random',
         roomTitle,
         categoryName,
-        payload.visibility as 'PUBLIC' | 'PRIVATE',
+        payload.visibility === 'PUBLIC' ? 'PUBLIC' : 'PRIVATE',
+        payload.gameModeId || 'NORMAL',
         payload.hostId,
         questions,
         payload.force,
