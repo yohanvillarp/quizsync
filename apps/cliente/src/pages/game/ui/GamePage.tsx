@@ -9,12 +9,16 @@ import { RankingBoard } from '@/widgets/game-board/ui/RankingBoard';
 import { useGameStore } from '@/entities/game/model/useGameStore';
 import { useNavigate } from 'react-router-dom';
 import { SoundButton } from '@/shared/ui/SoundButton';
+import { PreparingLoader } from './PreparingLoader';
+import { PowerButton } from '@/features/animal-powers/ui/PowerButton';
+import { PowerEffects } from '@/features/animal-powers/ui/PowerEffects';
+import { PowerActivationAnim } from '@/features/animal-powers/ui/PowerActivationAnim';
 
 export const GamePage: React.FC = () => {
   const navigate = useNavigate();
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
 
-  const { players, gameStatus, currentQuestion, endTime, submitAnswer, connect, isConnected } = useGameStore();
+  const { players, gameStatus, gameModeId, currentQuestion, endTime, submitAnswer, connect, isConnected, removedOptionIds, thiefSuggestedAnswerId } = useGameStore();
 
   const isMe = (p: any) => p.deviceId === localStorage.getItem('quizsync_device_id');
   
@@ -23,7 +27,11 @@ export const GamePage: React.FC = () => {
     .map(p => ({
       id: p.deviceId,
       name: p.name,
+      avatarId: p.avatarId,
       score: p.score || 0,
+      powerPoints: p.lastRoundPowerPoints || 0,
+      powerMessage: p.lastRoundPowerMessage,
+      basePoints: p.lastRoundScore || 0,
       hasAnswered: false, 
       isMe: isMe(p)
     }))
@@ -35,6 +43,34 @@ export const GamePage: React.FC = () => {
       connect(engineWsUrl);
     }
   }, [isConnected, connect]);
+
+  // Manejar reconexión al volver de pantalla bloqueada / cambiar de app en móvil
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        const state = useGameStore.getState();
+        if (state.roomId) {
+          if (!state.isConnected) {
+            const engineWsUrl = import.meta.env.VITE_ENGINE_WS_URL || 'http://localhost:3002';
+            connect(engineWsUrl);
+          } else {
+            // Forzar resincronización del estado de la sala
+            const deviceId = localStorage.getItem('quizsync_device_id');
+            const name = localStorage.getItem(`quizsync_player_name_${state.roomId}`);
+            if (deviceId && name) {
+              const me = state.players.find(p => p.deviceId === deviceId);
+              const avatarId = me?.avatarId || 'fox';
+              // Al llamar joinRoom se actualiza el estado actual (pregunta, tiempo, etc.)
+              state.joinRoom(state.roomId, name, avatarId, deviceId);
+            }
+          }
+        }
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [connect]);
 
   useEffect(() => {
     if (gameStatus === 'FINISHED') {
@@ -52,7 +88,11 @@ export const GamePage: React.FC = () => {
   const handleSelectOption = async (optionId: string) => {
     if (selectedAnswer || gameStatus !== 'QUESTION') return;
     setSelectedAnswer(optionId);
-    await submitAnswer(optionId);
+    const response = await submitAnswer(optionId);
+    if (response?.status === 'error') {
+      // Si el servidor rechaza (ej. por tiempo), revertimos la selección
+      setSelectedAnswer(null);
+    }
   };
 
   const [timeLeft, setTimeLeft] = useState(0);
@@ -81,17 +121,7 @@ export const GamePage: React.FC = () => {
     const roundText = roundNames[index] ? `${roundNames[index]} RONDA` : `${index + 1}ª RONDA`;
     const text = index === 0 ? '¡PREPÁRATE!' : roundText;
 
-    // We use a fixed 4s timer for PREPARING to avoid clock skew issues with the server
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-16 w-full bg-ink relative">
-        <div className="z-20 flex items-center justify-center scale-[2.5] md:scale-[3]">
-          <GameTimer key={index} initialTime={4} />
-        </div>
-        <h1 className="text-white font-display text-4xl md:text-6xl uppercase tracking-widest animate-pulse text-center px-4 mt-12 drop-shadow-lg">
-          {text}
-        </h1>
-      </div>
-    );
+    return <PreparingLoader text={text} endTime={endTime} />;
   }
 
   // Pantalla final
@@ -171,7 +201,10 @@ export const GamePage: React.FC = () => {
                   const letters = ['A', 'B', 'C', 'D'];
                   const styles = ['default', 'alt', 'alt', 'default'];
                   const isSelected = selectedAnswer === opt.id;
-                  
+                  const isRemoved = removedOptionIds.includes(opt.id);
+
+                  if (isRemoved) return <div key={opt.id} className="hidden md:block opacity-0" />;
+
                   return (
                     <AnswerOption
                       key={opt.id}
@@ -180,6 +213,8 @@ export const GamePage: React.FC = () => {
                       rotation={index % 2 === 0 ? 'rotate-1' : '-rotate-1'}
                       styleType={styles[index] as any}
                       isSelected={isSelected}
+                      isSuggested={thiefSuggestedAnswerId === opt.id}
+                      disabled={!!selectedAnswer}
                       onClick={() => handleSelectOption(opt.id)}
                     />
                   );
@@ -198,7 +233,7 @@ export const GamePage: React.FC = () => {
         <div className={`w-full h-full overflow-y-auto pb-24 flex flex-col items-center gap-8 transition-all duration-500 absolute inset-0 pt-6 px-6 ${
           view === 'ranking' ? 'opacity-100 translate-y-0 pointer-events-auto delay-150' : 'opacity-0 translate-y-8 pointer-events-none'
         }`}>
-          <RankingBoard players={rankingPlayers} />
+          <RankingBoard players={rankingPlayers} roundKey={currentQuestion?.id} />
         </div>
       </main>
 
@@ -216,6 +251,15 @@ export const GamePage: React.FC = () => {
           {['★', '•', '◦', '✎', '〰', '?', '!', 'x', '+'][Math.floor(Math.random() * 9)]}
         </div>
       ))}
+
+      {/* Animal Powers Overlay UI */}
+      {gameModeId === 'POWER_MODE' && (
+        <>
+          {gameStatus === 'QUESTION' && <PowerButton />}
+          <PowerEffects />
+          <PowerActivationAnim />
+        </>
+      )}
     </div>
   );
 };

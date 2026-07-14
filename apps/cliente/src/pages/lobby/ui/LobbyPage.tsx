@@ -249,6 +249,16 @@ export function LobbyPage() {
     }
   };
 
+  const [isStarting, setIsStarting] = useState(false);
+
+  const handleLeaveLobby = async () => {
+    const confirmed = await useAlertStore.getState().showConfirm("¿Estás seguro de que deseas salir de la sala?", "Salir");
+    if (confirmed) {
+      leaveRoom();
+      navigate('/');
+    }
+  };
+
   const handleTransferHost = async (targetId: string) => {
     const confirmed = await useAlertStore.getState().showConfirm("¿Transferir los privilegios de anfitrión a este jugador?", "Transferir Host");
     if (confirmed) {
@@ -264,6 +274,8 @@ export function LobbyPage() {
   };
 
   const handleStartGame = () => {
+    if (isStarting) return;
+    setIsStarting(true);
     startGame();
   };
 
@@ -475,15 +487,15 @@ export function LobbyPage() {
             <SoundButton 
               clickSound="confirm"
               onClick={handleStartGame}
-              disabled={players.filter(p => p.connected).length < 2}
+              disabled={players.filter(p => p.connected).length < 2 || isStarting}
               className={`flex items-center gap-2 py-2 sm:py-2.5 px-4 sm:px-6 border-3 rounded-xl font-display text-base sm:text-xl transition-all uppercase whitespace-nowrap flex-shrink-0 ${
-                players.filter(p => p.connected).length < 2 
+                players.filter(p => p.connected).length < 2 || isStarting
                   ? 'bg-gray-200 text-gray-400 cursor-not-allowed border-gray-400' 
                   : 'bg-[var(--color-high-yellow)] text-[var(--color-ink)] border-[var(--color-ink)] shadow-[3px_3px_0px_0px_var(--color-ink)] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[4px_4px_0px_0px_var(--color-ink)]'
               }`}
               style={{ borderWidth: '3px' }}
             >
-              <Play size={18} fill="currentColor" className="sm:!w-5 sm:!h-5" /> Iniciar
+              <Play size={18} fill="currentColor" className="sm:!w-5 sm:!h-5" /> {isStarting ? 'Iniciando...' : 'Iniciar'}
             </SoundButton>
           </div>
         </RoleGuard>

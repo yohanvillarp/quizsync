@@ -10,6 +10,7 @@ import {
 import { Server, Socket } from 'socket.io';
 import { Logger } from '@nestjs/common';
 import { GameService, Question } from '@/game/application/services/game.service';
+import { PowerService } from '@/game/application/services/power.service';
 import type { ApiCoreQuiz } from '@/game/domain/models/api-core.dto';
 
 @WebSocketGateway({
@@ -26,7 +27,10 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   private readonly EMOTE_COOLDOWN_MS = 800;
   private readonly logger = new Logger(GameGateway.name);
 
-  constructor(private readonly gameService: GameService) {
+  constructor(
+    private readonly gameService: GameService,
+    private readonly powerService: PowerService
+  ) {
     this.gameService.roomDestroyed$.subscribe(({ roomId, message }) => {
       this.server?.to(roomId).emit('room_destroyed', {
         roomId,
@@ -72,6 +76,40 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
           }
         }
       }, 20000);
+    }
+  }
+
+  @SubscribeMessage('use_power')
+  handleUsePower(
+    @MessageBody() payload: { roomId: string; sourceId: string; targetId?: string },
+    @ConnectedSocket() client: Socket,
+  ) {
+    try {
+      const room = this.gameService.getRoom(payload.roomId);
+      if (!room) {
+        client.emit('error', { message: 'Sala no encontrada' });
+        return;
+      }
+      
+      const result = this.powerService.activatePower(room, payload);
+      
+      // Update clients
+      if (result.broadcastEvents) {
+        result.broadcastEvents.forEach(evt => {
+          this.server.to(payload.roomId).emit(evt.event, evt.data);
+        });
+      }
+      if (result.unicastEvents) {
+        result.unicastEvents.forEach(evt => {
+          this.server.to(evt.socketId).emit(evt.event, evt.data);
+        });
+      }
+
+      // Sync room state with clients after applying power effects
+      this.server.to(payload.roomId).emit('room_state', { room });
+    } catch (error: any) {
+      this.logger.error(`Error activating power: ${error.message}`);
+      client.emit('error', { message: error.message || 'Error activando el poder' });
     }
   }
 
@@ -243,6 +281,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
         roomId: payload.roomId, 
         isHost: myPlayer?.isHost || false, 
         categoryName: room.categoryName,
+        gameModeId: room.gameModeId,
         gameStatus: room.status,
         currentQuestionIndex: room.currentQuestionIndex,
         endTime: room.currentEndTime,
@@ -298,6 +337,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
         };
         this.server.to(roomId).emit('question_started', {
           status: qRoom.status,
+          gameModeId: qRoom.gameModeId,
           question: safeQuestion,
           endTime: qRoom.currentEndTime,
         });
@@ -378,6 +418,36 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       if (this.gameService.allPlayersAnswered(payload.roomId)) {
         this.triggerRankingPhase(payload.roomId);
       }
+      
+      try {
+        const room = this.gameService.getRoom(payload.roomId);
+        for (const player of room.players.values()) {
+          // Si alguien lanzó "Ladrón" o "Lealtad" hacia el jugador que acaba de responder
+          if (
+            player.activeEffects.includes(`thief_active_on_${payload.deviceId}`) ||
+            player.activeEffects.includes(`loyalty_active_for_${payload.deviceId}`)
+          ) {
+            const spectatorSocketId = player.socketId;
+            if (spectatorSocketId) {
+              this.server.to(spectatorSocketId).emit('thief_target_answered', { answerId: payload.answerId });
+            }
+          }
+          
+          // También al revés: Si el jugador que acaba de responder es el PERRO, debe pasarle la pista al que recibe la lealtad
+          // Buscar si el que respondió tiene activo loyalty_active_for_X
+          const loyaltyEffect = player.activeEffects.find(e => e.startsWith('loyalty_active_for_'));
+          if (loyaltyEffect && player.deviceId === payload.deviceId) {
+             const targetId = loyaltyEffect.replace('loyalty_active_for_', '');
+             const targetPlayer = room.players.get(targetId);
+             if (targetPlayer && targetPlayer.socketId) {
+               this.server.to(targetPlayer.socketId).emit('thief_target_answered', { answerId: payload.answerId });
+             }
+          }
+        }
+      } catch (e) {
+        // Ignorar si hay error al buscar sala
+      }
+
       // Opcional: Solo enviamos confirmación al jugador, no a todos para evitar lag/spoilers
       return { status: 'success', points: result.points, isCorrect: result.isCorrect };
     }

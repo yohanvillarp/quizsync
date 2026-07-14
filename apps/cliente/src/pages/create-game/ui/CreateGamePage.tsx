@@ -6,9 +6,10 @@ import { SoundButton } from "@/shared/ui/SoundButton";
 import { apiClient } from "@/shared/api/apiClient";
 import { engineClient } from "@/shared/api/engineClient";
 import { useGameStore } from "@/entities/game/model/useGameStore";
+import type { GameModeId } from "@/entities/game/model/game-mode.types";
+import { GameModeSelector } from "@/features/create-game/ui/GameModeSelector";
 
 type Visibility = "PUBLIC" | "PRIVATE";
-type GameMode = "NORMAL" | "POWER_MODE";
 type Role = "PLAYER" | "SPECTATOR";
 
 export function CreateGamePage() {
@@ -16,7 +17,7 @@ export function CreateGamePage() {
   
   // Form State
   const [visibility, setVisibility] = useState<Visibility>("PRIVATE");
-  const [gameMode, setGameMode] = useState<GameMode>("NORMAL");
+  const [gameModeId, setGameModeId] = useState<GameModeId>("NORMAL");
   const [role, setRole] = useState<Role>("PLAYER");
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>("random");
   const [selectedQuizId, setSelectedQuizId] = useState<string>("random");
@@ -82,7 +83,7 @@ export function CreateGamePage() {
       const response = await engineClient.post("/rooms", {
         categoryId: selectedCategoryId,
         quizId: selectedQuizId,
-        gameMode,
+        gameModeId,
         visibility,
         hostId: deviceId,
         maxPlayers,
@@ -158,30 +159,7 @@ export function CreateGamePage() {
               </p>
             </div>
 
-            {/* Modo de Juego */}
-            <div className="flex flex-col gap-2">
-              <label className="font-display text-xl">Modo de Juego</label>
-              <div className="grid grid-cols-2 gap-3">
-                <SoundButton 
-                  clickSound="click"
-                  onClick={() => setGameMode("NORMAL")}
-                  className={`flex items-center justify-center gap-2 py-3 rounded-xl border-4 transition-all font-bold ${gameMode === "NORMAL" ? "bg-[var(--color-high-yellow)] border-black text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]" : "bg-white border-gray-300 text-gray-500 hover:border-black"}`}
-                >
-                  Normal
-                </SoundButton>
-                <SoundButton 
-                  clickSound="error"
-                  disabled
-                  className={`flex items-center justify-center gap-2 py-3 rounded-xl border-4 transition-all font-bold bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed`}
-                  title="Próximamente"
-                >
-                  <Zap size={20} strokeWidth={2.5} fill="currentColor" /> Poderes
-                </SoundButton>
-              </div>
-              <p className="text-sm font-body font-bold text-gray-500">
-                El modo Poderes estará disponible próximamente.
-              </p>
-            </div>
+            <GameModeSelector value={gameModeId} onChange={setGameModeId} />
 
             {/* Tu Rol */}
             <div className="flex flex-col gap-2">

@@ -2,17 +2,27 @@ import { useAvatarStore, type AvatarType } from "@/shared/store/useAvatarStore";
 import { FoxAvatar, OwlAvatar, BearAvatar, CatAvatar, RabbitAvatar, DogAvatar } from "@/shared/ui/avatars/AvatarIcons";
 import { useState } from "react";
 import { audioManager } from "@/core/audio/AudioManager";
+import { COMPANIONS_MOCK } from "@/entities/player/model/companions.mock";
 
-const AVATAR_OPTIONS: { id: AvatarType; name: string; component: React.ReactNode; rotation: number }[] = [
-  { id: 'fox', name: 'Zorro', component: <FoxAvatar />, rotation: -1.5 },
-  { id: 'owl', name: 'Búho', component: <OwlAvatar />, rotation: 1 },
-  { id: 'bear', name: 'Oso', component: <BearAvatar />, rotation: -0.5 },
-  { id: 'cat', name: 'Gato', component: <CatAvatar />, rotation: 2 },
-  { id: 'rabbit', name: 'Conejo', component: <RabbitAvatar />, rotation: -2 },
-  { id: 'dog', name: 'Perro', component: <DogAvatar />, rotation: 1.5 },
+const COMPONENT_MAP: Record<string, React.ReactNode> = {
+  fox: <FoxAvatar />,
+  owl: <OwlAvatar />,
+  bear: <BearAvatar />,
+  cat: <CatAvatar />,
+  rabbit: <RabbitAvatar />,
+  dog: <DogAvatar />
+};
+
+const AVATAR_OPTIONS = [
+  ...COMPANIONS_MOCK.map(c => ({
+    ...c,
+    component: COMPONENT_MAP[c.id]
+  })),
   { 
     id: 'random', 
     name: 'Sorpréndeme', 
+    powerName: 'Aleatorio',
+    description: 'Selecciona un compañero al azar con un poder misterioso.',
     component: (
       <div className="w-full h-full flex items-center justify-center text-[80px] font-black text-[var(--color-ink)] animate-pulse drop-shadow-[0_4px_0_var(--color-high-yellow)]">
         ?
@@ -30,7 +40,7 @@ export function AvatarInventoryWidget() {
     <div className="w-full relative">
       <div className="mb-12 text-center">
         <h2 className="font-headline text-3xl font-black text-[var(--color-ink)] inline-block relative">
-          ELIGE TU AVATAR
+          ELIGE TU COMPAÑERO
           <div className="absolute -bottom-2 left-0 w-full h-1 bg-[var(--color-ink)] opacity-30 transform -rotate-1"></div>
         </h2>
         <p className="mt-4 text-gray-600 font-bold text-sm opacity-80 uppercase tracking-widest">
@@ -62,12 +72,18 @@ export function AvatarInventoryWidget() {
                 }
               }}
             >
-              <div className="w-full aspect-square bg-white mb-4 flex items-center justify-center relative overflow-visible">
+              <div className="w-full aspect-square bg-white mb-3 flex items-center justify-center relative overflow-visible rounded-xl shadow-inner">
                 {avatar.component}
               </div>
-              <span className="font-headline text-2xl font-bold text-[var(--color-ink)] uppercase">
+              <span className="font-headline text-2xl font-black text-[var(--color-ink)] uppercase">
                 {avatar.name}
               </span>
+              <span className="font-body text-xs font-bold uppercase tracking-widest text-[var(--color-high-pink)] mt-1 mb-2 bg-[var(--color-ink)] px-2 py-0.5 rounded-full">
+                {avatar.powerName}
+              </span>
+              <p className="text-[11px] sm:text-xs text-gray-600 font-medium text-center leading-tight">
+                {avatar.description}
+              </p>
             </div>
           );
         })}

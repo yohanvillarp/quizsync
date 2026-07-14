@@ -5,6 +5,7 @@ class AudioManager {
   private commonSprite: Howl | null = null;
   private bgMusic: Howl | null = null;
   private avatarSounds: Map<string, Howl> = new Map();
+  private cooldowns: Map<string, number> = new Map();
 
   private isMuted: boolean = false;
 
@@ -86,13 +87,36 @@ class AudioManager {
   }
 
   /**
+   * Reproduce un sonido de UI con sistema "anti-cacofonía" (Debouncing)
+   */
+  public playUISoundWithCooldown(soundId: string, cooldownMs: number = 1000) {
+    const now = Date.now();
+    const lastPlayed = this.cooldowns.get(soundId) || 0;
+    
+    // Si todavía estamos en cooldown, ignoramos silenciosamente para evitar empalmes ruidosos
+    if (now - lastPlayed < cooldownMs) {
+      return;
+    }
+    
+    this.cooldowns.set(soundId, now);
+    this.playUISound(soundId);
+  }
+
+  /**
    * Manejo de la música de fondo
    */
+  private currentTrack: 'lobby' | 'gameplay' | null = null;
+
   public playMusic(track: 'lobby' | 'gameplay') {
+    if (this.currentTrack === track && this.bgMusic && this.bgMusic.playing()) {
+      return; // Ya está sonando la pista correcta
+    }
+
     if (this.bgMusic) {
       this.bgMusic.stop();
     }
 
+    this.currentTrack = track;
     this.bgMusic = new Howl({
       src: [BACKGROUND_MUSIC[track]],
       loop: true,

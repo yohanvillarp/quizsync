@@ -3,6 +3,8 @@ import { FoxAvatar, OwlAvatar, BearAvatar, CatAvatar, RabbitAvatar, DogAvatar } 
 import { Crown, Edit2, UserMinus, Ban, VolumeX, RotateCcw } from "lucide-react";
 import { useRole } from "@/shared/lib/rbac/useRole";
 import { SoundButton } from "@/shared/ui/SoundButton";
+import { useGameStore } from "@/entities/game/model/useGameStore";
+import { getCompanionById } from "@/entities/player/model/companions.mock";
 
 export interface Player {
   socketId: string;
@@ -36,10 +38,28 @@ const ICONS: Record<string, React.ReactNode> = {
   dog: <DogAvatar />
 };
 
-export function PlayerCard({ player, emotes = [], isPoked = false, onPoke, isMe = false, onChangeAvatar, onTransferHost, onKick, onBan, onMuteEmotes }: PlayerCardProps) {
-  const { isHost: amIHost } = useRole();
+
+export function PlayerCard({ 
+  player, 
+  emotes = [], 
+  isPoked = false, 
+  onPoke, 
+  isMe = false, 
+  onChangeAvatar, 
+  onTransferHost, 
+  onKick, 
+  onBan, 
+  onMuteEmotes 
+}: PlayerCardProps) {
+  const amIHost = useGameStore(state => {
+    const myId = localStorage.getItem('quizsync_device_id');
+    const me = state.players.find(p => p.deviceId === myId);
+    return me?.isHost || false;
+  });
+  const gameModeId = useGameStore(state => state.gameModeId);
   const [showPicker, setShowPicker] = useState(false);
   const [showAdminPicker, setShowAdminPicker] = useState(false);
+  const [previewAvatar, setPreviewAvatar] = useState<string | null>(null);
   const isHost = player.isHost;
   const isDisconnected = player.connected === false;
   const avatar = ICONS[player.avatarId] || <FoxAvatar />; // Default a fox si no se encuentra
@@ -76,23 +96,36 @@ export function PlayerCard({ player, emotes = [], isPoked = false, onPoke, isMe 
 
       {/* Selector Flotante de Avatar */}
       {isMe && showPicker && (
-        <div className="absolute -top-14 sm:-top-16 z-50 bg-white border-4 border-[var(--color-ink)] p-1 sm:p-2 rounded-3xl flex gap-0.5 sm:gap-1 shadow-[4px_4px_0px_var(--color-ink)] animate-in zoom-in duration-200">
-          {Object.keys(ICONS).map((key) => (
-            <SoundButton
-              key={key}
-              clickSound="click"
-              onClick={(e) => {
-                e.stopPropagation();
-                if (onChangeAvatar) onChangeAvatar(key);
-                setShowPicker(false);
-              }}
-              className={`w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 flex items-center justify-center rounded-xl hover:bg-gray-100 transition-colors border-2 ${player.avatarId === key ? 'border-[var(--color-ink)] bg-[var(--color-high-yellow)]' : 'border-transparent'}`}
-            >
-              <div className="w-6 h-6 sm:w-8 sm:h-8 pointer-events-none flex items-center justify-center">
-                {ICONS[key]}
-              </div>
-            </SoundButton>
-          ))}
+        <div className="absolute bottom-[100%] mb-2 z-50 flex flex-col items-center gap-2 animate-in zoom-in duration-200">
+          {(previewAvatar || player.avatarId) && gameModeId === 'POWER_MODE' && (
+            <div className="bg-[var(--color-ink)] text-white text-xs sm:text-sm p-2 rounded-xl w-[250px] sm:w-[300px] text-center font-body shadow-lg pointer-events-none border-2 border-white/20">
+              <span className="font-bold text-[var(--color-high-yellow)] block mb-0.5 uppercase tracking-wider">
+                {getCompanionById(previewAvatar || player.avatarId)?.powerName}
+              </span>
+              {getCompanionById(previewAvatar || player.avatarId)?.description}
+            </div>
+          )}
+          <div className="bg-white border-4 border-[var(--color-ink)] p-1 sm:p-2 rounded-3xl flex gap-0.5 sm:gap-1 shadow-[4px_4px_0px_var(--color-ink)]">
+            {Object.keys(ICONS).map((key) => (
+              <SoundButton
+                key={key}
+                clickSound="click"
+                onMouseEnter={() => setPreviewAvatar(key)}
+                onMouseLeave={() => setPreviewAvatar(null)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (onChangeAvatar) onChangeAvatar(key);
+                  setShowPicker(false);
+                  setPreviewAvatar(null);
+                }}
+                className={`w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 flex items-center justify-center rounded-xl hover:bg-gray-100 transition-colors border-2 ${player.avatarId === key ? 'border-[var(--color-ink)] bg-[var(--color-high-yellow)]' : 'border-transparent'}`}
+              >
+                <div className="w-6 h-6 sm:w-8 sm:h-8 pointer-events-none flex items-center justify-center">
+                  {ICONS[key]}
+                </div>
+              </SoundButton>
+            ))}
+          </div>
         </div>
       )}
 
@@ -186,12 +219,17 @@ export function PlayerCard({ player, emotes = [], isPoked = false, onPoke, isMe 
       </div>
 
       {/* Etiqueta con el nombre */}
-      <div className={`px-3 sm:px-4 py-1 sm:py-2 border-2 border-[var(--color-ink)] rounded-xl transform -rotate-2 pointer-events-none
+      <div className={`px-3 sm:px-4 py-1 sm:py-2 border-2 border-[var(--color-ink)] rounded-xl transform -rotate-2 pointer-events-none flex flex-col items-center justify-center
         ${isHost ? 'bg-[var(--color-ink)] text-white shadow-[3px_3px_0px_var(--color-high-yellow)]' : 'bg-[var(--color-paper-dim)] text-[var(--color-ink)] shadow-[3px_3px_0px_var(--color-ink)]'}
       `}>
-        <span className="font-headline font-black uppercase text-xs sm:text-sm md:text-base tracking-wider block max-w-[70px] sm:max-w-[90px] md:max-w-[120px] truncate text-center">
+        <span className="font-headline font-black uppercase text-xs sm:text-sm md:text-base tracking-wider block max-w-[70px] sm:max-w-[90px] md:max-w-[120px] truncate text-center leading-tight">
           {player.name}
         </span>
+        {gameModeId === 'POWER_MODE' && (
+          <span className="font-body font-bold text-[10px] sm:text-[11px] uppercase tracking-tighter opacity-80 mt-0.5">
+            {getCompanionById(player.avatarId)?.powerName || 'Sin Poder'}
+          </span>
+        )}
       </div>
     </div>
   );
