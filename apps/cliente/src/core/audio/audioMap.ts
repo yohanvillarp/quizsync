@@ -16,6 +16,7 @@ export const UI_SOUNDS: Record<string, string> = {
   'confirm': `${AZURE_BLOB_BASE_URL}/ui/audio/confirm-ding.mp3`,
   'error': `${AZURE_BLOB_BASE_URL}/ui/audio/error-bonk.mp3`,
   'random-select': `${AZURE_BLOB_BASE_URL}/ui/audio/random-select.mp3`,
+  'power-activation': `${AZURE_BLOB_BASE_URL}/ui/audio/power-activation.mp3`,
 };
 
 export const AVATAR_SOUNDS: Record<string, string> = {

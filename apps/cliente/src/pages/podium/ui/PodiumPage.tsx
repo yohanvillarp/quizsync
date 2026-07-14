@@ -73,8 +73,10 @@ export function PodiumPage() {
   const rankingPlayers = sortedPlayers.map(p => ({
     id: p.deviceId,
     name: p.name,
-    score: p.score,
-    hasAnswered: true, // Fin del juego
+    avatarId: p.avatarId,
+    score: p.score || 0,
+    powerPoints: p.lastRoundPowerPoints || 0,
+    hasAnswered: true,
     isMe: p.deviceId === localStorage.getItem('quizsync_device_id')
   }));
 
