@@ -20,6 +20,7 @@ export interface Player {
   lastRoundIsCorrect?: boolean;
   lastRoundPowerPoints?: number;
   lastRoundPowerMessage?: string;
+  questionsAnsweredSincePower: number;
 }
 
 export interface Option {
@@ -42,6 +43,7 @@ export interface RoomState {
   roomId: string;
   quizId: string;
   quizTitle: string;
+  quizDescription?: string;
   categoryName: string;
   visibility: 'PUBLIC' | 'PRIVATE';
   gameModeId: GameModeId;
@@ -103,7 +105,8 @@ export class GameService {
 
   createRoom(
     quizId: string, 
-    quizTitle: string, 
+    quizTitle: string,
+    quizDescription: string,
     categoryName: string, 
     visibility: 'PUBLIC' | 'PRIVATE', 
     gameModeId: GameModeId,
@@ -127,6 +130,7 @@ export class GameService {
       roomId,
       quizId,
       quizTitle,
+      quizDescription,
       categoryName,
       visibility,
       gameModeId,
@@ -229,7 +233,7 @@ export class GameService {
     // El host oficial de la sala es aquel cuyo deviceId coincida con el hostId
     const isHost = room.hostId === deviceId;
 
-    room.players.set(deviceId, { socketId, deviceId, name, avatarId, isHost, connected: true, score: 0, answered: false, emotesMuted: false, powerStatus: 'AVAILABLE', activeEffects: [] });
+    room.players.set(deviceId, { socketId, deviceId, name, avatarId, isHost, connected: true, score: 0, answered: false, emotesMuted: false, powerStatus: 'AVAILABLE', activeEffects: [], questionsAnsweredSincePower: 0 });
 
     // Cancelar el timeout de auto-destrucción SOLO si el host se une
     if (isHost) {
@@ -388,6 +392,10 @@ export class GameService {
       player.lastRoundIsCorrect = undefined;
       player.lastRoundPowerPoints = 0;
       player.lastRoundPowerMessage = undefined;
+      
+      // Lógica de recarga de poderes se maneja en submitAnswer para poder mostrar el mensaje
+      // en la pantalla de ranking de esa misma ronda.
+      
       this.powerService.applyStartQuestionEffects(player);
     }
 
@@ -395,18 +403,28 @@ export class GameService {
     return room;
   }
 
-  showRanking(roomId: string): RoomState | null {
+  showRanking(roomId: string): { room: RoomState, rechargedPlayers: Player[] } | null {
     const room = this.rooms.get(roomId);
     if (!room) return null;
+    
+    const rechargedPlayers: Player[] = [];
+
+    const isRechargeRound = (room.currentQuestionIndex + 1) % 5 === 0;
 
     for (const player of room.players.values()) {
       this.powerService.applyEndQuestionEffects(player);
+      
+      // Recarga global cada 5 rondas
+      if (isRechargeRound && player.powerStatus === 'USED') {
+        player.powerStatus = 'AVAILABLE';
+        rechargedPlayers.push(player);
+      }
     }
 
     room.status = 'RANKING';
     // 5 segundos mostrando ranking
     room.currentEndTime = Date.now() + 5000;
-    return room;
+    return { room, rechargedPlayers };
   }
 
   nextQuestion(roomId: string): RoomState | null {
@@ -427,7 +445,7 @@ export class GameService {
     return room;
   }
 
-  submitAnswer(roomId: string, deviceId: string, answerId: string): { isCorrect: boolean, points: number, room: RoomState } | null {
+  submitAnswer(roomId: string, deviceId: string, answerId: string): { isCorrect: boolean, points: number, room: RoomState, powerRecharged?: boolean } | null {
     const room = this.rooms.get(roomId);
     if (!room || room.status !== 'QUESTION') return null;
 
@@ -508,6 +526,13 @@ export class GameService {
     for (const player of room.players.values()) {
       player.score = 0;
       player.answered = false;
+      player.powerStatus = 'AVAILABLE';
+      player.activeEffects = [];
+      player.questionsAnsweredSincePower = 0;
+      player.lastRoundScore = 0;
+      player.lastRoundIsCorrect = undefined;
+      player.lastRoundPowerPoints = 0;
+      player.lastRoundPowerMessage = undefined;
     }
 
     this.resetLobbyIdleTimeout(roomId);

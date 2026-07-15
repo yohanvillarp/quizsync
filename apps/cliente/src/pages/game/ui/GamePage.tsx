@@ -12,6 +12,18 @@ import { PreparingLoader } from './PreparingLoader';
 import { PowerButton } from '@/features/animal-powers/ui/PowerButton';
 import { PowerEffects } from '@/features/animal-powers/ui/PowerEffects';
 import { PowerActivationAnim } from '@/features/animal-powers/ui/PowerActivationAnim';
+import { FoxAvatar, OwlAvatar, BearAvatar, CatAvatar, RabbitAvatar, DogAvatar, GalloAvatar } from '@/shared/ui/avatars/AvatarIcons';
+import { PowerRechargeAnim } from '@/features/animal-powers/ui/PowerRechargeAnim';
+
+const ICONS: Record<string, React.ReactNode> = {
+  fox: <FoxAvatar />,
+  owl: <OwlAvatar />,
+  bear: <BearAvatar />,
+  cat: <CatAvatar />,
+  rabbit: <RabbitAvatar />,
+  dog: <DogAvatar />,
+  gallo: <GalloAvatar />
+};
 
 export const GamePage: React.FC = () => {
   const navigate = useNavigate();
@@ -19,6 +31,7 @@ export const GamePage: React.FC = () => {
 
   const { players, gameStatus, gameModeId, currentQuestion, endTime, submitAnswer, connect, isConnected, removedOptionIds, thiefSuggestedAnswerId } = useGameStore();
 
+  const myPlayer = players.find(p => p.deviceId === localStorage.getItem('quizsync_device_id'));
   const isMe = (p: any) => p.deviceId === localStorage.getItem('quizsync_device_id');
   
   // Mapear los jugadores del store al formato que espera RankingBoard
@@ -99,10 +112,12 @@ export const GamePage: React.FC = () => {
   useEffect(() => {
     if (!endTime) return;
     const updateTimer = () => {
-      setTimeLeft(Math.max(0, Math.ceil((endTime - Date.now()) / 1000)));
+      const serverTimeOffset = useGameStore.getState().serverTimeOffset;
+      const now = Date.now() + serverTimeOffset;
+      setTimeLeft(Math.max(0, Math.ceil((endTime - now) / 1000)));
     };
     updateTimer();
-    const interval = setInterval(updateTimer, 1000);
+    const interval = setInterval(updateTimer, 100);
     return () => clearInterval(interval);
   }, [endTime]);
   // Calculamos la vista a forzar (por ejemplo, si el server dice RANKING, mostramos RANKING)
@@ -174,14 +189,19 @@ export const GamePage: React.FC = () => {
           </div>
         </div>
         
-        {/* RIGHT SIDE */}
-        <div className="relative items-center gap-8 mr-2 sm:mr-16 z-10 hidden md:flex">
-          <div className="relative">
-            <WashiTape className="-top-2 -left-4 w-12 h-6" colorClass="bg-accent-pink" />
-            <div className="text-lg font-sketch font-bold uppercase border-2 border-ink px-6 py-1 rotate-1 bg-accent-yellow/30">
-              RONDA EN VIVO
+        {/* RIGHT SIDE (Banner de Ronda y Mascota) */}
+        <div className={`relative items-center gap-8 mr-2 sm:mr-16 z-10 hidden md:flex transition-opacity duration-300 ${view === 'ranking' ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+          <div className="relative flex items-center gap-4">
+            <div className="w-12 h-12 -rotate-12 bg-white rounded-full border-2 border-ink shadow-[2px_2px_0px_0px_var(--color-ink)] p-1 flex items-center justify-center">
+              {myPlayer && ICONS[myPlayer.avatarId] ? ICONS[myPlayer.avatarId] : <FoxAvatar />}
             </div>
-            <WashiTape className="-bottom-2 -right-4 w-12 h-6" colorClass="bg-accent-mint" rotation="rotate-12" />
+            <div className="relative">
+              <WashiTape className="-top-2 -left-4 w-12 h-6" colorClass="bg-accent-pink" />
+              <div className="text-lg font-sketch font-bold uppercase border-2 border-ink px-6 py-1 rotate-1 bg-accent-yellow/30">
+                RONDA EN VIVO
+              </div>
+              <WashiTape className="-bottom-2 -right-4 w-12 h-6" colorClass="bg-accent-mint" rotation="rotate-12" />
+            </div>
           </div>
         </div>
       </header>
@@ -257,6 +277,7 @@ export const GamePage: React.FC = () => {
           {gameStatus === 'QUESTION' && <PowerButton />}
           <PowerEffects />
           <PowerActivationAnim />
+          <PowerRechargeAnim />
         </>
       )}
     </div>

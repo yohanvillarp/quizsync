@@ -50,6 +50,13 @@ export const COMPANIONS_MOCK: CompanionData[] = [
     powerName: 'Lealtad', 
     description: 'Ve la respuesta de tu amigo en pantalla para que puedan ayudarse a responder.', 
     rotation: 1.5 
+  },
+  {
+    id: 'gallo',
+    name: 'Gallo',
+    powerName: 'Rey del Gallinero',
+    description: 'Silencia a todos los demás jugadores. Nadie podrá usar sus poderes en esta ronda.',
+    rotation: -1
   }
 ];
 

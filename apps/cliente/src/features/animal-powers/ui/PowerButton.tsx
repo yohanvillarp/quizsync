@@ -3,7 +3,7 @@ import { useGameStore } from '@/entities/game/model/useGameStore';
 import { usePowerAction } from '../model/usePowerAction';
 import { TargetSelector } from './TargetSelector';
 import { getCompanionById } from '@/entities/player/model/companions.mock';
-import { FoxAvatar, OwlAvatar, BearAvatar, CatAvatar, RabbitAvatar, DogAvatar } from '@/shared/ui/avatars/AvatarIcons';
+import { FoxAvatar, OwlAvatar, BearAvatar, CatAvatar, RabbitAvatar, DogAvatar, GalloAvatar } from '@/shared/ui/avatars/AvatarIcons';
 
 const ICONS: Record<string, React.ReactNode> = {
   fox: <FoxAvatar />,
@@ -12,6 +12,7 @@ const ICONS: Record<string, React.ReactNode> = {
   cat: <CatAvatar />,
   rabbit: <RabbitAvatar />,
   dog: <DogAvatar />,
+  gallo: <GalloAvatar />
 };
 
 export const PowerButton: React.FC = () => {
@@ -24,7 +25,8 @@ export const PowerButton: React.FC = () => {
 
   if (!myPlayer) return null;
 
-  const isAvailable = myPlayer.powerStatus !== 'USED';
+  const isSilenced = myPlayer.activeEffects?.some(e => e.startsWith('silenced_by_gallo'));
+  const isAvailable = myPlayer.powerStatus !== 'USED' && !myPlayer.answered && !isSilenced;
   const requiresTarget = myPlayer.avatarId === 'fox' || myPlayer.avatarId === 'dog';
   const targetTitle = myPlayer.avatarId === 'fox' ? '¿A quién quieres robarle?' : '¿Con quién quieres compartir?';
   const companion = getCompanionById(myPlayer.avatarId);

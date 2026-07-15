@@ -53,6 +53,7 @@ export class GameController {
       let filteredQuizzes: ApiCoreQuiz[] = [];
       let roomTitle = 'Trivia Mixta Mix';
       let categoryName = 'Trivia Mixta';
+      let quizDescription = '';
 
       if (payload.quizId && payload.quizId !== 'random') {
         const exactQuiz = allQuizzes.find(q => q.id === payload.quizId);
@@ -60,6 +61,7 @@ export class GameController {
           filteredQuizzes = [exactQuiz];
           roomTitle = exactQuiz.title;
           categoryName = exactQuiz.category?.name || 'Categoría Libre';
+          quizDescription = exactQuiz.description || quizDescription;
         } else {
           throw new Error('No se encontró el cuestionario específico solicitado');
         }
@@ -102,6 +104,7 @@ export class GameController {
       const roomId = this.gameService.createRoom(
         payload.categoryId || 'random',
         roomTitle,
+        quizDescription,
         categoryName,
         payload.visibility === 'PUBLIC' ? 'PUBLIC' : 'PRIVATE',
         payload.gameModeId || 'NORMAL',

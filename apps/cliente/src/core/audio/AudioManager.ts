@@ -105,9 +105,9 @@ class AudioManager {
   /**
    * Manejo de la música de fondo
    */
-  private currentTrack: 'lobby' | 'gameplay' | null = null;
+  private currentTrack: 'lobby' | 'lobby_gallo' | 'gameplay' | null = null;
 
-  public playMusic(track: 'lobby' | 'gameplay') {
+  public playMusic(track: 'lobby' | 'lobby_gallo' | 'gameplay') {
     if (this.currentTrack === track && this.bgMusic && this.bgMusic.playing()) {
       return; // Ya está sonando la pista correcta
     }

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FoxAvatar, OwlAvatar, BearAvatar, CatAvatar, RabbitAvatar, DogAvatar } from "@/shared/ui/avatars/AvatarIcons";
+import { FoxAvatar, OwlAvatar, BearAvatar, CatAvatar, RabbitAvatar, DogAvatar, GalloAvatar } from "@/shared/ui/avatars/AvatarIcons";
 import { Crown, Edit2, UserMinus, Ban, VolumeX, RotateCcw } from "lucide-react";
 
 import { SoundButton } from "@/shared/ui/SoundButton";
@@ -35,7 +35,8 @@ const ICONS: Record<string, React.ReactNode> = {
   bear: <BearAvatar />,
   cat: <CatAvatar />,
   rabbit: <RabbitAvatar />,
-  dog: <DogAvatar />
+  dog: <DogAvatar />,
+  gallo: <GalloAvatar />
 };
 
 
@@ -98,11 +99,13 @@ export function PlayerCard({
       {isMe && showPicker && (
         <div className="absolute bottom-[100%] mb-2 z-50 flex flex-col items-center gap-2 animate-in zoom-in duration-200">
           {(previewAvatar || player.avatarId) && gameModeId === 'POWER_MODE' && (
-            <div className="bg-[var(--color-ink)] text-white text-xs sm:text-sm p-2 rounded-xl w-[250px] sm:w-[300px] text-center font-body shadow-lg pointer-events-none border-2 border-white/20">
+            <div className="bg-[var(--color-ink)] text-white text-xs sm:text-sm p-2 rounded-xl w-[250px] sm:w-[300px] h-[90px] sm:h-[100px] flex flex-col justify-center items-center text-center font-body shadow-lg pointer-events-none border-2 border-white/20">
               <span className="font-bold text-[var(--color-high-yellow)] block mb-0.5 uppercase tracking-wider">
                 {getCompanionById(previewAvatar || player.avatarId)?.powerName}
               </span>
-              {getCompanionById(previewAvatar || player.avatarId)?.description}
+              <span className="leading-tight">
+                {getCompanionById(previewAvatar || player.avatarId)?.description}
+              </span>
             </div>
           )}
           <div className="bg-white border-4 border-[var(--color-ink)] p-1 sm:p-2 rounded-3xl flex gap-0.5 sm:gap-1 shadow-[4px_4px_0px_var(--color-ink)]">
@@ -111,7 +114,6 @@ export function PlayerCard({
                 key={key}
                 clickSound="click"
                 onMouseEnter={() => setPreviewAvatar(key)}
-                onMouseLeave={() => setPreviewAvatar(null)}
                 onClick={(e) => {
                   e.stopPropagation();
                   if (onChangeAvatar) onChangeAvatar(key);

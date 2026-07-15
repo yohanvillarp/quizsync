@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { SoundButton } from "@/shared/ui/SoundButton";
+import { useAlertStore } from "@/shared/store/useAlertStore";
 
 export function JoinGameForm() {
   const navigate = useNavigate();
   const [pin, setPin] = useState<string>("");
-  const isPinValid = pin.length === 6;
+  const isUnlocked = localStorage.getItem('quizsync_unlocked_gallo') === 'true';
+  const isPinValid = pin.length === 6 || (!isUnlocked && pin === "ADMIN");
 
   const handlePinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
@@ -14,6 +16,12 @@ export function JoinGameForm() {
 
   const handleJoin = () => {
     if (!isPinValid) return;
+    if (pin === "ADMIN" && !isUnlocked) {
+      localStorage.setItem('quizsync_unlocked_gallo', 'true');
+      useAlertStore.getState().showAlert("¡Has desbloqueado al personaje secreto: Rey del Gallinero!", "¡Personaje Desbloqueado!");
+      setPin("");
+      return;
+    }
     navigate(`/lobby/${pin}`);
   };
 

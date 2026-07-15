@@ -26,10 +26,12 @@ export const AVATAR_SOUNDS: Record<string, string> = {
   'cat': `${AZURE_BLOB_BASE_URL}/characters/cat/select.mp3`,
   'rabbit': `${AZURE_BLOB_BASE_URL}/characters/rabbit/select.mp3`,
   'dog': `${AZURE_BLOB_BASE_URL}/characters/dog/select.mp3`,
+  'gallo': `${AZURE_BLOB_BASE_URL}/characters/gallo/select.mp3`,
 };
 
 // También podemos precargar la música de fondo
 export const BACKGROUND_MUSIC = {
   lobby: `${AZURE_BLOB_BASE_URL}/ui/audio/lobby-theme.mp3`,
+  lobby_gallo: `${AZURE_BLOB_BASE_URL}/ui/audio/lobby-theme-gallo.mp3`,
   gameplay: `${AZURE_BLOB_BASE_URL}/ui/audio/gameplay-action.mp3`,
 };

@@ -19,7 +19,7 @@
   --animate-live-paper: jitter 0.15s infinite step-end;
   
   /* Animaciones para Interacciones (Lobby) */
-  --animate-float-up: float-up 1.5s ease-out forwards;
+  --animate-float-up: float-up 1.0s ease-out forwards;
   --animate-shake-violent: shake-violent 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
 }
 
@@ -165,6 +165,46 @@ body {
 .selected .bear-arm { animation: wave 0.6s infinite ease-in-out; transform-origin: 70px 110px; }
 .selected .cat-ear { animation: twitch 2s infinite; transform-origin: center; }
 
+/* Mythic Card Style */
+.polaroid-mythic {
+  background: linear-gradient(145deg, #1A0B2E 0%, #0D041A 100%);
+  border: 3px solid #D4AF37;
+  border-radius: 8px;
+  box-shadow: 
+    0 10px 20px rgba(0,0,0,0.5),
+    inset 0 0 15px rgba(212, 175, 55, 0.3),
+    0 0 10px rgba(212, 175, 55, 0.5);
+  position: relative;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  overflow: hidden;
+}
+.polaroid-mythic::before {
+  content: '';
+  position: absolute;
+  top: -50%; left: -50%;
+  width: 200%; height: 200%;
+  background: linear-gradient(to bottom right, rgba(255,255,255,0) 0%, rgba(212,175,55,0.1) 50%, rgba(255,255,255,0) 100%);
+  transform: rotate(30deg);
+  pointer-events: none;
+}
+.polaroid-mythic:hover, .polaroid-mythic.selected {
+  transform: scale(1.05) translateY(-5px);
+  box-shadow: 
+    0 15px 30px rgba(0,0,0,0.6),
+    inset 0 0 20px rgba(212, 175, 55, 0.5),
+    0 0 20px rgba(212, 175, 55, 0.8);
+  border-color: #F5D76E;
+}
+.polaroid-mythic .text-\[var\(--color-ink\)\] {
+  color: #FFF3B0;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+}
+.polaroid-mythic .bg-white {
+  background: radial-gradient(circle at center, #2A050B 0%, #110204 100%);
+  border: 1px solid rgba(212, 175, 55, 0.3);
+}
+
+
 /* =========================================
    PODIUM STYLES
    ========================================= */
@@ -200,6 +240,7 @@ body {
   from { transform: translateY(0); }
   to { transform: translateY(-15px); }
 }
+
 /* =========================================
    GAME PAGE STYLES
    ========================================= */
@@ -317,3 +358,96 @@ body {
 
 .animate-tick { animation: tick-pop 0.3s ease-out; }
 
+/* Gallo Animations */
+@keyframes crest-bounce {
+    0%,
+    100% {
+        transform: scaleY(1) rotate(0deg);
+    }
+    50% {
+        transform: scaleY(1.15) rotate(-2deg);
+    }
+}
+
+@keyframes tail-swish {
+    0%,
+    100% {
+        transform: rotate(0deg);
+    }
+    25% {
+        transform: rotate(8deg);
+    }
+    75% {
+        transform: rotate(-8deg);
+    }
+}
+
+@keyframes wing-flap {
+    0%,
+    100% {
+        transform: rotateZ(0deg);
+        opacity: 1;
+    }
+    50% {
+        transform: rotateZ(25deg);
+        opacity: 0.9;
+    }
+}
+
+@keyframes wing-flap-reverse {
+    0%,
+    100% {
+        transform: rotateZ(0deg);
+        opacity: 1;
+    }
+    50% {
+        transform: rotateZ(-25deg);
+        opacity: 0.9;
+    }
+}
+
+@keyframes sparkle {
+    0%,
+    100% {
+        opacity: 0;
+        transform: scale(0);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.gallo-crest {
+    filter: drop-shadow(0 0 3px rgba(255, 23, 68, 0.5));
+}
+
+.gallo-tail {
+    filter: drop-shadow(0 0 4px rgba(255, 107, 53, 0.6));
+}
+
+.gallo-majestic-glow {
+    filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.4));
+}
+
+@keyframes float-particle {
+  0% { transform: translateY(0) scale(var(--tw-scale-x, 1)); opacity: 0; }
+  10% { opacity: 0.4; }
+  90% { opacity: 0.4; }
+  100% { transform: translateY(-120vh) scale(var(--tw-scale-x, 1)); opacity: 0; }
+}
+
+.animate-float-particle {
+  animation-name: float-particle;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+@keyframes pulse-slow {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 4s ease-in-out infinite;
+}

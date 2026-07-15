@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useGameStore } from '@/entities/game/model/useGameStore';
 import { audioManager } from '@/core/audio/AudioManager';
-import { getCompanionById } from '@/entities/player/model/companions.mock';
+import { FoxAvatar, OwlAvatar, BearAvatar, CatAvatar, RabbitAvatar, DogAvatar, GalloAvatar } from '@/shared/ui/avatars/AvatarIcons';
 
 const powerColors: Record<string, string> = {
   fox: 'var(--color-high-pink)',
@@ -10,9 +10,8 @@ const powerColors: Record<string, string> = {
   bear: '#ba1a1a',
   rabbit: 'var(--color-high-yellow)',
   dog: 'var(--color-ink-offset)',
+  gallo: 'var(--color-accent-pink)'
 };
-
-import { FoxAvatar, OwlAvatar, BearAvatar, CatAvatar, RabbitAvatar, DogAvatar } from '@/shared/ui/avatars/AvatarIcons';
 
 const ICONS: Record<string, React.ReactNode> = {
   fox: <FoxAvatar />,
@@ -21,40 +20,35 @@ const ICONS: Record<string, React.ReactNode> = {
   cat: <CatAvatar />,
   rabbit: <RabbitAvatar />,
   dog: <DogAvatar />,
+  gallo: <GalloAvatar />
 };
 
-export const PowerActivationAnim: React.FC = () => {
-  const powerAnimations = useGameStore(state => state.powerAnimations);
-  const [activeAnim, setActiveAnim] = useState<any | null>(null);
-
-  const players = useGameStore(state => state.players);
+export const PowerRechargeAnim: React.FC = () => {
+  const { powerJustRecharged, clearPowerJustRecharged, players, gameStatus } = useGameStore();
+  const [isVisible, setIsVisible] = useState(false);
+  
+  const myDeviceId = localStorage.getItem('quizsync_device_id') || '';
+  const myPlayer = players.find(p => p.deviceId === myDeviceId);
 
   useEffect(() => {
-    const latest = powerAnimations[powerAnimations.length - 1];
-    if (latest) {
-      setActiveAnim(latest);
+    if (powerJustRecharged && gameStatus === 'RANKING') {
+      setIsVisible(true);
       audioManager.playUISoundWithCooldown('power-activation', 1500);
       
       const timer = setTimeout(() => {
-        setActiveAnim(null);
-      }, 2500); // Animation duration
+        setIsVisible(false);
+        clearPowerJustRecharged();
+      }, 2500); 
       return () => clearTimeout(timer);
-    } else {
-      setActiveAnim(null);
     }
-  }, [powerAnimations]);
+  }, [powerJustRecharged, gameStatus, clearPowerJustRecharged]);
 
-  if (!activeAnim) return null;
+  if (!isVisible || !myPlayer) return null;
 
-  const companion = getCompanionById(activeAnim.avatarId);
-  const powerName = companion ? `¡${companion.powerName.toUpperCase()}!` : '¡PODER!';
-  const color = powerColors[activeAnim.avatarId] || 'var(--color-ink)';
-
-  const sourcePlayer = players.find(p => p.deviceId === activeAnim.sourceId);
-  const targetPlayer = players.find(p => p.deviceId === activeAnim.targetId);
+  const color = powerColors[myPlayer.avatarId] || 'var(--color-ink)';
 
   return (
-    <div className="fixed inset-0 z-[110] flex items-center justify-center pointer-events-none overflow-hidden">
+    <div className="fixed inset-0 z-[120] flex items-center justify-center pointer-events-none overflow-hidden">
       <div 
         className="absolute inset-0 opacity-20 mix-blend-overlay animate-pulse" 
         style={{ backgroundColor: color, animationDuration: '0.2s' }} 
@@ -71,24 +65,17 @@ export const PowerActivationAnim: React.FC = () => {
           style={{ backgroundColor: color }}
         >
           <div className="flex flex-col items-center justify-center animate-pulse" style={{ animationDuration: '0.1s' }}>
-            {sourcePlayer && (
-              <span className="text-white/80 font-body font-bold text-xl md:text-3xl uppercase tracking-widest mb-[-10px] z-10 drop-shadow-[2px_2px_0px_var(--color-ink)]">
-                {sourcePlayer.name} usó:
-              </span>
-            )}
+            <span className="text-white/80 font-body font-bold text-xl md:text-3xl uppercase tracking-widest mb-[-10px] z-10 drop-shadow-[2px_2px_0px_var(--color-ink)]">
+              ¡Poder Recargado!
+            </span>
             <div className="flex items-center gap-4 md:gap-8">
               <div className="w-24 h-24 md:w-40 md:h-40 drop-shadow-[4px_4px_0px_rgba(0,0,0,0.5)] scale-125">
-                {ICONS[activeAnim.avatarId] || <FoxAvatar />}
+                {ICONS[myPlayer.avatarId] || <FoxAvatar />}
               </div>
               <h1 className="text-white font-headline font-black text-5xl md:text-8xl italic uppercase tracking-tighter drop-shadow-[6px_6px_0px_var(--color-ink)]" style={{ WebkitTextStroke: '3px var(--color-ink)' }}>
-                {powerName}
+                ¡LISTO PARA USAR!
               </h1>
             </div>
-            {targetPlayer && (
-              <span className="text-white/90 font-body font-black text-2xl md:text-4xl uppercase tracking-widest mt-[-5px] z-10 drop-shadow-[3px_3px_0px_var(--color-ink)]">
-                ¡CONTRA {targetPlayer.name}!
-              </span>
-            )}
           </div>
         </div>
       </div>
