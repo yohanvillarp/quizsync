@@ -449,7 +449,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
         const room = this.gameService.getRoom(payload.roomId);
         let allAnswered = true;
         for (const p of room.players.values()) {
-          if (!p.isHost && p.connected && !p.answered) {
+          if (p.connected && !p.answered) {
             allAnswered = false;
             break;
           }

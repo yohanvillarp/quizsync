@@ -5,6 +5,7 @@ import { WashiTape } from '@/shared/ui/WashiTape';
 import { QuestionCard } from '@/entities/game/ui/QuestionCard';
 import { AnswerOption } from '@/entities/game/ui/AnswerOption';
 import { RankingBoard } from '@/widgets/game-board/ui/RankingBoard';
+import { TimeProgressBar } from '@/features/game-timer/ui/TimeProgressBar';
 import { useGameStore } from '@/entities/game/model/useGameStore';
 import { useNavigate } from 'react-router-dom';
 import { SoundButton } from '@/shared/ui/SoundButton';
@@ -159,8 +160,8 @@ export const GamePage: React.FC = () => {
       
       {/* Header */}
       <header className="w-full px-4 sm:px-8 py-4 sm:py-6 flex justify-between items-center border-b-2 border-ink bg-white/80 backdrop-blur-sm z-40 relative">
-        <div className="flex items-center gap-2 sm:gap-6 z-10">
-          <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex items-center gap-2 sm:gap-6 z-10 w-full justify-between sm:justify-start">
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0 ml-12 sm:ml-0">
             <Pencil className="text-primary animate-bounce hidden sm:block" size={32} />
             <div className="text-2xl sm:text-3xl font-headline font-extrabold tracking-tight text-primary hidden sm:block">
               QuizSync
@@ -170,9 +171,9 @@ export const GamePage: React.FC = () => {
             </div>
           </div>
           
-          <div className="hidden sm:block h-8 w-0.5 bg-ink/20"></div>
+          <div className="hidden sm:block h-8 w-0.5 bg-ink/20 shrink-0"></div>
 
-          <div className="flex items-center gap-2 font-headline font-bold uppercase tracking-wider bg-white border-2 border-ink text-ink px-3 py-1 sm:px-4 sm:py-2 rounded-full text-xs sm:text-base">
+          <div className="flex items-center gap-2 font-headline font-bold uppercase tracking-wider bg-white border-2 border-ink text-ink px-3 py-1 sm:px-4 sm:py-2 rounded-full text-xs sm:text-base shrink-0 ml-auto sm:ml-0">
             {view === 'question' ? (
               <>
                 <Timer size={16} className={timeLeft <= 3 ? "text-red-500 animate-bounce" : ""} />
@@ -190,14 +191,14 @@ export const GamePage: React.FC = () => {
         </div>
         
         {/* RIGHT SIDE (Banner de Ronda y Mascota) */}
-        <div className={`relative items-center gap-8 mr-2 sm:mr-16 z-10 hidden md:flex transition-opacity duration-300 ${view === 'ranking' ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+        <div className={`relative items-center gap-8 ml-4 mr-2 sm:mr-16 z-10 hidden md:flex transition-opacity duration-300 ${view === 'ranking' ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
           <div className="relative flex items-center gap-4">
-            <div className="w-12 h-12 -rotate-12 bg-white rounded-full border-2 border-ink shadow-[2px_2px_0px_0px_var(--color-ink)] p-1 flex items-center justify-center">
+            <div className="w-12 h-12 -rotate-12 bg-white rounded-full border-2 border-ink shadow-[2px_2px_0px_0px_var(--color-ink)] p-1 flex items-center justify-center shrink-0">
               {myPlayer && ICONS[myPlayer.avatarId] ? ICONS[myPlayer.avatarId] : <FoxAvatar />}
             </div>
             <div className="relative">
               <WashiTape className="-top-2 -left-4 w-12 h-6" colorClass="bg-accent-pink" />
-              <div className="text-lg font-sketch font-bold uppercase border-2 border-ink px-6 py-1 rotate-1 bg-accent-yellow/30">
+              <div className="text-lg font-sketch font-bold uppercase border-2 border-ink px-6 py-1 rotate-1 bg-accent-yellow/30 whitespace-nowrap">
                 RONDA EN VIVO
               </div>
               <WashiTape className="-bottom-2 -right-4 w-12 h-6" colorClass="bg-accent-mint" rotation="rotate-12" />
@@ -205,6 +206,14 @@ export const GamePage: React.FC = () => {
           </div>
         </div>
       </header>
+
+      {/* Dynamic Time Bar */}
+      {view === 'question' && (
+        <TimeProgressBar 
+          timeLeft={timeLeft} 
+          timeLimit={currentQuestion?.timeLimit || 20} 
+        />
+      )}
 
       {/* Main Content */}
       <main className="flex-grow container mx-auto px-6 py-6 flex flex-col items-center justify-center z-10 w-full max-w-7xl relative">
