@@ -139,9 +139,12 @@ export class PowerService {
             }
           }
         } else {
-          // Si no había nadie silenciado, aplicamos el silencio a los NO gallos
+          // Si no había nadie silenciado, aplicamos el silencio a los NO gallos y anulamos sus poderes activos
           for (const [id, p] of room.players.entries()) {
             if (id !== sourceId && p.avatarId !== 'gallo') {
+              // Anulamos todos los demás efectos activos de esta ronda (perro, oso, conejo, etc.)
+              p.activeEffects = p.activeEffects.filter(e => e.startsWith('silenced_by_gallo'));
+              
               p.activeEffects.push('silenced_by_gallo_2');
               // Notificamos
               result.unicastEvents!.push({
