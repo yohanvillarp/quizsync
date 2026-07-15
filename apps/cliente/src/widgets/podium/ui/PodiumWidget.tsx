@@ -1,7 +1,8 @@
 import type { PodiumPlayer } from "@/entities/game/model/types";
-import { FoxAvatar, OwlAvatar, BearAvatar, CatAvatar, RabbitAvatar, DogAvatar } from "@/shared/ui/avatars/AvatarIcons";
+import { FoxAvatar, OwlAvatar, BearAvatar, CatAvatar, RabbitAvatar, DogAvatar, GalloAvatar } from "@/shared/ui/avatars/AvatarIcons";
 import { useEffect, useState } from "react";
 import { Trophy, Star } from "lucide-react";
+import { audioManager } from "@/core/audio/AudioManager";
 
 interface PodiumWidgetProps {
   players: PodiumPlayer[];
@@ -21,6 +22,7 @@ export function PodiumWidget({ players, roomId }: PodiumWidgetProps) {
       case 'cat': return <CatAvatar />;
       case 'rabbit': return <RabbitAvatar />;
       case 'dog': return <DogAvatar />;
+      case 'gallo': return <GalloAvatar />;
       default: return <FoxAvatar />;
     }
   };
@@ -34,21 +36,37 @@ export function PodiumWidget({ players, roomId }: PodiumWidgetProps) {
   });
 
   useEffect(() => {
+    // Start podium music and stop others
+    audioManager.playMusic('podium');
+
     if (sessionStorage.getItem(`podium_played_${roomId}`)) return;
 
     let t1: ReturnType<typeof setTimeout>, t2: ReturnType<typeof setTimeout>, t3: ReturnType<typeof setTimeout>;
     
     if (players.length >= 3) {
-      t1 = setTimeout(() => setRevealStep(1), 500);
-      t2 = setTimeout(() => setRevealStep(2), 1500);
+      t1 = setTimeout(() => {
+        setRevealStep(1);
+        audioManager.playUISound('podium-pop');
+      }, 500);
+      t2 = setTimeout(() => {
+        setRevealStep(2);
+        audioManager.playUISound('podium-pop');
+      }, 1500);
       t3 = setTimeout(() => {
         setRevealStep(3);
+        audioManager.playUISound('podium-pop');
+        audioManager.playCommon('success');
         sessionStorage.setItem(`podium_played_${roomId}`, 'true');
       }, 3000);
     } else {
-      t2 = setTimeout(() => setRevealStep(2), 500);
+      t2 = setTimeout(() => {
+        setRevealStep(2);
+        audioManager.playUISound('podium-pop');
+      }, 500);
       t3 = setTimeout(() => {
         setRevealStep(3);
+        audioManager.playUISound('podium-pop');
+        audioManager.playCommon('success');
         sessionStorage.setItem(`podium_played_${roomId}`, 'true');
       }, 2000);
     }

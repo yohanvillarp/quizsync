@@ -17,6 +17,7 @@ export const UI_SOUNDS: Record<string, string> = {
   'error': `${AZURE_BLOB_BASE_URL}/ui/audio/error-bonk.mp3`,
   'random-select': `${AZURE_BLOB_BASE_URL}/ui/audio/random-select.mp3`,
   'power-activation': `${AZURE_BLOB_BASE_URL}/ui/audio/power-activation.mp3`,
+  'podium-pop': `${AZURE_BLOB_BASE_URL}/ui/audio/podium-pop.mp3`,
 };
 
 export const AVATAR_SOUNDS: Record<string, string> = {
@@ -34,4 +35,5 @@ export const BACKGROUND_MUSIC = {
   lobby: `${AZURE_BLOB_BASE_URL}/ui/audio/lobby-theme.mp3`,
   lobby_gallo: `${AZURE_BLOB_BASE_URL}/ui/audio/lobby-theme-gallo.mp3`,
   gameplay: `${AZURE_BLOB_BASE_URL}/ui/audio/gameplay-action.mp3`,
+  podium: `${AZURE_BLOB_BASE_URL}/ui/audio/podium-bg.mp3`,
 };

@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { socketClient } from '@/shared/api/ws/socket.client';
+import { useAlertStore } from '@/shared/store/useAlertStore';
 import type { GameModeId } from './game-mode.types';
 
 export interface Player {
@@ -130,9 +131,35 @@ export const useGameStore = create<GameState>()(
 
       socketClient.on('disconnect', () => set({ isConnected: false }));
   const updatePlayersState = (data: { players: Player[] }) => {
+    const state = get();
+    let newPlayers = data.players;
+    
+    // Si la partida terminó (estamos en el Podio o Ranking final), queremos conservar 
+    // a los jugadores que se desconectaron o salieron para que sigan apareciendo en la tabla.
+    if (state.gameStatus === 'FINISHED') {
+      const currentPlayers = [...state.players];
+      const incomingMap = new Map(data.players.map(p => [p.deviceId, p]));
+      
+      newPlayers = currentPlayers.map(p => {
+        // Actualizamos con datos nuevos si existen
+        if (incomingMap.has(p.deviceId)) {
+          return incomingMap.get(p.deviceId)!;
+        }
+        // Si no existen en los nuevos datos pero la partida terminó, los conservamos
+        return p;
+      });
+
+      // Añadir cualquier jugador nuevo que haya entrado (poco probable en FINISHED, pero por si acaso)
+      data.players.forEach(p => {
+        if (!currentPlayers.find(cp => cp.deviceId === p.deviceId)) {
+          newPlayers.push(p);
+        }
+      });
+    }
+
     const deviceId = localStorage.getItem('quizsync_device_id') || '';
-    const myPlayer = data.players.find(p => p.deviceId === deviceId);
-    set({ players: data.players, isHost: myPlayer?.isHost || false });
+    const myPlayer = newPlayers.find(p => p.deviceId === deviceId);
+    set({ players: newPlayers, isHost: myPlayer?.isHost || false });
   };
 
   socketClient.on('player_joined', updatePlayersState);
@@ -246,15 +273,20 @@ export const useGameStore = create<GameState>()(
     });
   });
 
-  socketClient.on('room_destroyed', () => set({
-    roomId: null,
-    gameStatus: 'LOBBY',
-    gameModeId: 'NORMAL',
-    players: [],
-    currentQuestion: null,
-    endTime: null,
-    isConnected: true // Mantiene la conexión al socket, pero sale de la sala
-  }));
+  socketClient.on('room_destroyed', (data?: { message?: string }) => {
+    if (data?.message) {
+      useAlertStore.getState().showAlert(data.message, "Sala Destruida");
+    }
+    set({
+      roomId: null,
+      gameStatus: 'LOBBY',
+      gameModeId: 'NORMAL',
+      players: [],
+      currentQuestion: null,
+      endTime: null,
+      isConnected: true // Mantiene la conexión al socket, pero sale de la sala
+    });
+  });
 
   socketClient.on('category_updated', (data: CategoryUpdatedPayload) => set({
     categoryName: data.categoryName

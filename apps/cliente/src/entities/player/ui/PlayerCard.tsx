@@ -109,24 +109,27 @@ export function PlayerCard({
             </div>
           )}
           <div className="bg-white border-4 border-[var(--color-ink)] p-1 sm:p-2 rounded-3xl flex gap-0.5 sm:gap-1 shadow-[4px_4px_0px_var(--color-ink)]">
-            {Object.keys(ICONS).map((key) => (
-              <SoundButton
-                key={key}
-                clickSound="click"
-                onMouseEnter={() => setPreviewAvatar(key)}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (onChangeAvatar) onChangeAvatar(key);
-                  setShowPicker(false);
-                  setPreviewAvatar(null);
-                }}
-                className={`w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 flex items-center justify-center rounded-xl hover:bg-gray-100 transition-colors border-2 ${player.avatarId === key ? 'border-[var(--color-ink)] bg-[var(--color-high-yellow)]' : 'border-transparent'}`}
-              >
-                <div className="w-6 h-6 sm:w-8 sm:h-8 pointer-events-none flex items-center justify-center">
-                  {ICONS[key]}
-                </div>
-              </SoundButton>
-            ))}
+            {Object.keys(ICONS).map((key) => {
+              if (key === 'gallo' && localStorage.getItem('quizsync_unlocked_gallo') !== 'true') return null;
+              return (
+                <SoundButton
+                  key={key}
+                  clickSound="click"
+                  onMouseEnter={() => setPreviewAvatar(key)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (onChangeAvatar) onChangeAvatar(key);
+                    setShowPicker(false);
+                    setPreviewAvatar(null);
+                  }}
+                  className={`w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 flex items-center justify-center rounded-xl hover:bg-gray-100 transition-colors border-2 ${player.avatarId === key ? 'border-[var(--color-ink)] bg-[var(--color-high-yellow)]' : 'border-transparent'}`}
+                >
+                  <div className="w-6 h-6 sm:w-8 sm:h-8 pointer-events-none flex items-center justify-center">
+                    {ICONS[key]}
+                  </div>
+                </SoundButton>
+              );
+            })}
           </div>
         </div>
       )}
