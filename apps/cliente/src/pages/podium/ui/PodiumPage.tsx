@@ -46,18 +46,6 @@ export function PodiumPage() {
     if (gameStatus !== 'FINISHED' && gameStatus !== 'LOBBY') {
       navigate('/');
     }
-
-    const handleRoomDestroyed = (data: { message: string }) => {
-      useAlertStore.getState().showAlert(data.message, "Sala Destruida");
-      disconnect();
-      navigate("/");
-    };
-
-    socketClient.on("room_destroyed", handleRoomDestroyed);
-
-    return () => {
-      socketClient.off("room_destroyed", handleRoomDestroyed);
-    };
   }, [gameStatus, roomId, navigate, disconnect]);
 
   const sortedPlayers = [...players].sort((a, b) => b.score - a.score);

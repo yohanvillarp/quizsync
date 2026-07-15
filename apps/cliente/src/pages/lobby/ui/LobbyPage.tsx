@@ -77,11 +77,6 @@ export function LobbyPage() {
       navigate("/");
     };
 
-    const onRoomDestroyed = (data: { message: string }) => {
-      useAlertStore.getState().showAlert(data.message, "Sala Cerrada");
-      navigate("/");
-    };
-
     const onPlayerAction = (data: { actionType: string; targetId: string; payload: string }) => {
       if (data.actionType === 'emote') {
         const id = Math.random().toString();
@@ -100,13 +95,11 @@ export function LobbyPage() {
     // Listeners para UI events (como los emotes) que no van en el store global
     socketClient.on("you_were_kicked", onKicked);
     socketClient.on("you_were_banned", onBanned);
-    socketClient.on("room_destroyed", onRoomDestroyed);
     socketClient.on("player_action_received", onPlayerAction);
 
     return () => {
       socketClient.off("you_were_kicked", onKicked);
       socketClient.off("you_were_banned", onBanned);
-      socketClient.off("room_destroyed", onRoomDestroyed);
       socketClient.off("player_action_received", onPlayerAction);
     };
   }, [connect, navigate]);
