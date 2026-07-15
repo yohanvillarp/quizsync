@@ -122,11 +122,12 @@ export const useGameStore = create<GameState>()(
 
       socketClient.on('you_were_kicked', () => {
         get().leaveRoom();
-        // El enrutamiento y la alerta se manejarán en la UI o donde proceda, pero limpiamos el estado.
+        get().clearGameState();
       });
 
       socketClient.on('you_were_banned', () => {
         get().leaveRoom();
+        get().clearGameState();
       });
 
       socketClient.on('disconnect', () => set({ isConnected: false }));

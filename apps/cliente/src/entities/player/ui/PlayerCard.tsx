@@ -97,17 +97,23 @@ export function PlayerCard({
 
       {/* Selector Flotante de Avatar */}
       {isMe && showPicker && (
-        <div className="absolute bottom-[100%] mb-2 z-50 flex flex-col items-center gap-2 animate-in zoom-in duration-200">
-          {(previewAvatar || player.avatarId) && gameModeId === 'POWER_MODE' && (
-            <div className="bg-[var(--color-ink)] text-white text-xs sm:text-sm p-2 rounded-xl w-[250px] sm:w-[300px] h-[90px] sm:h-[100px] flex flex-col justify-center items-center text-center font-body shadow-lg pointer-events-none border-2 border-white/20">
-              <span className="font-bold text-[var(--color-high-yellow)] block mb-0.5 uppercase tracking-wider">
-                {getCompanionById(previewAvatar || player.avatarId)?.powerName}
-              </span>
-              <span className="leading-tight">
-                {getCompanionById(previewAvatar || player.avatarId)?.description}
-              </span>
-            </div>
-          )}
+        <div className="absolute bottom-[100%] mb-2 z-[60] flex flex-col items-center gap-2 animate-in zoom-in duration-200 left-1/2 -translate-x-1/2">
+          {(() => {
+            const companionId = previewAvatar || player.avatarId;
+            const companionData = companionId ? getCompanionById(companionId) : undefined;
+            if (!companionData || gameModeId !== 'POWER_MODE') return null;
+            
+            return (
+              <div className="bg-[var(--color-ink)] text-white text-xs sm:text-sm p-3 rounded-xl w-[200px] sm:w-[300px] h-auto min-h-[80px] sm:min-h-[100px] flex flex-col justify-center items-center text-center font-body shadow-lg pointer-events-none border-2 border-white/20 break-words whitespace-normal">
+                <span className="font-bold text-[var(--color-high-yellow)] block mb-1 uppercase tracking-wider">
+                  {companionData.powerName}
+                </span>
+                <span className="leading-snug opacity-90">
+                  {companionData.description}
+                </span>
+              </div>
+            );
+          })()}
           <div className="bg-white border-4 border-[var(--color-ink)] p-1 sm:p-2 rounded-3xl flex gap-0.5 sm:gap-1 shadow-[4px_4px_0px_var(--color-ink)]">
             {Object.keys(ICONS).map((key) => {
               if (key === 'gallo' && localStorage.getItem('quizsync_unlocked_gallo') !== 'true') return null;
