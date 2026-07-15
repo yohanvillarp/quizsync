@@ -21,6 +21,10 @@ export class PowerService {
    * Se ejecuta cuando un usuario presiona el botón de poder.
    */
   activatePower(room: RoomState, payload: PowerActivationPayload): PowerResult {
+    if (room.status !== 'QUESTION') {
+      throw new BadRequestException('Los poderes solo se pueden usar durante una pregunta activa');
+    }
+
     const gameModeConfig = GAME_MODES[room.gameModeId];
     if (!gameModeConfig?.features.powersEnabled) {
       throw new BadRequestException('Los poderes están deshabilitados en este modo de juego');
@@ -35,6 +39,10 @@ export class PowerService {
 
     if (sourcePlayer.powerStatus === 'USED') {
       throw new BadRequestException('El poder ya fue utilizado');
+    }
+
+    if (sourcePlayer.activeEffects.some(e => e.startsWith('silenced_by_gallo'))) {
+      throw new BadRequestException('Estás silenciado por el Gallo en esta ronda');
     }
 
     let targetPlayer: Player | undefined;
@@ -105,6 +113,48 @@ export class PowerService {
         targetPlayer.activeEffects.push(`loyalty_recipient_from_${sourceId}`);
         break;
 
+      case 'gallo':
+        // Rey del Gallinero: No puede silenciar a otros gallos.
+        // Si ya hay jugadores silenciados, cantar rompe el silencio y restaura poderes.
+        let someoneWasSilenced = false;
+        
+        // Primero verificamos si hay alguien silenciado
+        for (const [id, p] of room.players.entries()) {
+          if (p.activeEffects.some(e => e.startsWith('silenced_by_gallo'))) {
+            someoneWasSilenced = true;
+            break;
+          }
+        }
+
+        if (someoneWasSilenced) {
+          // Si había silenciados, este canto los libera
+          for (const [id, p] of room.players.entries()) {
+            if (p.activeEffects.some(e => e.startsWith('silenced_by_gallo'))) {
+              p.activeEffects = p.activeEffects.filter(e => !e.startsWith('silenced_by_gallo'));
+              result.unicastEvents!.push({
+                socketId: p.socketId,
+                event: 'power_restored',
+                data: { by: sourcePlayer.name }
+              });
+            }
+          }
+        } else {
+          // Si no había nadie silenciado, aplicamos el silencio a los NO gallos
+          for (const [id, p] of room.players.entries()) {
+            if (id !== sourceId && p.avatarId !== 'gallo') {
+              p.activeEffects.push('silenced_by_gallo_2');
+              // Notificamos
+              result.unicastEvents!.push({
+                socketId: p.socketId,
+                event: 'power_silenced',
+                data: { by: sourcePlayer.name }
+              });
+            }
+          }
+          sourcePlayer.activeEffects.push('gallo_silenced_others');
+        }
+        break;
+
       default:
         throw new BadRequestException('Avatar sin poder asignado');
     }
@@ -131,7 +181,18 @@ export class PowerService {
    */
   clearEffects(room: RoomState) {
     for (const player of room.players.values()) {
-      player.activeEffects = [];
+      const newEffects: string[] = [];
+      for (const effect of player.activeEffects) {
+        if (effect.startsWith('silenced_by_gallo_')) {
+          const duration = parseInt(effect.split('_').pop() || '1', 10);
+          if (duration > 1) {
+            newEffects.push(`silenced_by_gallo_${duration - 1}`);
+          }
+        }
+        // gallo_silenced_others se limpia inmediatamente
+        // Otros efectos (velocidad, fuerza bruta, etc.) también se limpian inmediatamente
+      }
+      player.activeEffects = newEffects;
     }
   }
 

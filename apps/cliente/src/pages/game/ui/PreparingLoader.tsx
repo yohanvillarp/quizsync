@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useGameStore } from '@/entities/game/model/useGameStore';
 
 interface PreparingLoaderProps {
   text: string;
@@ -10,11 +11,13 @@ export const PreparingLoader: React.FC<PreparingLoaderProps> = ({ text, endTime 
 
   useEffect(() => {
     if (!endTime) return;
+    const serverTimeOffset = useGameStore.getState().serverTimeOffset;
     const updateTimer = () => {
-      setTimeLeft(Math.max(0, Math.ceil((endTime - Date.now()) / 1000)));
+      const now = Date.now() + serverTimeOffset;
+      setTimeLeft(Math.max(0, Math.ceil((endTime - now) / 1000)));
     };
     updateTimer();
-    const interval = setInterval(updateTimer, 1000);
+    const interval = setInterval(updateTimer, 100);
     return () => clearInterval(interval);
   }, [endTime]);
 

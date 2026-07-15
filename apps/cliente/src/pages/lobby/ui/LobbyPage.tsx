@@ -50,7 +50,8 @@ export function LobbyPage() {
     gameStatus,
     updateCategory,
     destroyRoom,
-    categoryName
+    categoryName,
+    quizDescription
   } = useGameStore();
 
   useEffect(() => {
@@ -65,11 +66,13 @@ export function LobbyPage() {
     
     // Funciones de callback
     const onKicked = () => {
+      useGameStore.getState().leaveRoom();
       useAlertStore.getState().showAlert("Has sido expulsado de la sala.", "Expulsado");
       navigate("/");
     };
 
     const onBanned = () => {
+      useGameStore.getState().leaveRoom();
       useAlertStore.getState().showAlert("Has sido vetado de esta sala permanentemente.", "Vetado");
       navigate("/");
     };
@@ -85,7 +88,7 @@ export function LobbyPage() {
         setActiveEmotes(prev => [...prev, { id, targetId: data.targetId, payload: data.payload }]);
         setTimeout(() => {
           setActiveEmotes(prev => prev.filter(e => e.id !== id));
-        }, 1500);
+        }, 1000);
       } else if (data.actionType === 'poke') {
         setActivePokes(prev => [...prev, data.targetId]);
         setTimeout(() => {
@@ -228,7 +231,7 @@ export function LobbyPage() {
   const lastEmoteTime = useRef(0);
   const handleEmote = (emoteId: string) => {
     const now = Date.now();
-    if (now - lastEmoteTime.current < 150) return; // 150ms cooldown
+    if (now - lastEmoteTime.current < 50) return; // 50ms cooldown
     lastEmoteTime.current = now;
     const myDeviceId = localStorage.getItem('quizsync_device_id') || '';
     emitEmote(myDeviceId, emoteId);
@@ -403,10 +406,15 @@ export function LobbyPage() {
         </header>
 
         {/* Notificador de Categoría Actual (Visible para todos) */}
-        <div className="text-center">
+        <div className="text-center flex flex-col items-center gap-2">
           <span className="font-headline font-bold text-[var(--color-ink)] uppercase tracking-widest text-sm sm:text-lg bg-[var(--color-paper)] px-4 sm:px-6 py-1.5 sm:py-2 rounded-xl border-4 border-[var(--color-ink)] shadow-[4px_4px_0px_0px_var(--color-high-yellow)] inline-flex flex-wrap items-center gap-1 sm:gap-2 justify-center">
             <span>Tema:</span> <span className="text-[var(--color-ink)] bg-[var(--color-high-pink)] font-black px-2 sm:px-3 py-0.5 sm:py-1 rounded-md border-2 border-[var(--color-ink)] shadow-[2px_2px_0px_0px_var(--color-ink)]">{categoryName || 'Trivia'}</span>
           </span>
+          {quizDescription && (
+            <p className="max-w-md font-body text-[var(--color-ink-offset)] text-sm sm:text-base bg-white/60 p-3 rounded-lg border-2 border-[var(--color-ink)] shadow-[2px_2px_0px_0px_var(--color-ink)]">
+              {quizDescription}
+            </p>
+          )}
         </div>
 
         {/* Lista de Jugadores */}

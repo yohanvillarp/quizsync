@@ -14,6 +14,7 @@ export interface ApiCoreQuestion {
 export interface ApiCoreQuiz {
   id: string;
   title: string;
+  description?: string;
   categoryId: string;
   category?: { name: string };
   questions: ApiCoreQuestion[];

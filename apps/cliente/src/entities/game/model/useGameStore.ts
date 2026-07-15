@@ -44,6 +44,7 @@ interface GameState {
   players: Player[];
   isHost: boolean;
   isConnected: boolean;
+  powerJustRecharged: boolean;
   
   // Estado del juego
   gameStatus: 'LOBBY' | 'PREPARING' | 'QUESTION' | 'RANKING' | 'FINISHED';
@@ -52,9 +53,11 @@ interface GameState {
   currentQuestionIndex: number;
   endTime: number | null;
   categoryName: string;
+  quizDescription?: string;
   removedOptionIds: string[];
   powerAnimations: { sourceId: string; avatarId: string; targetId?: string; timestamp: number }[];
   thiefSuggestedAnswerId: string | null;
+  serverTimeOffset: number;
   
   // Acciones
   connect: (url?: string) => void;
@@ -70,6 +73,7 @@ interface GameState {
   changeAvatar: (avatarId: string) => void;
   toggleMuteEmotes: (targetId: string) => void;
   emitEmote: (targetId: string, payload: string) => void;
+  clearPowerJustRecharged: () => void;
   emitPoke: (targetId: string) => void;
   returnToLobby: () => Promise<void>;
   updateCategory: (categoryId: string) => Promise<void>;
@@ -108,6 +112,22 @@ export const useGameStore = create<GameState>()(
         handleConnect();
       }
 
+      socketClient.on('pong_time', (data: { clientTime: number; serverTime: number }) => {
+        const roundTrip = Date.now() - data.clientTime;
+        // La diferencia entre servidor y cliente (servidor puede estar en el futuro = positivo)
+        const offset = data.serverTime - data.clientTime - (roundTrip / 2);
+        set({ serverTimeOffset: offset });
+      });
+
+      socketClient.on('you_were_kicked', () => {
+        get().leaveRoom();
+        // El enrutamiento y la alerta se manejarán en la UI o donde proceda, pero limpiamos el estado.
+      });
+
+      socketClient.on('you_were_banned', () => {
+        get().leaveRoom();
+      });
+
       socketClient.on('disconnect', () => set({ isConnected: false }));
   const updatePlayersState = (data: { players: Player[] }) => {
     const deviceId = localStorage.getItem('quizsync_device_id') || '';
@@ -119,17 +139,22 @@ export const useGameStore = create<GameState>()(
   socketClient.on('player_left', updatePlayersState);
   socketClient.on('player_updated', updatePlayersState);
 
-  socketClient.on('game_started', (data: GameStartedPayload) => set((state) => ({ 
+  socketClient.on('game_started', (data: GameStartedPayload & { players?: any[] }) => set((state) => ({ 
     gameStatus: data.status, 
     endTime: data.endTime, 
     currentQuestion: null,
-    currentQuestionIndex: data.currentQuestionIndex !== undefined ? data.currentQuestionIndex : (state.gameStatus === 'LOBBY' || state.gameStatus === 'FINISHED' ? 0 : state.currentQuestionIndex + 1)
+    currentQuestionIndex: data.currentQuestionIndex !== undefined ? data.currentQuestionIndex : (state.gameStatus === 'LOBBY' || state.gameStatus === 'FINISHED' ? 0 : state.currentQuestionIndex + 1),
+    ...(data.players ? { players: data.players } : {})
   })));
-  socketClient.on('question_started', (data: QuestionStartedPayload) => set({ gameStatus: data.status, gameModeId: data.gameModeId,    currentQuestion: data.question, 
+  socketClient.on('question_started', (data: QuestionStartedPayload) => set((state) => ({ 
+    gameStatus: data.status, 
+    gameModeId: data.gameModeId,    
+    currentQuestion: data.question, 
     endTime: data.endTime, 
     removedOptionIds: [],
-    thiefSuggestedAnswerId: null
-  }));
+    thiefSuggestedAnswerId: null,
+    players: state.players.map(p => ({ ...p, answered: false }))
+  })));
   socketClient.on('show_ranking', (data: ShowRankingPayload) => set({ gameStatus: data.status, endTime: data.endTime, players: data.players }));
   socketClient.on('power_activated', (data: { sourceId: string; avatarId: string; targetId?: string }) => {
     const ts = Date.now();
@@ -147,6 +172,41 @@ export const useGameStore = create<GameState>()(
   });
   socketClient.on('thief_target_answered', (data: { answerId: string }) => {
     set({ thiefSuggestedAnswerId: data.answerId });
+  });
+  socketClient.on('time_update', (data: { endTime: number }) => {
+    set({ endTime: data.endTime });
+  });
+  socketClient.on('player_answered', (data: { deviceId: string; isCorrect: boolean; points: number }) => {
+    set(state => ({
+      players: state.players.map(p => 
+        p.deviceId === data.deviceId 
+          ? { ...p, answered: true, lastRoundIsCorrect: data.isCorrect, lastRoundScore: data.points } 
+          : p
+      )
+    }));
+  });
+  socketClient.on('power_recharged', () => {
+    set({ powerJustRecharged: true });
+  });
+  socketClient.on('power_silenced', () => {
+    set(state => {
+      const myDeviceId = localStorage.getItem('quizsync_device_id') || '';
+      return {
+        players: state.players.map(p => 
+          p.deviceId === myDeviceId ? { ...p, activeEffects: [...(p.activeEffects || []), 'silenced_by_gallo_2'] } : p
+        )
+      };
+    });
+  });
+  socketClient.on('power_restored', () => {
+    set(state => {
+      const myDeviceId = localStorage.getItem('quizsync_device_id') || '';
+      return {
+        players: state.players.map(p => 
+          p.deviceId === myDeviceId ? { ...p, powerStatus: 'AVAILABLE' } : p
+        )
+      };
+    });
   });
   socketClient.on('room_state', (data: { room: any }) => {
     // Sync when powers modify active effects and player status
@@ -180,7 +240,9 @@ export const useGameStore = create<GameState>()(
       players: data.players,
       endTime: null,
       currentQuestion: null,
-      thiefSuggestedAnswerId: null
+      thiefSuggestedAnswerId: null,
+      powerAnimations: [],
+      powerJustRecharged: false
     });
   });
 
@@ -211,10 +273,13 @@ export const useGameStore = create<GameState>()(
     categoryName: 'Cultura General',
     removedOptionIds: [],
     powerAnimations: [],
+    powerJustRecharged: false,
     thiefSuggestedAnswerId: null,
+    serverTimeOffset: 0,
 
     connect: (url) => {
       socketClient.connect(url);
+      setTimeout(() => socketClient.emit('ping_time', { clientTime: Date.now() }), 500);
     },
 
     disconnect: () => {
@@ -229,6 +294,7 @@ export const useGameStore = create<GameState>()(
               roomId, 
               isHost: response.isHost, 
               categoryName: response.categoryName,
+              quizDescription: response.quizDescription,
               gameModeId: response.gameModeId || 'NORMAL',
               gameStatus: response.gameStatus || get().gameStatus,
               currentQuestionIndex: response.currentQuestionIndex || 0,
@@ -313,9 +379,12 @@ export const useGameStore = create<GameState>()(
 
     emitEmote: (targetId, payload) => {
       const { roomId } = get();
-      if (!roomId) return;
       const senderId = localStorage.getItem('quizsync_device_id') || '';
       socketClient.emit('player_action', { roomId, actionType: 'emote', senderId, targetId, payload });
+    },
+
+    clearPowerJustRecharged: () => {
+      set({ powerJustRecharged: false });
     },
 
     emitPoke: (targetId) => {

@@ -1,0 +1,82 @@
+/* Gallo Animations */
+@keyframes crest-bounce {
+
+    0%,
+    100% {
+        transform: scaleY(1) rotate(0deg);
+    }
+
+    50% {
+        transform: scaleY(1.15) rotate(-2deg);
+    }
+}
+
+@keyframes tail-swish {
+
+    0%,
+    100% {
+        transform: rotate(0deg);
+    }
+
+    25% {
+        transform: rotate(8deg);
+    }
+
+    75% {
+        transform: rotate(-8deg);
+    }
+}
+
+@keyframes wing-flap {
+
+    0%,
+    100% {
+        transform: rotateZ(0deg);
+        opacity: 1;
+    }
+
+    50% {
+        transform: rotateZ(25deg);
+        opacity: 0.9;
+    }
+}
+
+@keyframes wing-flap-reverse {
+
+    0%,
+    100% {
+        transform: rotateZ(0deg);
+        opacity: 1;
+    }
+
+    50% {
+        transform: rotateZ(-25deg);
+        opacity: 0.9;
+    }
+}
+
+@keyframes sparkle {
+
+    0%,
+    100% {
+        opacity: 0;
+        transform: scale(0);
+    }
+
+    50% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.gallo-crest {
+    filter: drop-shadow(0 0 3px rgba(255, 23, 68, 0.5));
+}
+
+.gallo-tail {
+    filter: drop-shadow(0 0 4px rgba(255, 107, 53, 0.6));
+}
+
+.gallo-sparkles {
+    filter: drop-shadow(0 0 2px rgba(255, 215, 0, 0.8));
+}

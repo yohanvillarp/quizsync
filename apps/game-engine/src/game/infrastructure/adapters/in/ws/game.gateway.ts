@@ -79,6 +79,17 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
+  @SubscribeMessage('ping_time')
+  handlePingTime(
+    @MessageBody() payload: { clientTime: number },
+    @ConnectedSocket() client: Socket,
+  ) {
+    client.emit('pong_time', {
+      clientTime: payload.clientTime,
+      serverTime: Date.now()
+    });
+  }
+
   @SubscribeMessage('use_power')
   handleUsePower(
     @MessageBody() payload: { roomId: string; sourceId: string; targetId?: string },
@@ -281,6 +292,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
         roomId: payload.roomId, 
         isHost: myPlayer?.isHost || false, 
         categoryName: room.categoryName,
+        quizDescription: room.quizDescription,
         gameModeId: room.gameModeId,
         gameStatus: room.status,
         currentQuestionIndex: room.currentQuestionIndex,
@@ -379,13 +391,22 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       return;
     }
 
-    const rRoom = this.gameService.showRanking(roomId);
-    if (rRoom) {
+    const rankingResult = this.gameService.showRanking(roomId);
+    if (rankingResult) {
+      const { room: rRoom, rechargedPlayers } = rankingResult;
+      
       this.server.to(roomId).emit('show_ranking', {
         status: rRoom.status,
         endTime: rRoom.currentEndTime,
         players: Array.from(rRoom.players.values())
       });
+
+      // Notificamos individualmente a quienes se les recargó el poder
+      for (const p of rechargedPlayers) {
+        if (p.socketId) {
+          this.server.to(p.socketId).emit('power_recharged', { avatarId: p.avatarId });
+        }
+      }
 
       // Tras el RANKING, pasamos a la siguiente pregunta (o fin)
       setTimeout(() => {
@@ -403,6 +424,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
               status: nRoom.status,
               endTime: nRoom.currentEndTime,
               currentQuestionIndex: nRoom.currentQuestionIndex,
+              players: Array.from(nRoom.players.values())
             });
             this.runGameLoop(roomId);
           }
@@ -415,8 +437,42 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   handleSubmitAnswer(@MessageBody() payload: { roomId: string; deviceId: string; answerId: string }) {
     const result = this.gameService.submitAnswer(payload.roomId, payload.deviceId, payload.answerId);
     if (result) {
-      if (this.gameService.allPlayersAnswered(payload.roomId)) {
-        this.triggerRankingPhase(payload.roomId);
+      this.server.to(payload.roomId).emit('player_answered', {
+        deviceId: payload.deviceId,
+        isCorrect: result.isCorrect,
+        points: result.points
+      });
+
+      // Si todos han respondido, adelantamos el final de la pregunta a 3 segundos
+      // para que el último jugador alcance a ver su animación de acierto/error y no se corte abruptamente.
+      try {
+        const room = this.gameService.getRoom(payload.roomId);
+        let allAnswered = true;
+        for (const p of room.players.values()) {
+          if (!p.isHost && p.connected && !p.answered) {
+            allAnswered = false;
+            break;
+          }
+        }
+
+        if (allAnswered) {
+          const newEndTime = Date.now() + 3000;
+          if (room.currentEndTime && newEndTime < room.currentEndTime) {
+            room.currentEndTime = newEndTime;
+            this.server.to(payload.roomId).emit('time_update', { endTime: room.currentEndTime });
+
+            const existingTimeout = this.questionTimeouts.get(payload.roomId);
+            if (existingTimeout) {
+              clearTimeout(existingTimeout);
+              const newTimeout = setTimeout(() => {
+                this.triggerRankingPhase(payload.roomId);
+              }, 3000);
+              this.questionTimeouts.set(payload.roomId, newTimeout);
+            }
+          }
+        }
+      } catch (e) {
+        // Ignorar si la sala no existe
       }
       
       try {

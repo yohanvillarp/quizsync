@@ -1,9 +1,9 @@
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAvatarStore } from '@/shared/store/useAvatarStore';
-import { FoxAvatar, OwlAvatar, BearAvatar, CatAvatar, RabbitAvatar, DogAvatar } from '@/shared/ui/avatars/AvatarIcons';
+import { FoxAvatar, OwlAvatar, BearAvatar, CatAvatar, RabbitAvatar, DogAvatar, GalloAvatar } from '@/shared/ui/avatars/AvatarIcons';
 
-const AVATAR_KEYS = ['fox', 'owl', 'bear', 'cat', 'rabbit', 'dog'];
+const AVATAR_KEYS = ['fox', 'owl', 'bear', 'cat', 'rabbit', 'dog', 'gallo'];
 
 const ICONS: Record<string, React.ReactNode> = {
   fox: <FoxAvatar />,
@@ -11,7 +11,8 @@ const ICONS: Record<string, React.ReactNode> = {
   bear: <BearAvatar />,
   cat: <CatAvatar />,
   rabbit: <RabbitAvatar />,
-  dog: <DogAvatar />
+  dog: <DogAvatar />,
+  gallo: <GalloAvatar />
 };
 
 export function ActiveAvatarWidget() {

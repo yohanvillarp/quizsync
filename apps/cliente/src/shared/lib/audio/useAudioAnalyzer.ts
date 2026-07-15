@@ -2,10 +2,12 @@ import { useState, useEffect, useRef } from 'react';
 import { Howler } from 'howler';
 import { useAudioStore } from '@/core/audio/useAudioStore';
 import { audioManager } from '@/core/audio/AudioManager';
+import { useAvatarStore } from '@/shared/store/useAvatarStore';
 
 export function useAudioAnalyzer() {
   const [beatValue, setBeatValue] = useState(0);
   const { isMuted, masterVolume, toggleMute, setVolume } = useAudioStore();
+  const { selectedAvatar } = useAvatarStore();
   
   const analyserRef = useRef<AnalyserNode | null>(null);
   const requestRef = useRef<number>(0);
@@ -49,11 +51,12 @@ export function useAudioAnalyzer() {
     };
 
     let resumeOnInteraction: () => void;
+    const track = selectedAvatar === 'gallo' ? 'lobby_gallo' : 'lobby';
 
     if (!isMuted) {
       setupAnalyzer();
       // Intentamos reproducir, pero el navegador puede bloquearlo hasta que el usuario interactúe
-      audioManager.playMusic('lobby');
+      audioManager.playMusic(track);
       
       // Agregamos listeners para asegurar que suene al primer click o tecla
       resumeOnInteraction = () => {
@@ -62,7 +65,7 @@ export function useAudioAnalyzer() {
           ctx.resume();
         }
         // Nos aseguramos de volver a llamarlo por si falló la primera vez
-        audioManager.playMusic('lobby');
+        audioManager.playMusic(track);
         
         document.removeEventListener('click', resumeOnInteraction);
         document.removeEventListener('keydown', resumeOnInteraction);
@@ -88,11 +91,11 @@ export function useAudioAnalyzer() {
         document.removeEventListener('touchstart', resumeOnInteraction);
       }
     };
-  }, [isMuted]);
+  }, [isMuted, selectedAvatar]);
 
   const start = () => {
     if (isMuted) toggleMute();
-    audioManager.playMusic('lobby');
+    audioManager.playMusic(selectedAvatar === 'gallo' ? 'lobby_gallo' : 'lobby');
   };
   
   const stop = () => {
