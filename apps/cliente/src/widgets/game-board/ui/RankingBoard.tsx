@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Check, Trophy, Medal } from 'lucide-react';
-import { FoxAvatar, OwlAvatar, BearAvatar, CatAvatar, RabbitAvatar, DogAvatar } from '@/shared/ui/avatars/AvatarIcons';
+import { FoxAvatar, OwlAvatar, BearAvatar, CatAvatar, RabbitAvatar, DogAvatar, GalloAvatar } from '@/shared/ui/avatars/AvatarIcons';
 
 const AnimatedScore = ({ value, duration = 800 }: { value: number, duration?: number }) => {
   const [displayValue, setDisplayValue] = useState(value);
@@ -42,6 +42,7 @@ const ICONS: Record<string, React.ReactNode> = {
   cat: <CatAvatar />,
   rabbit: <RabbitAvatar />,
   dog: <DogAvatar />,
+  gallo: <GalloAvatar />,
 };
 
 interface PlayerRank {
