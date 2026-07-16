@@ -145,6 +145,13 @@ export class PowerService {
               // Anulamos todos los demás efectos activos de esta ronda (perro, oso, conejo, etc.)
               p.activeEffects = p.activeEffects.filter(e => e.startsWith('silenced_by_gallo'));
               
+              // Si ya habían respondido y obtenido puntos de poder, se los quitamos (anulamos el poder)
+              if (p.answered && p.lastRoundPowerPoints) {
+                p.score -= p.lastRoundPowerPoints;
+                p.lastRoundPowerPoints = 0;
+                p.lastRoundPowerMessage = undefined;
+              }
+              
               p.activeEffects.push('silenced_by_gallo_2');
               // Notificamos
               result.unicastEvents!.push({

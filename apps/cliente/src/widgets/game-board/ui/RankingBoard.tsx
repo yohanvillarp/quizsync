@@ -62,8 +62,17 @@ interface RankingBoardProps {
   roundKey?: string;
 }
 
+import { useGameStore } from '@/entities/game/model/useGameStore';
+
 export const RankingBoard: React.FC<RankingBoardProps> = ({ players, roundKey = 'default' }) => {
   const [phase, setPhase] = useState(0);
+  
+  const myDeviceId = localStorage.getItem('quizsync_device_id') || '';
+  const storePlayers = useGameStore(state => state.players);
+  const myPlayerStore = storePlayers.find(p => p.deviceId === myDeviceId);
+  const myEffects = myPlayerStore?.activeEffects || [];
+  const hasSilenced = myEffects.some(e => e.startsWith('silenced_by_gallo'));
+  const hasSilencedOthers = myEffects.includes('gallo_silenced_others');
 
   useEffect(() => {
     setPhase(0);
@@ -190,6 +199,21 @@ export const RankingBoard: React.FC<RankingBoardProps> = ({ players, roundKey = 
           })}
         </div>
       </div>
+
+      {/* Gallo Notifications */}
+      <div className="mt-6 flex flex-col items-center gap-3">
+        {hasSilenced && (
+          <div className="bg-ink text-white px-6 py-2 rounded-full font-bold uppercase animate-in slide-in-from-bottom fade-in drop-shadow-lg flex items-center gap-2 border-2 border-white/20">
+            🐔 ¡Has sido silenciado por el Gallo!
+          </div>
+        )}
+        {hasSilencedOthers && (
+          <div className="bg-high-yellow text-ink px-6 py-2 rounded-full font-bold uppercase animate-in slide-in-from-bottom fade-in drop-shadow-lg flex items-center gap-2 border-2 border-ink shadow-[4px_4px_0px_0px_var(--color-ink)]">
+            🐔 ¡Has silenciado a tus rivales!
+          </div>
+        )}
+      </div>
+
     </section>
   );
 };
