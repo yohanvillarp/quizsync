@@ -43,16 +43,6 @@ export const PowerEffects: React.FC = () => {
           🐶 Vínculo de Lealtad
         </div>
       )}
-      {hasSilenced && (
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-ink text-white px-6 py-2 rounded-full font-bold uppercase animate-in slide-in-from-top fade-in drop-shadow-lg flex items-center gap-2 border-2 border-white/20">
-          🐔 ¡Has sido silenciado por el Gallo!
-        </div>
-      )}
-      {hasSilencedOthers && (
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-high-yellow text-ink px-6 py-2 rounded-full font-bold uppercase animate-in slide-in-from-top fade-in drop-shadow-lg flex items-center gap-2 border-2 border-ink shadow-[4px_4px_0px_0px_var(--color-ink)]">
-          🐔 ¡Has silenciado a tus rivales!
-        </div>
-      )}
     </div>
   );
 };

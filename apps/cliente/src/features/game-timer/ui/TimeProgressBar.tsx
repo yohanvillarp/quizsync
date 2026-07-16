@@ -7,15 +7,14 @@ interface TimeProgressBarProps {
 }
 
 export const TimeProgressBar: React.FC<TimeProgressBarProps> = ({ timeLeft, timeLimit }) => {
-  // Calculamos el tiempo transcurrido para que la barra vaya de izquierda a derecha (0% a 100%)
+  // Calculamos el porcentaje para que inicie llena (100%) y se vaya vaciando (0%)
   const safeTimeLimit = timeLimit || 20;
-  const timePassed = safeTimeLimit - timeLeft;
-  const percentage = Math.max(0, Math.min(100, (timePassed / safeTimeLimit) * 100));
+  const percentage = Math.max(0, Math.min(100, (timeLeft / safeTimeLimit) * 100));
   
   const isDanger = timeLeft <= 5;
 
   return (
-    <div className="w-full bg-ink/5 relative z-30 border-b-2 border-ink/10 py-3 sm:py-4 flex items-center px-6 sm:px-10">
+    <div className="w-full shrink-0 bg-ink/5 relative z-30 border-b-2 border-ink/10 py-3 sm:py-4 flex items-center px-6 sm:px-10">
       {/* Track de fondo */}
       <div className="w-full h-3 sm:h-4 bg-white border-2 border-ink shadow-inner relative flex-1 shrink-0 rounded-full">
         {/* Barra de llenado */}
