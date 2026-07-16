@@ -15,6 +15,7 @@ export interface Player {
   answered: boolean;
   emotesMuted: boolean;
   powerStatus: 'AVAILABLE' | 'USED';
+  copiedAvatarId?: string;
   activeEffects: string[];
   lastRoundScore?: number;
   lastRoundIsCorrect?: boolean;
