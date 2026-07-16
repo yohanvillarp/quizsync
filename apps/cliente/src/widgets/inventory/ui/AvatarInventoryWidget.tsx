@@ -1,9 +1,11 @@
 import { useAvatarStore } from "@/shared/store/useAvatarStore";
+import { useAchievementsStore } from "@/entities/achievements/model/useAchievementsStore";
 import { getAvatarComponent } from "@/entities/player/registry/avatarRegistry";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { audioManager } from "@/core/audio/AudioManager";
 import { COMPANIONS_MOCK } from "@/entities/player/model/companions.mock";
-import { Info, X, Music, ShieldOff, Swords } from "lucide-react";
+import { Info, X, Music, ShieldOff, Swords, Trophy } from "lucide-react";
+import { AchievementsModal } from "@/features/achievements/ui/AchievementsModal";
 
 const AVATAR_OPTIONS = [
   ...COMPANIONS_MOCK.map(c => ({
@@ -27,30 +29,27 @@ const AVATAR_OPTIONS = [
 
 export function AvatarInventoryWidget() {
   const { selectedAvatar, setSelectedAvatar } = useAvatarStore();
+  const { unlockedAvatars } = useAchievementsStore();
   const [showEffect, setShowEffect] = useState(false);
-  const [isGalloUnlocked, setIsGalloUnlocked] = useState(false);
   const [showGalloInfo, setShowGalloInfo] = useState(false);
   const [activeTab, setActiveTab] = useState<'common' | 'mythic'>('common');
-
-  useEffect(() => {
-    setIsGalloUnlocked(localStorage.getItem('quizsync_unlocked_gallo') === 'true');
-  }, []);
+  const [showMissions, setShowMissions] = useState(false);
 
   const filteredAvatars = AVATAR_OPTIONS.filter(avatar => avatar.rarity === activeTab);
 
   return (
     <div className="w-full relative">
       <div className="mb-8 text-center">
-        <h2 className="font-headline text-3xl font-black text-[var(--color-ink)] inline-block relative">
+        <h2 className="font-headline text-3xl sm:text-4xl font-black text-[var(--color-ink)] inline-block relative mt-2 sm:mt-0">
           ELIGE TU COMPAÑERO
           <div className="absolute -bottom-2 left-0 w-full h-1 bg-[var(--color-ink)] opacity-30 transform -rotate-1"></div>
         </h2>
-        <p className="mt-4 text-gray-600 font-bold text-sm opacity-80 uppercase tracking-widest">
+        <p className="mt-4 text-gray-600 font-bold text-xs sm:text-sm opacity-80 uppercase tracking-widest">
           Selecciona tu compañero de estudio
         </p>
       </div>
 
-      <div className="flex justify-center mb-8">
+      <div className="flex flex-col sm:flex-row items-center justify-center mb-8 gap-6">
         <div className="inline-flex bg-white border-4 border-ink rounded-xl p-1 shadow-[4px_4px_0px_0px_rgba(20,20,20,1)]">
           <button
             onClick={() => setActiveTab('common')}
@@ -78,14 +77,26 @@ export function AvatarInventoryWidget() {
             </svg>
           </button>
         </div>
+        
+        {/* Misiones Button here */}
+        <button 
+          onClick={() => {
+            audioManager.playUISound('click');
+            setShowMissions(true);
+          }}
+          className="flex items-center gap-2 bg-yellow-400 hover:bg-yellow-300 text-ink border-4 border-ink shadow-[4px_4px_0px_var(--color-ink)] px-4 py-3 rounded-xl font-headline font-black uppercase transition-transform active:translate-y-1 active:shadow-none"
+        >
+          <Trophy size={20} />
+          Misiones
+        </button>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto items-center">
         {filteredAvatars.map((avatar) => {
-          const isSelected = selectedAvatar === avatar.id;
           const isGallo = avatar.id === 'gallo';
           const isEpic = avatar.rarity === 'mythic';
-          const isLocked = isEpic && !isGalloUnlocked;
+          const isLocked = isEpic && !unlockedAvatars[avatar.id!];
+          const isSelected = selectedAvatar === avatar.id && !isLocked;
           
           return (
             <div
@@ -116,9 +127,6 @@ export function AvatarInventoryWidget() {
                   <div className="text-4xl mb-2">🔒</div>
                   <span className="font-headline font-black text-ink uppercase text-xl leading-tight drop-shadow-md">
                     Acceso<br/>Denegado
-                  </span>
-                  <span className="font-body font-bold text-xs mt-2 text-ink/90 bg-white border-2 border-ink px-2 py-1 rotate-2 rounded-sm">
-                    Soborna al creador
                   </span>
                 </div>
               )}
@@ -231,6 +239,7 @@ export function AvatarInventoryWidget() {
           </div>
         </div>
       )}
+      <AchievementsModal isOpen={showMissions} onClose={() => setShowMissions(false)} />
     </div>
   );
 }

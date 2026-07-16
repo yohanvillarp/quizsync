@@ -13,16 +13,18 @@ export function InventoryPage() {
     <div className="w-full min-h-screen p-8 bg-[var(--color-paper)] relative flex flex-col items-center">
       
       {/* Header a ancho completo (w-full px-8) */}
-      <div className="w-full flex items-center justify-between z-10 mb-8 mt-4">
-        <SoundButton 
-          clickSound="click"
-          onClick={() => navigate('/')}
-          className="flex items-center gap-2 px-4 py-2 bg-white border-2 border-[var(--color-ink)] rounded-xl shadow-[4px_4px_0px_0px_var(--color-ink)] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_var(--color-ink)] transition-all font-bold"
-        >
-          <ArrowLeft size={20} /> Volver
-        </SoundButton>
-        <h1 className="text-4xl font-headline font-black flex items-center gap-3">
-          <Backpack size={40} /> Inventario
+      <div className="w-full flex flex-row sm:flex-row items-center justify-between z-10 mb-8 mt-4 gap-2 sm:gap-0">
+        <div className="w-[100px] flex justify-start">
+          <SoundButton 
+            clickSound="click"
+            onClick={() => navigate('/')}
+            className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-white border-2 border-[var(--color-ink)] rounded-xl shadow-[4px_4px_0px_0px_var(--color-ink)] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_var(--color-ink)] transition-all font-bold text-sm sm:text-base"
+          >
+            <ArrowLeft size={20} className="sm:!w-5 sm:!h-5 w-4 h-4" /> <span className="hidden sm:inline">Volver</span>
+          </SoundButton>
+        </div>
+        <h1 className="text-2xl sm:text-4xl font-headline font-black flex items-center gap-2 sm:gap-3 shrink-0">
+          <Backpack size={40} className="sm:!w-10 sm:!h-10 w-6 h-6" /> Inventario
         </h1>
         <div className="w-[100px]"></div> {/* Spacer */}
       </div>

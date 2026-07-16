@@ -3,6 +3,7 @@ import { Crown, Edit2, UserMinus, Ban, VolumeX, RotateCcw } from "lucide-react";
 
 import { SoundButton } from "@/shared/ui/SoundButton";
 import { useGameStore } from "@/entities/game/model/useGameStore";
+import { useAchievementsStore } from "@/entities/achievements/model/useAchievementsStore";
 import { getAvatarComponent, getAvatarData } from "@/entities/player/registry/avatarRegistry";
 import { COMPANIONS_MOCK } from "@/entities/player/model/companions.mock";
 
@@ -52,6 +53,7 @@ export function PlayerCard({
     return me?.isHost || false;
   });
   const gameModeId = useGameStore(state => state.gameModeId);
+  const { unlockedAvatars } = useAchievementsStore();
   const [showPicker, setShowPicker] = useState(false);
   const [showAdminPicker, setShowAdminPicker] = useState(false);
   const [previewAvatar, setPreviewAvatar] = useState<string | null>(null);
@@ -111,24 +113,31 @@ export function PlayerCard({
           <div className="bg-white border-4 border-[var(--color-ink)] p-1 sm:p-2 rounded-3xl flex gap-0.5 sm:gap-1 shadow-[4px_4px_0px_var(--color-ink)] max-w-xs flex-wrap justify-center">
             {COMPANIONS_MOCK.map((c) => {
               const key = c.id;
-              if (key === 'gallo' && localStorage.getItem('quizsync_unlocked_gallo') !== 'true') return null;
-              // Simple check para omitir míticos si no queremos saturar el picker del lobby (o podríamos mostrarlos todos)
-              // Por ahora los mostramos todos.
+              const isLocked = c.rarity === 'mythic' && key != null && !unlockedAvatars[key as string];
+              
               return (
                 <SoundButton
                   key={key}
-                  clickSound="click"
-                  onMouseEnter={() => setPreviewAvatar(key)}
+                  clickSound={isLocked ? 'error' : 'click'}
+                  onMouseEnter={() => !isLocked && setPreviewAvatar(key)}
                   onClick={(e) => {
                     e.stopPropagation();
+                    if (isLocked) return;
                     if (onChangeAvatar) onChangeAvatar(key as any);
                     setShowPicker(false);
                     setPreviewAvatar(null);
                   }}
-                  className={`w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 flex items-center justify-center rounded-xl hover:bg-gray-100 transition-colors border-2 ${player.avatarId === key ? 'border-[var(--color-ink)] bg-[var(--color-high-yellow)]' : 'border-transparent'}`}
+                  className={`w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 flex items-center justify-center rounded-xl transition-colors border-2 
+                    ${isLocked ? 'opacity-50 grayscale cursor-not-allowed border-transparent' : 'hover:bg-gray-100 cursor-pointer'} 
+                    ${player.avatarId === key && !isLocked ? 'border-[var(--color-ink)] bg-[var(--color-high-yellow)]' : (!isLocked ? 'border-transparent' : '')}`}
                 >
-                  <div className="w-6 h-6 sm:w-8 sm:h-8 pointer-events-none flex items-center justify-center">
+                  <div className="w-6 h-6 sm:w-8 sm:h-8 pointer-events-none flex items-center justify-center relative">
                     {getAvatarComponent(key as any)}
+                    {isLocked && (
+                      <div className="absolute inset-0 flex items-center justify-center text-xs">
+                        🔒
+                      </div>
+                    )}
                   </div>
                 </SoundButton>
               );

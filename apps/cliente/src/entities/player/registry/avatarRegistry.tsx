@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { useAchievementsStore } from '@/entities/achievements/model/useAchievementsStore';
 import { FoxAvatar, OwlAvatar, BearAvatar, CatAvatar, RabbitAvatar, DogAvatar, GalloAvatar, PeacockAvatar, ChameleonAvatar, BatAvatar, DragonAvatar } from '@/shared/ui/avatars/AvatarIcons';
 import { COMPANIONS_MOCK, type CompanionData } from '../model/companions.mock';
 
@@ -38,6 +39,14 @@ export const getAvatarData = (avatarId: string | undefined): CompanionData => {
  * Generador de avatar aleatorio (para fallbacks visuales donde dice 'random')
  */
 export const getRandomAvatarId = (): string => {
-  const keys = Object.keys(AVATAR_COMPONENTS);
+  const keys = ['fox', 'owl', 'bear', 'cat', 'rabbit', 'dog'];
+  const { unlockedAvatars } = useAchievementsStore.getState();
+  
+  if (unlockedAvatars['gallo']) keys.push('gallo');
+  if (unlockedAvatars['peacock']) keys.push('peacock');
+  if (unlockedAvatars['chameleon']) keys.push('chameleon');
+  if (unlockedAvatars['bat']) keys.push('bat');
+  if (unlockedAvatars['dragon']) keys.push('dragon');
+  
   return keys[Math.floor(Math.random() * keys.length)];
 };
