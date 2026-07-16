@@ -28,13 +28,16 @@ jobs:
         version: 9
         
     - name: Install & Build API Core
+      working-directory: ./apps/api-core
       run: |
         pnpm install
-        pnpm --filter api-core run build
+        pnpm run build
         
     - name: Install & Build Game Engine
+      working-directory: ./apps/game-engine
       run: |
-        pnpm --filter game-engine run build
+        pnpm install
+        pnpm run build
 
     - name: Azure Login (OIDC)
       uses: azure/login@v1
@@ -43,7 +46,6 @@ jobs:
         tenant-id: ${{ secrets.AZURE_TENANT_ID }}
         subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-    # NOTA: Asegúrate de que los nombres de las apps coincidan con los recursos de Azure
     - name: Deploy API Core
       uses: azure/webapps-deploy@v2
       with:

@@ -28,19 +28,24 @@ jobs:
       with:
         node-version: '18'
         cache: 'pnpm'
+        cache-dependency-path: 'apps/${{ matrix.app }}/pnpm-lock.yaml'
 
     - name: Install dependencies
+      working-directory: apps/${{ matrix.app }}
       run: pnpm install --frozen-lockfile
 
-    # Ignora errores si el script no existe en alguna app (usando --if-present)
     - name: Lint
-      run: pnpm --filter ${{ matrix.app }} run lint --if-present
+      working-directory: apps/${{ matrix.app }}
+      run: pnpm run lint --if-present
 
     - name: Typecheck
-      run: pnpm --filter ${{ matrix.app }} run typecheck --if-present
+      working-directory: apps/${{ matrix.app }}
+      run: pnpm run typecheck --if-present
 
     - name: Run Tests
-      run: pnpm --filter ${{ matrix.app }} run test:ci --if-present
+      working-directory: apps/${{ matrix.app }}
+      run: pnpm run test:ci --if-present
 
     - name: Build Check
-      run: pnpm --filter ${{ matrix.app }} run build
+      working-directory: apps/${{ matrix.app }}
+      run: pnpm run build
