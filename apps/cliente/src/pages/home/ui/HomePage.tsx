@@ -8,14 +8,12 @@ import { useNavigate } from "react-router-dom";
 import { ActiveAvatarWidget } from "@/widgets/active-avatar/ui/ActiveAvatarWidget";
 import { AudioVisualizerWidget } from "@/widgets/audio-background/ui/AudioVisualizerWidget";
 import { useEffect, useState } from "react";
-import { getRandomHomeQuote } from "@/entities/quote/api/getRandomHomeQuote";
 import { engineClient } from "@/shared/api/engineClient";
 import { Play, Trash2, X, AlertCircle } from "lucide-react";
 import { SoundButton } from "@/shared/ui/SoundButton";
 
 export function HomePage() {
   const navigate = useNavigate();
-  const [quote, setQuote] = useState("Cargando...");
   const [isPublicGamesOpen, setIsPublicGamesOpen] = useState(false);
   const [activeRoom, setActiveRoom] = useState<{roomId: string, quizTitle: string} | null>(null);
   const [showActiveRoomModal, setShowActiveRoomModal] = useState(false);
@@ -23,9 +21,6 @@ export function HomePage() {
 
   useEffect(() => {
     let mounted = true;
-    getRandomHomeQuote().then(q => {
-      if (mounted) setQuote(q);
-    });
 
     // Check for active room
     let deviceId = localStorage.getItem('quizsync_device_id');
@@ -89,10 +84,6 @@ export function HomePage() {
           <CreateGameButton />
         </div>
 
-        {/* Quick Info / Subtext */}
-        <p className="font-body text-base sm:text-lg text-gray-500 italic mt-3 sm:mt-4 font-bold text-center px-4 max-w-md">
-          "{quote}"
-        </p>
       </div>
 
       {/* Active Room Floating Widget */}
