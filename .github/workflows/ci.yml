@@ -1,0 +1,46 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ "main", "develop" ]
+  pull_request:
+    branches: [ "main", "develop" ]
+
+jobs:
+  validate:
+    name: Validate ${{ matrix.app }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        app: [cliente, studio, api-core, game-engine]
+
+    steps:
+    - name: Checkout código
+      uses: actions/checkout@v4
+
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v3
+      with:
+        version: 9
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'pnpm'
+
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
+
+    # Ignora errores si el script no existe en alguna app (usando --if-present)
+    - name: Lint
+      run: pnpm --filter ${{ matrix.app }} run lint --if-present
+
+    - name: Typecheck
+      run: pnpm --filter ${{ matrix.app }} run typecheck --if-present
+
+    - name: Run Tests
+      run: pnpm --filter ${{ matrix.app }} run test:ci --if-present
+
+    - name: Build Check
+      run: pnpm --filter ${{ matrix.app }} run build

@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { QuizModule } from './quiz/quiz.module';
+import { HealthModule } from './health/health.module';
 import { LoggerModule } from 'nestjs-pino';
 
 @Module({
@@ -19,6 +20,7 @@ import { LoggerModule } from 'nestjs-pino';
       },
     }),
     QuizModule,
+    HealthModule,
   ],
   controllers: [],
   providers: [],

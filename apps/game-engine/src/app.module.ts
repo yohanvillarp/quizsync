@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { GameModule } from './game/game.module';
+import { HealthModule } from './health/health.module';
 import { LoggerModule } from 'nestjs-pino';
 import { ThrottlerModule } from '@nestjs/throttler';
 
@@ -20,6 +21,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
       },
     }),
     GameModule,
+    HealthModule,
   ],
   controllers: [],
   providers: [],

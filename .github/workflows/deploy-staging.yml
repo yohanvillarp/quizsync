@@ -1,0 +1,80 @@
+name: Deploy to Staging
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_run:
+    workflows: ["CI Pipeline"]
+    types: [completed]
+
+permissions:
+  id-token: write # Requerido para OIDC
+  contents: read
+
+jobs:
+  deploy-backends:
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'push' }}
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node & pnpm
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+    - uses: pnpm/action-setup@v3
+      with:
+        version: 9
+        
+    - name: Install & Build API Core
+      run: |
+        pnpm install
+        pnpm --filter api-core run build
+        
+    - name: Install & Build Game Engine
+      run: |
+        pnpm --filter game-engine run build
+
+    - name: Azure Login (OIDC)
+      uses: azure/login@v1
+      with:
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+    # NOTA: Asegúrate de que los nombres de las apps coincidan con los recursos de Azure
+    - name: Deploy API Core
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: 'quizsync-api-core' 
+        package: './apps/api-core'
+
+    - name: Deploy Game Engine
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: 'quizsync-game-engine'
+        package: './apps/game-engine'
+
+    - name: Esperar reinicio de servidores
+      run: sleep 15
+
+    - name: Health Check API Core
+      run: |
+        HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://quizsync-api-core.azurewebsites.net/health)
+        if [ $HTTP_STATUS -ne 200 ]; then
+          curl -X POST -H 'Content-type: application/json' --data '{"text":"🚨 ALERTA: Health check falló en API Core (Staging)"}' ${{ secrets.SLACK_WEBHOOK }}
+          exit 1
+        fi
+
+    - name: Health Check Game Engine
+      run: |
+        HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://quizsync-game-engine.azurewebsites.net/health)
+        if [ $HTTP_STATUS -ne 200 ]; then
+          curl -X POST -H 'Content-type: application/json' --data '{"text":"🚨 ALERTA: Health check falló en Game Engine (Staging)"}' ${{ secrets.SLACK_WEBHOOK }}
+          exit 1
+        fi
+
+    - name: Notificar Éxito
+      run: |
+        curl -X POST -H 'Content-type: application/json' --data '{"text":"✅ Deploy a Staging completado exitosamente y Health Checks pasaron."}' ${{ secrets.SLACK_WEBHOOK }}
