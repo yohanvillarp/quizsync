@@ -63,7 +63,7 @@ jobs:
 
     - name: Health Check API Core
       run: |
-        HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://quizsync-api-core.azurewebsites.net/health)
+        HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://quizsync-api-core-ajc2azd9fdguaka5.northcentralus-01.azurewebsites.net/health)
         if [ $HTTP_STATUS -ne 200 ]; then
           curl -X POST -H 'Content-type: application/json' --data '{"text":"🚨 ALERTA: Health check falló en API Core (Staging)"}' ${{ secrets.SLACK_WEBHOOK }}
           exit 1
@@ -71,7 +71,7 @@ jobs:
 
     - name: Health Check Game Engine
       run: |
-        HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://quizsync-game-engine.azurewebsites.net/health)
+        HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://quizsync-game-engine-gwdve5argkg9bbbe.northcentralus-01.azurewebsites.net/health)
         if [ $HTTP_STATUS -ne 200 ]; then
           curl -X POST -H 'Content-type: application/json' --data '{"text":"🚨 ALERTA: Health check falló en Game Engine (Staging)"}' ${{ secrets.SLACK_WEBHOOK }}
           exit 1
