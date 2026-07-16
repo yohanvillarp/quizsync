@@ -13,10 +13,42 @@ export interface PowerResult {
   message?: string;
   broadcastEvents?: { event: string; data: any }[];
   unicastEvents?: { socketId: string; event: string; data: any }[];
+  usedAvatarId?: string;
+  suppressDefaultAnimation?: boolean;
 }
+
+import type { IPowerStrategy } from '../../domain/powers/power.strategy';
 
 @Injectable()
 export class PowerService {
+  private readonly strategies: Map<string, IPowerStrategy> = new Map();
+
+  constructor() {
+    // Inyección manual temporal. En un entorno Hexagonal puro, 
+    // estos se inyectarían vía un módulo o un provider.
+    this.registerStrategy(new (require('../powers/strategies/fox.power').FoxPowerStrategy)());
+    this.registerStrategy(new (require('../powers/strategies/owl.power').OwlPowerStrategy)());
+    this.registerStrategy(new (require('../powers/strategies/bear.power').BearPowerStrategy)());
+    this.registerStrategy(new (require('../powers/strategies/cat.power').CatPowerStrategy)());
+    this.registerStrategy(new (require('../powers/strategies/rabbit.power').RabbitPowerStrategy)());
+    this.registerStrategy(new (require('../powers/strategies/dog.power').DogPowerStrategy)());
+    this.registerStrategy(new (require('../powers/strategies/gallo.power').GalloPowerStrategy)());
+    
+    // Nuevas Estrategias Míticas y Épicas
+    this.registerStrategy(new (require('../powers/strategies/dragon.power').DragonPowerStrategy)());
+    this.registerStrategy(new (require('../powers/strategies/bat.power').BatPowerStrategy)());
+    this.registerStrategy(new (require('../powers/strategies/peacock.power').PeacockPowerStrategy)());
+    
+    // Camaleón necesita el resolver de estrategias para copiarlas
+    this.registerStrategy(new (require('../powers/strategies/chameleon.power').ChameleonPowerStrategy)(
+      (id: string) => this.strategies.get(id)
+    ));
+  }
+
+  registerStrategy(strategy: IPowerStrategy) {
+    this.strategies.set(strategy.avatarId, strategy);
+  }
+
   /**
    * Se ejecuta cuando un usuario presiona el botón de poder.
    */
@@ -51,123 +83,58 @@ export class PowerService {
       if (!targetPlayer) {
         throw new BadRequestException('Objetivo no encontrado');
       }
+      
+      // Pasiva del Camaleón: Inmune a habilidades hostiles directas
+      // Por ahora, solo el zorro ataca directamente a un objetivo.
+      if (targetPlayer.avatarId === 'chameleon' && sourcePlayer.avatarId === 'fox') {
+        sourcePlayer.powerStatus = 'USED'; // Se gasta el poder
+        return {
+          success: false,
+          message: '¡El Camaleón se camufló y evadió tu ataque!',
+          broadcastEvents: [{
+            event: 'power_activated',
+            data: { sourceId, avatarId: sourcePlayer.avatarId, targetId }
+          }],
+          unicastEvents: []
+        };
+      }
     }
 
     const avatarId = sourcePlayer.avatarId;
     sourcePlayer.powerStatus = 'USED';
 
-    const result: PowerResult = {
-      success: true,
-      broadcastEvents: [],
-      unicastEvents: []
-    };
-
-    // Broadcast the activation for animations
-    result.broadcastEvents!.push({
-      event: 'power_activated',
-      data: {
-        sourceId,
-        avatarId,
-        targetId
-      }
-    });
-
-    switch (avatarId) {
-      case 'fox':
-        if (!targetPlayer) throw new BadRequestException('Zorro requiere un objetivo');
-        targetPlayer.activeEffects.push(`thief_target_by_${sourceId}`);
-        sourcePlayer.activeEffects.push(`thief_active_on_${targetId}`);
-        break;
-
-      case 'owl':
-        // 50/50 - Calcular 2 incorrectas y enviarlas solo a este jugador
-        const currentQ = room.questions[room.currentQuestionIndex];
-        if (currentQ) {
-          const incorrectOptions = currentQ.options.filter(o => !o.isCorrect);
-          const shuffled = incorrectOptions.sort(() => 0.5 - Math.random());
-          const removedOptionIds = shuffled.slice(0, 2).map(o => o.id);
-          
-          result.unicastEvents!.push({
-            socketId: sourcePlayer.socketId,
-            event: 'power_fifty_fifty',
-            data: { removedOptionIds }
-          });
-        }
-        break;
-
-      case 'cat':
-        sourcePlayer.activeEffects.push('nine_lives_active');
-        break;
-
-      case 'bear':
-        sourcePlayer.activeEffects.push('brute_force_active');
-        break;
-
-      case 'rabbit':
-        sourcePlayer.activeEffects.push('speed_boost_active');
-        break;
-
-      case 'dog':
-        if (!targetPlayer) throw new BadRequestException('Perro requiere un compañero');
-        sourcePlayer.activeEffects.push(`loyalty_active_for_${targetId}`);
-        targetPlayer.activeEffects.push(`loyalty_recipient_from_${sourceId}`);
-        break;
-
-      case 'gallo':
-        // Rey del Gallinero: No puede silenciar a otros gallos.
-        // Si ya hay jugadores silenciados, cantar rompe el silencio y restaura poderes.
-        let someoneWasSilenced = false;
-        
-        // Primero verificamos si hay alguien silenciado
-        for (const [id, p] of room.players.entries()) {
-          if (p.activeEffects.some(e => e.startsWith('silenced_by_gallo'))) {
-            someoneWasSilenced = true;
-            break;
-          }
-        }
-
-        if (someoneWasSilenced) {
-          // Si había silenciados, este canto los libera
-          for (const [id, p] of room.players.entries()) {
-            if (p.activeEffects.some(e => e.startsWith('silenced_by_gallo'))) {
-              p.activeEffects = p.activeEffects.filter(e => !e.startsWith('silenced_by_gallo'));
-              result.unicastEvents!.push({
-                socketId: p.socketId,
-                event: 'power_restored',
-                data: { by: sourcePlayer.name }
-              });
-            }
-          }
-        } else {
-          // Si no había nadie silenciado, aplicamos el silencio a los NO gallos y anulamos sus poderes activos
-          for (const [id, p] of room.players.entries()) {
-            if (id !== sourceId && p.avatarId !== 'gallo') {
-              // Anulamos todos los demás efectos activos de esta ronda (perro, oso, conejo, etc.)
-              p.activeEffects = p.activeEffects.filter(e => e.startsWith('silenced_by_gallo'));
-              
-              // Si ya habían respondido y obtenido puntos de poder, se los quitamos (anulamos el poder)
-              if (p.answered && p.lastRoundPowerPoints) {
-                p.score -= p.lastRoundPowerPoints;
-                p.lastRoundPowerPoints = 0;
-                p.lastRoundPowerMessage = undefined;
-              }
-              
-              p.activeEffects.push('silenced_by_gallo_2');
-              // Notificamos
-              result.unicastEvents!.push({
-                socketId: p.socketId,
-                event: 'power_silenced',
-                data: { by: sourcePlayer.name }
-              });
-            }
-          }
-          sourcePlayer.activeEffects.push('gallo_silenced_others');
-        }
-        break;
-
-      default:
-        throw new BadRequestException('Avatar sin poder asignado');
+    const strategy = this.strategies.get(avatarId);
+    
+    if (!strategy) {
+      throw new BadRequestException('Poder no implementado o avatar sin poder asignado');
     }
+
+    // Ejecutamos la estrategia específica
+    const wasChameleonPhase1 = avatarId === 'chameleon' && !sourcePlayer.copiedAvatarId;
+    const strategyResult = strategy.activate(room, sourcePlayer, targetPlayer, payload);
+
+    if (wasChameleonPhase1 && sourcePlayer.copiedAvatarId) {
+      // Si el Camaleón acaba de clonar un poder (Fase 1), no gastamos su uso
+      sourcePlayer.powerStatus = 'AVAILABLE';
+    }
+
+    const broadcastEvents: { event: string; data: any }[] = [];
+    if (!strategyResult.suppressDefaultAnimation) {
+      broadcastEvents.push({
+        event: 'power_activated',
+        data: { sourceId, avatarId: strategyResult.usedAvatarId || avatarId, targetId }
+      });
+    }
+    if (strategyResult.broadcastEvents) {
+      broadcastEvents.push(...strategyResult.broadcastEvents);
+    }
+
+    const result: PowerResult = {
+      success: strategyResult.success,
+      message: strategyResult.message,
+      broadcastEvents,
+      unicastEvents: strategyResult.unicastEvents || []
+    };
 
     return result;
   }
@@ -199,15 +166,13 @@ export class PowerService {
             newEffects.push(`silenced_by_gallo_${duration - 1}`);
           }
         }
-        // gallo_silenced_others se limpia inmediatamente
-        // Otros efectos (velocidad, fuerza bruta, etc.) también se limpian inmediatamente
       }
       player.activeEffects = newEffects;
     }
   }
 
   /**
-   * Calcula los puntos base y los modificadores de poderes
+   * Calcula los puntos base y los modificadores de poderes delegando a las estrategias
    */
   calculatePointsModifier(
     room: RoomState,
@@ -225,27 +190,15 @@ export class PowerService {
       return { basePoints, powerPoints: 0 };
     }
 
-    // Bear: x2 on correct, -maxPoints on wrong
-    if (player.activeEffects.includes('brute_force_active')) {
-      if (isCorrect) {
-        powerPoints += basePoints; // Doubled
-        message = 'Fuerza Bruta (x2)';
-      } else {
-        powerPoints -= maxPoints; // Lost max points
-        message = `Fallo con Fuerza Bruta (-${maxPoints})`;
+    // Delega el cálculo a TODAS las estrategias que el jugador pueda tener activas 
+    // (Por ahora simplificamos buscando la estrategia del avatar actual)
+    const strategy = this.strategies.get(player.avatarId);
+    if (strategy && strategy.calculatePointsModifier) {
+      const modifier = strategy.calculatePointsModifier(room, player, basePoints, timeTakenMs, isCorrect, maxPoints);
+      if (modifier) {
+        powerPoints += modifier.powerPoints;
+        message = modifier.message;
       }
-    }
-
-    // Rabbit: 1.5x on correct
-    if (player.activeEffects.includes('speed_boost_active') && isCorrect) {
-      powerPoints += Math.floor(basePoints * 0.5);
-      message = 'Bono de Velocidad';
-    }
-
-    // Cat: maxPoints/2 points consolation if wrong (mitad de maximo)
-    if (player.activeEffects.includes('nine_lives_active') && !isCorrect) {
-      powerPoints += Math.floor(maxPoints / 2);
-      message = 'Consolación de 7 Vidas';
     }
 
     // Fox: steal 50% from target (If Fox answers AFTER Target)

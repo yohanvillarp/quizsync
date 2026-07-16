@@ -1,5 +1,5 @@
-import { X, Users, Globe2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { X, Globe2, RefreshCw, Users } from "lucide-react";
+import { useEffect, useState, useCallback } from "react";
 import { engineClient } from "@/shared/api/engineClient";
 import { SoundButton } from "@/shared/ui/SoundButton";
 
@@ -21,15 +21,34 @@ export function PublicGamesModal({ isOpen, onClose, onJoin }: PublicGamesModalPr
   const [games, setGames] = useState<PublicRoom[]>([]);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    if (isOpen) {
-      setLoading(true);
-      engineClient.get('/rooms')
-        .then(res => setGames(res.data))
-        .catch(err => console.error("Error cargando partidas:", err))
-        .finally(() => setLoading(false));
+  const fetchGames = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await engineClient.get('/rooms');
+      setGames(res.data);
+    } catch (err) {
+      console.error("Error cargando partidas:", err);
+    } finally {
+      setLoading(false);
     }
-  }, [isOpen]);
+  }, []);
+
+  useEffect(() => {
+    let intervalId: ReturnType<typeof setInterval>;
+    
+    if (isOpen) {
+      fetchGames(); // Fetch inicial al abrir
+      
+      // Auto-refresh cada 10 segundos
+      intervalId = setInterval(() => {
+        fetchGames();
+      }, 10000);
+    }
+
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [isOpen, fetchGames]);
 
   if (!isOpen) return null;
 
@@ -43,13 +62,26 @@ export function PublicGamesModal({ isOpen, onClose, onJoin }: PublicGamesModalPr
             <Globe2 size={28} strokeWidth={2.5} />
             <h2 className="font-display text-2xl uppercase tracking-wide">Partidas Públicas</h2>
           </div>
-          <SoundButton 
-            clickSound="click"
-            onClick={onClose}
-            className="p-1 hover:bg-black/10 rounded-lg transition-colors"
-          >
-            <X size={28} strokeWidth={2.5} />
-          </SoundButton>
+          
+          <div className="flex items-center gap-1">
+            <SoundButton 
+              clickSound="click"
+              onClick={fetchGames}
+              disabled={loading}
+              className={`p-2 hover:bg-[#3730A3]/10 text-[#3730A3] rounded-lg transition-all ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+              title="Recargar lista"
+            >
+              <RefreshCw size={24} strokeWidth={2.5} className={loading ? 'animate-spin' : ''} />
+            </SoundButton>
+            
+            <SoundButton 
+              clickSound="click"
+              onClick={onClose}
+              className="p-2 hover:bg-black/10 rounded-lg transition-colors text-[var(--color-ink)]"
+            >
+              <X size={28} strokeWidth={2.5} />
+            </SoundButton>
+          </div>
         </div>
 
         {/* Content */}

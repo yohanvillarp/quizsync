@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-export type AvatarType = 'fox' | 'owl' | 'bear' | 'cat' | 'rabbit' | 'dog' | 'gallo' | 'random' | null;
+export type AvatarType = 'fox' | 'owl' | 'bear' | 'cat' | 'rabbit' | 'dog' | 'gallo' | 'peacock' | 'chameleon' | 'bat' | 'dragon' | 'random' | null;
 
 interface AvatarState {
   selectedAvatar: AvatarType;

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Check, Trophy, Medal } from 'lucide-react';
-import { FoxAvatar, OwlAvatar, BearAvatar, CatAvatar, RabbitAvatar, DogAvatar, GalloAvatar } from '@/shared/ui/avatars/AvatarIcons';
+import { getAvatarComponent } from '@/entities/player/registry/avatarRegistry';
 
 const AnimatedScore = ({ value, duration = 800 }: { value: number, duration?: number }) => {
   const [displayValue, setDisplayValue] = useState(value);
@@ -35,15 +35,7 @@ const AnimatedScore = ({ value, duration = 800 }: { value: number, duration?: nu
   return <>{displayValue}</>;
 };
 
-const ICONS: Record<string, React.ReactNode> = {
-  fox: <FoxAvatar />,
-  owl: <OwlAvatar />,
-  bear: <BearAvatar />,
-  cat: <CatAvatar />,
-  rabbit: <RabbitAvatar />,
-  dog: <DogAvatar />,
-  gallo: <GalloAvatar />,
-};
+
 
 interface PlayerRank {
   id: string;
@@ -149,7 +141,7 @@ export const RankingBoard: React.FC<RankingBoardProps> = ({ players, roundKey = 
                   
                   {player.avatarId && (
                     <div className="w-8 h-8 sm:w-10 sm:h-10 flex-shrink-0">
-                      {ICONS[player.avatarId] || <FoxAvatar />}
+                      {getAvatarComponent(player.avatarId)}
                     </div>
                   )}
                   

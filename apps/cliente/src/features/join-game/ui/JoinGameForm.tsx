@@ -18,7 +18,7 @@ export function JoinGameForm() {
     if (!isPinValid) return;
     if (pin === "ADMIN" && !isUnlocked) {
       localStorage.setItem('quizsync_unlocked_gallo', 'true');
-      useAlertStore.getState().showAlert("¡Has desbloqueado al personaje secreto: Rey del Gallinero!", "¡Personaje Desbloqueado!");
+      useAlertStore.getState().showAlert("¡Has desbloqueado al personaje mítico: Gallo!", "¡Personaje Desbloqueado!");
       setPin("");
       return;
     }

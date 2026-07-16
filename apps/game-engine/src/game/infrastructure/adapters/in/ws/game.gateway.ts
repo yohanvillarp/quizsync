@@ -117,7 +117,9 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       }
 
       // Sync room state with clients after applying power effects
-      this.server.to(payload.roomId).emit('room_state', { room });
+      // Maps do not serialize over websockets well, so convert to array
+      const roomPayload = { ...room, players: Array.from(room.players.values()) };
+      this.server.to(payload.roomId).emit('room_state', { room: roomPayload });
     } catch (error: any) {
       this.logger.error(`Error activating power: ${error.message}`);
       client.emit('error', { message: error.message || 'Error activando el poder' });

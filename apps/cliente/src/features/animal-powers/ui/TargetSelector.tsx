@@ -1,23 +1,8 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import type { Player } from '@/entities/game/model/useGameStore';
 import { X } from 'lucide-react';
-import { 
-  FoxAvatar, 
-  OwlAvatar, 
-  BearAvatar, 
-  CatAvatar, 
-  RabbitAvatar, 
-  DogAvatar 
-} from '@/shared/ui/avatars/AvatarIcons';
-
-const ICONS: Record<string, React.ReactNode> = {
-  fox: <FoxAvatar />,
-  owl: <OwlAvatar />,
-  bear: <BearAvatar />,
-  cat: <CatAvatar />,
-  rabbit: <RabbitAvatar />,
-  dog: <DogAvatar />,
-};
+import { getAvatarComponent } from '@/entities/player/registry/avatarRegistry';
 
 interface TargetSelectorProps {
   players: Player[];
@@ -30,7 +15,7 @@ interface TargetSelectorProps {
 export const TargetSelector: React.FC<TargetSelectorProps> = ({ players, myDeviceId, onSelect, onCancel, title }) => {
   const availableTargets = players.filter(p => p.deviceId !== myDeviceId && p.connected);
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-ink/80 backdrop-blur-sm p-4">
       <div className="bg-paper p-6 rounded-2xl border-4 border-ink shadow-[8px_8px_0px_0px_var(--color-ink)] w-full max-w-md relative animate-in zoom-in duration-200">
         <button 
@@ -53,7 +38,7 @@ export const TargetSelector: React.FC<TargetSelectorProps> = ({ players, myDevic
                 className="flex flex-col items-center gap-2 p-3 border-2 border-ink rounded-xl bg-white hover:bg-high-yellow transition-colors shadow-[4px_4px_0px_0px_var(--color-ink)] hover:translate-y-1 hover:shadow-[2px_2px_0px_0px_var(--color-ink)]"
               >
                 <div className="w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center">
-                  {ICONS[player.avatarId] || <FoxAvatar />}
+                  {getAvatarComponent(player.avatarId)}
                 </div>
                 <span className="font-bold text-ink truncate w-full text-center">{player.name}</span>
               </button>
@@ -61,6 +46,7 @@ export const TargetSelector: React.FC<TargetSelectorProps> = ({ players, myDevic
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };

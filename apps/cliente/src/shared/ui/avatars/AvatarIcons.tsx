@@ -259,3 +259,294 @@ export const GalloAvatar = () => (
     </g>
   </svg>
 );
+
+export const PeacockAvatar = () => (
+  <svg className="w-full h-full drop-shadow-[0_4px_10px_rgba(0,188,212,0.5)]" viewBox="0 0 200 200">
+    <defs>
+      <linearGradient id="peacock-body" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#00BCD4"/>
+        <stop offset="100%" stopColor="#006064"/>
+      </linearGradient>
+      <linearGradient id="peacock-tail" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#4CAF50"/>
+        <stop offset="100%" stopColor="#1B5E20"/>
+      </linearGradient>
+      <linearGradient id="peacock-accent" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#FFC107"/>
+        <stop offset="100%" stopColor="#FF9800"/>
+      </linearGradient>
+      <filter id="peacock-glow">
+        <feGaussianBlur stdDeviation="2" result="blur"/>
+        <feMerge>
+          <feMergeNode in="blur"/>
+          <feMergeNode in="SourceGraphic"/>
+        </feMerge>
+      </filter>
+    </defs>
+    
+    {/* Tail Feathers (Hypnotic fan) */}
+    <g className="animate-[spin_8s_linear_infinite]" style={{transformOrigin: '100px 100px'}}>
+      <polygon points="100,100 30,30 80,10" fill="url(#peacock-tail)"/>
+      <polygon points="100,100 80,10 120,10" fill="url(#peacock-body)"/>
+      <polygon points="100,100 120,10 170,30" fill="url(#peacock-tail)"/>
+      <polygon points="100,100 170,30 190,80" fill="url(#peacock-body)"/>
+      <polygon points="100,100 190,80 190,120" fill="url(#peacock-tail)"/>
+      <polygon points="100,100 190,120 170,170" fill="url(#peacock-body)"/>
+      <polygon points="100,100 170,170 120,190" fill="url(#peacock-tail)"/>
+      <polygon points="100,100 120,190 80,190" fill="url(#peacock-body)"/>
+      <polygon points="100,100 80,190 30,170" fill="url(#peacock-tail)"/>
+      <polygon points="100,100 30,170 10,120" fill="url(#peacock-body)"/>
+      <polygon points="100,100 10,120 10,80" fill="url(#peacock-tail)"/>
+      <polygon points="100,100 10,80 30,30" fill="url(#peacock-body)"/>
+      
+      {/* Eyes on feathers */}
+      <polygon points="55,40 60,45 55,50 50,45" fill="url(#peacock-accent)" filter="url(#peacock-glow)"/>
+      <polygon points="100,25 105,30 100,35 95,30" fill="url(#peacock-accent)" filter="url(#peacock-glow)"/>
+      <polygon points="145,40 150,45 145,50 140,45" fill="url(#peacock-accent)" filter="url(#peacock-glow)"/>
+      <polygon points="175,100 180,105 175,110 170,105" fill="url(#peacock-accent)" filter="url(#peacock-glow)"/>
+      <polygon points="145,150 150,155 145,160 140,155" fill="url(#peacock-accent)" filter="url(#peacock-glow)"/>
+      <polygon points="100,165 105,170 100,175 95,170" fill="url(#peacock-accent)" filter="url(#peacock-glow)"/>
+      <polygon points="55,150 60,155 55,160 50,155" fill="url(#peacock-accent)" filter="url(#peacock-glow)"/>
+      <polygon points="25,100 30,105 25,110 20,105" fill="url(#peacock-accent)" filter="url(#peacock-glow)"/>
+    </g>
+
+    {/* Body */}
+    <polygon points="100,70 130,150 70,150" fill="url(#peacock-body)"/>
+    
+    {/* Belly accent */}
+    <polygon points="100,90 120,150 80,150" fill="url(#peacock-accent)"/>
+
+    {/* Neck & Head */}
+    <polygon points="90,100 110,100 100,40" fill="url(#peacock-body)"/>
+    <polygon points="85,30 115,30 100,60" fill="url(#peacock-body)"/>
+
+    {/* Beak */}
+    <polygon points="115,35 140,40 110,45" fill="url(#peacock-accent)"/>
+    
+    {/* Crest */}
+    <polygon points="95,30 90,10 100,25" fill="url(#peacock-accent)"/>
+    <polygon points="100,30 100,5 105,25" fill="url(#peacock-accent)"/>
+    <polygon points="105,30 110,10 110,25" fill="url(#peacock-accent)"/>
+
+    {/* Eye */}
+    <polygon points="95,40 105,35 110,40 100,45" fill="white"/>
+    <polygon points="100,38 104,39 102,42 98,41" fill="#B71C1C" filter="url(#peacock-glow)"/>
+
+    <g className="gallo-sparkles">
+      <circle cx="40" cy="40" r="2" fill="#00BCD4" opacity="0" style={{animation: 'sparkle 1.5s ease-in-out infinite'}}/>
+      <circle cx="160" cy="140" r="3" fill="#4CAF50" opacity="0" style={{animation: 'sparkle 2s ease-in-out infinite 0.5s'}}/>
+    </g>
+  </svg>
+);
+
+export const ChameleonAvatar = () => (
+  <svg className="w-full h-full drop-shadow-[0_4px_10px_rgba(76,175,80,0.5)]" viewBox="0 0 200 200">
+    <defs>
+      <linearGradient id="cham-body" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#8BC34A"/>
+        <stop offset="100%" stopColor="#33691E"/>
+      </linearGradient>
+      <linearGradient id="cham-accent" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#CDDC39"/>
+        <stop offset="100%" stopColor="#827717"/>
+      </linearGradient>
+      <linearGradient id="cham-tongue" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#E91E63"/>
+        <stop offset="100%" stopColor="#880E4F"/>
+      </linearGradient>
+      <filter id="cham-glow">
+        <feGaussianBlur stdDeviation="2" result="blur"/>
+        <feMerge>
+          <feMergeNode in="blur"/>
+          <feMergeNode in="SourceGraphic"/>
+        </feMerge>
+      </filter>
+    </defs>
+
+    {/* Tail Spiral (Geometric) */}
+    <g className="animate-pulse" style={{transformOrigin: '50px 140px'}}>
+      <polygon points="70,120 50,160 30,130" fill="url(#cham-body)"/>
+      <polygon points="30,130 50,160 20,150" fill="url(#cham-accent)"/>
+      <polygon points="20,150 50,160 40,170" fill="url(#cham-body)"/>
+    </g>
+
+    {/* Legs */}
+    <polygon points="80,140 70,180 90,175" fill="url(#cham-accent)"/>
+    <polygon points="120,140 110,180 130,175" fill="url(#cham-accent)"/>
+
+    {/* Body Arch */}
+    <polygon points="60,130 90,80 140,80 130,140 70,140" fill="url(#cham-body)"/>
+    
+    {/* Body Accent (Stripes) */}
+    <polygon points="80,80 95,140 105,140 90,80" fill="url(#cham-accent)"/>
+    <polygon points="110,80 120,140 130,140 120,80" fill="url(#cham-accent)"/>
+    
+    {/* Head */}
+    <polygon points="130,80 180,80 160,130 130,120" fill="url(#cham-body)"/>
+    <polygon points="180,80 190,95 160,110" fill="url(#cham-accent)"/>
+
+    {/* Tongue (Darting animation) */}
+    <g className="animate-pulse" style={{transformOrigin: '160px 110px'}}>
+      <polyline points="160,110 180,105 175,115 195,110" fill="none" stroke="url(#cham-tongue)" strokeWidth="6" filter="url(#cham-glow)"/>
+      <polygon points="190,105 200,110 190,115" fill="url(#cham-tongue)" filter="url(#cham-glow)"/>
+    </g>
+
+    {/* Huge Eye */}
+    <g className="animate-[spin_4s_linear_infinite]" style={{transformOrigin: '145px 95px'}}>
+      <polygon points="130,95 145,80 160,95 145,110" fill="white"/>
+      <polygon points="140,95 145,90 150,95 145,100" fill="#B71C1C" filter="url(#cham-glow)"/>
+    </g>
+
+    <g className="gallo-sparkles">
+      <circle cx="40" cy="60" r="2" fill="#8BC34A" opacity="0" style={{animation: 'sparkle 1.5s ease-in-out infinite'}}/>
+      <circle cx="180" cy="150" r="3" fill="#CDDC39" opacity="0" style={{animation: 'sparkle 2s ease-in-out infinite 0.5s'}}/>
+    </g>
+  </svg>
+);
+
+export const BatAvatar = () => (
+  <svg className="w-full h-full drop-shadow-[0_4px_10px_rgba(103,58,183,0.5)]" viewBox="0 0 200 200">
+    <defs>
+      <linearGradient id="bat-body" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#512DA8"/>
+        <stop offset="100%" stopColor="#1A237E"/>
+      </linearGradient>
+      <linearGradient id="bat-wing" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#311B92"/>
+        <stop offset="100%" stopColor="#000000"/>
+      </linearGradient>
+      <linearGradient id="bat-accent" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#9C27B0"/>
+        <stop offset="100%" stopColor="#4A148C"/>
+      </linearGradient>
+      <filter id="bat-glow">
+        <feGaussianBlur stdDeviation="2" result="blur"/>
+        <feMerge>
+          <feMergeNode in="blur"/>
+          <feMergeNode in="SourceGraphic"/>
+        </feMerge>
+      </filter>
+    </defs>
+
+    {/* Back Wings */}
+    <g style={{animation: 'wing-flap 1.5s ease-in-out infinite', transformOrigin: '100px 90px'}}>
+      <polygon points="100,90 20,20 40,80 10,120 70,110" fill="url(#bat-wing)"/>
+      <polygon points="100,90 180,20 160,80 190,120 130,110" fill="url(#bat-wing)"/>
+    </g>
+
+    {/* Front Wings (accented) */}
+    <g style={{animation: 'wing-flap 1.5s ease-in-out infinite', transformOrigin: '100px 90px'}}>
+      <polygon points="90,95 30,40 45,90 20,115 75,105" fill="url(#bat-accent)" opacity="0.6"/>
+      <polygon points="110,95 170,40 155,90 180,115 125,105" fill="url(#bat-accent)" opacity="0.6"/>
+    </g>
+
+    {/* Body */}
+    <polygon points="70,70 130,70 100,160" fill="url(#bat-body)"/>
+
+    {/* Ears */}
+    <polygon points="75,70 60,30 90,70" fill="url(#bat-body)"/>
+    <polygon points="125,70 140,30 110,70" fill="url(#bat-body)"/>
+
+    {/* Eyes */}
+    <polygon points="80,90 90,85 85,95" fill="white" filter="url(#bat-glow)"/>
+    <polygon points="120,90 110,85 115,95" fill="white" filter="url(#bat-glow)"/>
+    <polygon points="82,90 88,87 86,93" fill="#FF1744"/>
+    <polygon points="118,90 112,87 114,93" fill="#FF1744"/>
+
+    {/* Fangs */}
+    <polygon points="90,110 95,120 100,110" fill="white"/>
+    <polygon points="110,110 105,120 100,110" fill="white"/>
+
+    <g className="gallo-sparkles">
+      <circle cx="50" cy="150" r="2" fill="#9C27B0" opacity="0" style={{animation: 'sparkle 1.5s ease-in-out infinite'}}/>
+      <circle cx="150" cy="150" r="3" fill="#673AB7" opacity="0" style={{animation: 'sparkle 2s ease-in-out infinite 0.5s'}}/>
+    </g>
+  </svg>
+);
+
+export const DragonAvatar = () => (
+  <svg className="w-full h-full drop-shadow-[0_4px_10px_rgba(255,87,34,0.5)]" viewBox="0 0 200 200">
+    <defs>
+      <linearGradient id="dragon-body" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#E53935"/>
+        <stop offset="100%" stopColor="#8E0000"/>
+      </linearGradient>
+      <linearGradient id="dragon-belly" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#FFCA28"/>
+        <stop offset="100%" stopColor="#F57C00"/>
+      </linearGradient>
+      <linearGradient id="dragon-wing-back" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#7F0000"/>
+        <stop offset="100%" stopColor="#3E0000"/>
+      </linearGradient>
+      <filter id="dragon-glow">
+        <feGaussianBlur stdDeviation="2" result="blur"/>
+        <feMerge>
+          <feMergeNode in="blur"/>
+          <feMergeNode in="SourceGraphic"/>
+        </feMerge>
+      </filter>
+    </defs>
+    
+    {/* Tail */}
+    <g style={{animation: 'tail-swish 3s ease-in-out infinite', transformOrigin: '140px 140px'}}>
+      <polygon points="120,130 180,90 160,140" fill="url(#dragon-body)" />
+      <polygon points="180,90 200,80 190,100" fill="url(#dragon-belly)" />
+    </g>
+
+    {/* Back Wing */}
+    <g style={{animation: 'wing-flap 2.5s ease-in-out infinite 0.2s', transformOrigin: '110px 100px'}}>
+      <polygon points="100,80 150,15 170,35 130,65 180,75 120,90" fill="url(#dragon-wing-back)"/>
+    </g>
+    
+    {/* Back Leg */}
+    <polygon points="110,145 130,180 100,180" fill="url(#dragon-wing-back)"/>
+
+    {/* Body */}
+    <polygon points="70,140 130,150 110,80 60,90" fill="url(#dragon-body)"/>
+    
+    {/* Belly (Geometric Accent like Gallo) */}
+    <polygon points="75,130 115,140 90,90" fill="url(#dragon-belly)"/>
+
+    {/* Front Leg */}
+    <polygon points="80,140 100,185 70,185" fill="url(#dragon-body)"/>
+
+    {/* Front Wing */}
+    <g style={{animation: 'wing-flap 2.5s ease-in-out infinite', transformOrigin: '100px 90px'}}>
+      <polygon points="90,85 140,20 160,40 120,70 170,80 110,95" fill="url(#dragon-body)"/>
+      <polygon points="95,85 135,28 150,42 120,68 155,75 110,88" fill="url(#dragon-belly)"/>
+    </g>
+
+    {/* Neck */}
+    <polygon points="60,90 90,85 80,50 50,55" fill="url(#dragon-body)"/>
+
+    {/* Head */}
+    <polygon points="40,55 90,50 80,25 30,35" fill="url(#dragon-body)"/>
+
+    {/* Snout/Jaw */}
+    <polygon points="30,35 40,55 15,60 20,40" fill="url(#dragon-body)"/>
+
+    {/* Horns (Geometric) */}
+    <polygon points="70,25 90,5 80,25" fill="url(#dragon-belly)"/>
+    <polygon points="55,30 65,10 65,25" fill="url(#dragon-belly)"/>
+
+    {/* Spikes on back */}
+    <polygon points="110,80 130,60 120,90" fill="url(#dragon-belly)"/>
+    <polygon points="120,110 145,95 130,120" fill="url(#dragon-belly)"/>
+
+    {/* Abstract Eye (Like Gallo) */}
+    <polygon points="55,40 65,38 60,45 50,47" fill="white"/>
+    <circle cx="58" cy="42" r="2" fill="#B71C1C" filter="url(#dragon-glow)"/>
+
+    {/* Flame Breath (Geometric) */}
+    <g style={{animation: 'sparkle 1.2s ease-in-out infinite'}} filter="url(#dragon-glow)">
+      <polygon points="15,60 -10,75 5,85 -20,60 10,50" fill="#FFC107"/>
+      <polygon points="10,60 -5,70 5,75 -10,60 8,55" fill="#FF5722"/>
+    </g>
+
+    <g className="gallo-sparkles">
+      <circle cx="-5" cy="50" r="2" fill="#FFC107" opacity="0" style={{animation: 'sparkle 1.5s ease-in-out infinite'}}/>
+      <circle cx="160" cy="30" r="3" fill="#FF5722" opacity="0" style={{animation: 'sparkle 2s ease-in-out infinite 0.5s'}}/>
+    </g>
+  </svg>
+);

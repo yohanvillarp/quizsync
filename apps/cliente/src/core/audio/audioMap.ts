@@ -20,14 +20,12 @@ export const UI_SOUNDS: Record<string, string> = {
   'podium-pop': `${AZURE_BLOB_BASE_URL}/ui/audio/podium-pop.mp3`,
 };
 
-export const AVATAR_SOUNDS: Record<string, string> = {
-  'fox': `${AZURE_BLOB_BASE_URL}/characters/fox/select.mp3`,
-  'owl': `${AZURE_BLOB_BASE_URL}/characters/owl/select.mp3`,
-  'bear': `${AZURE_BLOB_BASE_URL}/characters/bear/select.mp3`,
-  'cat': `${AZURE_BLOB_BASE_URL}/characters/cat/select.mp3`,
-  'rabbit': `${AZURE_BLOB_BASE_URL}/characters/rabbit/select.mp3`,
-  'dog': `${AZURE_BLOB_BASE_URL}/characters/dog/select.mp3`,
-  'gallo': `${AZURE_BLOB_BASE_URL}/characters/gallo/select.mp3`,
+export const getAvatarSoundUrl = (avatarId: string): string => {
+  return `${AZURE_BLOB_BASE_URL}/characters/${avatarId}/select.mp3`;
+};
+
+export const getAvatarPowerSoundUrl = (avatarId: string): string => {
+  return `${AZURE_BLOB_BASE_URL}/characters/${avatarId}/power.mp3`;
 };
 
 // También podemos precargar la música de fondo

@@ -1,14 +1,17 @@
 import { useState } from "react";
-import { FoxAvatar, OwlAvatar, BearAvatar, CatAvatar, RabbitAvatar, DogAvatar, GalloAvatar } from "@/shared/ui/avatars/AvatarIcons";
 import { Crown, Edit2, UserMinus, Ban, VolumeX, RotateCcw } from "lucide-react";
 
 import { SoundButton } from "@/shared/ui/SoundButton";
 import { useGameStore } from "@/entities/game/model/useGameStore";
-import { getCompanionById } from "@/entities/player/model/companions.mock";
+import { getAvatarComponent, getAvatarData } from "@/entities/player/registry/avatarRegistry";
+import { COMPANIONS_MOCK } from "@/entities/player/model/companions.mock";
 
 export interface Player {
   socketId: string;
   deviceId: string;
+  powerStatus?: 'AVAILABLE' | 'USED';
+  copiedAvatarId?: string;
+  activeEffects?: string[];
   name: string;
   avatarId: string;
   isHost: boolean;
@@ -29,15 +32,6 @@ interface PlayerCardProps {
   onMuteEmotes?: () => void;
 }
 
-const ICONS: Record<string, React.ReactNode> = {
-  fox: <FoxAvatar />,
-  owl: <OwlAvatar />,
-  bear: <BearAvatar />,
-  cat: <CatAvatar />,
-  rabbit: <RabbitAvatar />,
-  dog: <DogAvatar />,
-  gallo: <GalloAvatar />
-};
 
 
 export function PlayerCard({ 
@@ -63,7 +57,7 @@ export function PlayerCard({
   const [previewAvatar, setPreviewAvatar] = useState<string | null>(null);
   const isHost = player.isHost;
   const isDisconnected = player.connected === false;
-  const avatar = ICONS[player.avatarId] || <FoxAvatar />; // Default a fox si no se encuentra
+  const avatar = getAvatarComponent(player.avatarId);
 
   return (
     <div 
@@ -100,7 +94,7 @@ export function PlayerCard({
         <div className="absolute bottom-[100%] mb-2 z-[60] flex flex-col items-center gap-2 animate-in zoom-in duration-200 left-1/2 -translate-x-1/2">
           {(() => {
             const companionId = previewAvatar || player.avatarId;
-            const companionData = companionId ? getCompanionById(companionId) : undefined;
+            const companionData = companionId ? getAvatarData(companionId) : undefined;
             if (!companionData || gameModeId !== 'POWER_MODE') return null;
             
             return (
@@ -114,9 +108,12 @@ export function PlayerCard({
               </div>
             );
           })()}
-          <div className="bg-white border-4 border-[var(--color-ink)] p-1 sm:p-2 rounded-3xl flex gap-0.5 sm:gap-1 shadow-[4px_4px_0px_var(--color-ink)]">
-            {Object.keys(ICONS).map((key) => {
+          <div className="bg-white border-4 border-[var(--color-ink)] p-1 sm:p-2 rounded-3xl flex gap-0.5 sm:gap-1 shadow-[4px_4px_0px_var(--color-ink)] max-w-xs flex-wrap justify-center">
+            {COMPANIONS_MOCK.map((c) => {
+              const key = c.id;
               if (key === 'gallo' && localStorage.getItem('quizsync_unlocked_gallo') !== 'true') return null;
+              // Simple check para omitir míticos si no queremos saturar el picker del lobby (o podríamos mostrarlos todos)
+              // Por ahora los mostramos todos.
               return (
                 <SoundButton
                   key={key}
@@ -124,14 +121,14 @@ export function PlayerCard({
                   onMouseEnter={() => setPreviewAvatar(key)}
                   onClick={(e) => {
                     e.stopPropagation();
-                    if (onChangeAvatar) onChangeAvatar(key);
+                    if (onChangeAvatar) onChangeAvatar(key as any);
                     setShowPicker(false);
                     setPreviewAvatar(null);
                   }}
                   className={`w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 flex items-center justify-center rounded-xl hover:bg-gray-100 transition-colors border-2 ${player.avatarId === key ? 'border-[var(--color-ink)] bg-[var(--color-high-yellow)]' : 'border-transparent'}`}
                 >
                   <div className="w-6 h-6 sm:w-8 sm:h-8 pointer-events-none flex items-center justify-center">
-                    {ICONS[key]}
+                    {getAvatarComponent(key as any)}
                   </div>
                 </SoundButton>
               );
@@ -238,7 +235,7 @@ export function PlayerCard({
         </span>
         {gameModeId === 'POWER_MODE' && (
           <span className="font-body font-bold text-[10px] sm:text-[11px] uppercase tracking-tighter opacity-80 mt-0.5">
-            {getCompanionById(player.avatarId)?.powerName || 'Sin Poder'}
+            {getAvatarData(player.avatarId || 'fox')?.powerName || 'Sin Poder'}
           </span>
         )}
       </div>

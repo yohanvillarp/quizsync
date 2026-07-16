@@ -177,6 +177,9 @@ body {
   position: relative;
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   overflow: hidden;
+  max-width: 240px;
+  margin: 0 auto;
+  height: 100%;
 }
 .polaroid-mythic::before {
   content: '';
@@ -187,7 +190,7 @@ body {
   transform: rotate(30deg);
   pointer-events: none;
 }
-.polaroid-mythic:hover, .polaroid-mythic.selected {
+.polaroid-mythic:hover {
   transform: scale(1.05) translateY(-5px);
   box-shadow: 
     0 15px 30px rgba(0,0,0,0.6),
@@ -195,9 +198,21 @@ body {
     0 0 20px rgba(212, 175, 55, 0.8);
   border-color: #F5D76E;
 }
+.polaroid-mythic.selected {
+  transform: scale(1.08) translateY(-8px) !important;
+  border-color: #FFF3B0;
+  box-shadow: 
+    0 15px 30px rgba(0,0,0,0.8),
+    inset 0 0 30px rgba(212, 175, 55, 0.8),
+    0 0 40px rgba(212, 175, 55, 1);
+  z-index: 10;
+}
 .polaroid-mythic .text-\[var\(--color-ink\)\] {
   color: #FFF3B0;
   text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+}
+.polaroid-mythic .text-gray-600 {
+  color: #e2e8f0;
 }
 .polaroid-mythic .bg-white {
   background: radial-gradient(circle at center, #2A050B 0%, #110204 100%);
@@ -239,6 +254,11 @@ body {
 @keyframes bounce {
   from { transform: translateY(0); }
   to { transform: translateY(-15px); }
+}
+
+@keyframes progress {
+  0% { transform: scaleX(0.1); }
+  100% { transform: scaleX(1); }
 }
 
 /* =========================================

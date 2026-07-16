@@ -14,7 +14,7 @@ export function BrowseGamesButton({ onClick }: BrowseGamesButtonProps) {
       title="Encontrar partidas públicas"
     >
       <Globe size={18} strokeWidth={2.5} className="sm:!w-5 sm:!h-5 flex-shrink-0" />
-      <span>Encontrar Partidas</span>
+      <span>Explorar</span>
     </SoundButton>
   );
 }

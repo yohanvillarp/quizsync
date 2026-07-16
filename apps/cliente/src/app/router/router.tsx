@@ -6,10 +6,13 @@ import { PodiumPage } from "@/pages/podium/ui/PodiumPage";
 import { CreateGamePage } from "@/pages/create-game/ui/CreateGamePage";
 import { LobbyPage } from "@/pages/lobby/ui/LobbyPage";
 import { AppLayout } from "./AppLayout";
+import { NotFoundPage } from "@/pages/not-found/ui/NotFoundPage";
+import { GlobalErrorBoundary } from "@/app/providers/GlobalErrorBoundary";
 
 export const router = createBrowserRouter([
   {
     element: <AppLayout />,
+    errorElement: <GlobalErrorBoundary />,
     children: [
       {
         path: "/",
@@ -19,6 +22,10 @@ export const router = createBrowserRouter([
         path: "/inventory",
         element: <InventoryPage />,
       },
+      {
+        path: "*",
+        element: <NotFoundPage />,
+      }
     ]
   },
   {

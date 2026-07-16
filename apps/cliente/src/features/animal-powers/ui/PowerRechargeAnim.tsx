@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useGameStore } from '@/entities/game/model/useGameStore';
 import { audioManager } from '@/core/audio/AudioManager';
-import { FoxAvatar, OwlAvatar, BearAvatar, CatAvatar, RabbitAvatar, DogAvatar, GalloAvatar } from '@/shared/ui/avatars/AvatarIcons';
+import { getAvatarComponent } from '@/entities/player/registry/avatarRegistry';
 
 const powerColors: Record<string, string> = {
   fox: 'var(--color-high-pink)',
@@ -13,15 +13,6 @@ const powerColors: Record<string, string> = {
   gallo: 'var(--color-accent-pink)'
 };
 
-const ICONS: Record<string, React.ReactNode> = {
-  fox: <FoxAvatar />,
-  owl: <OwlAvatar />,
-  bear: <BearAvatar />,
-  cat: <CatAvatar />,
-  rabbit: <RabbitAvatar />,
-  dog: <DogAvatar />,
-  gallo: <GalloAvatar />
-};
 
 export const PowerRechargeAnim: React.FC = () => {
   const { powerJustRecharged, clearPowerJustRecharged, players, gameStatus } = useGameStore();
@@ -33,7 +24,9 @@ export const PowerRechargeAnim: React.FC = () => {
   useEffect(() => {
     if (powerJustRecharged && gameStatus === 'RANKING') {
       setIsVisible(true);
-      audioManager.playUISoundWithCooldown('power-activation', 1500);
+      if (myPlayer) {
+        audioManager.playAvatarPowerSound(myPlayer.avatarId);
+      }
       
       const timer = setTimeout(() => {
         setIsVisible(false);
@@ -70,7 +63,7 @@ export const PowerRechargeAnim: React.FC = () => {
             </span>
             <div className="flex items-center gap-4 md:gap-8">
               <div className="w-24 h-24 md:w-40 md:h-40 drop-shadow-[4px_4px_0px_rgba(0,0,0,0.5)] scale-125">
-                {ICONS[myPlayer.avatarId] || <FoxAvatar />}
+                {getAvatarComponent(myPlayer.avatarId)}
               </div>
               <h1 className="text-white font-headline font-black text-5xl md:text-8xl italic uppercase tracking-tighter drop-shadow-[6px_6px_0px_var(--color-ink)]" style={{ WebkitTextStroke: '3px var(--color-ink)' }}>
                 ¡LISTO PARA USAR!
