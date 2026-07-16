@@ -1,29 +1,31 @@
-import React, { useState, useEffect } from 'react';
-import { Pencil, Timer, Trophy } from 'lucide-react';
-import { NotebookSpiral } from '@/shared/ui/NotebookSpiral';
-import { WashiTape } from '@/shared/ui/WashiTape';
-import { QuestionCard } from '@/entities/game/ui/QuestionCard';
-import { AnswerOption } from '@/entities/game/ui/AnswerOption';
-import { RankingBoard } from '@/widgets/game-board/ui/RankingBoard';
-import { TimeProgressBar } from '@/features/game-timer/ui/TimeProgressBar';
 import { useGameStore } from '@/entities/game/model/useGameStore';
-import { useNavigate } from 'react-router-dom';
-import { SoundButton } from '@/shared/ui/SoundButton';
-import { PreparingLoader } from './PreparingLoader';
+import { AnswerOption } from '@/entities/game/ui/AnswerOption';
+import { QuestionCard } from '@/entities/game/ui/QuestionCard';
+import { getAvatarComponent } from '@/entities/player/registry/avatarRegistry';
+import { PowerActivationAnim } from '@/features/animal-powers/ui/PowerActivationAnim';
 import { PowerButton } from '@/features/animal-powers/ui/PowerButton';
 import { PowerEffects } from '@/features/animal-powers/ui/PowerEffects';
-import { getAvatarComponent } from '@/entities/player/registry/avatarRegistry';
 import { PowerRechargeAnim } from '@/features/animal-powers/ui/PowerRechargeAnim';
-import { PowerActivationAnim } from '@/features/animal-powers/ui/PowerActivationAnim';
+import { TimeProgressBar } from '@/features/game-timer/ui/TimeProgressBar';
+import { useAlertStore } from '@/shared/store/useAlertStore';
+import { NotebookSpiral } from '@/shared/ui/NotebookSpiral';
+import { SoundButton } from '@/shared/ui/SoundButton';
+import { WashiTape } from '@/shared/ui/WashiTape';
+import { RankingBoard } from '@/widgets/game-board/ui/RankingBoard';
+import { Pencil, Timer, Trophy } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { PreparingLoader } from './PreparingLoader';
 
 export const GamePage: React.FC = () => {
   const navigate = useNavigate();
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
 
-  const { players, gameStatus, gameModeId, currentQuestion, endTime, submitAnswer, connect, isConnected, removedOptionIds, thiefSuggestedAnswerId, isBlind, burnedOptionIds, shuffledOptionIndices } = useGameStore();
+  const { players, gameStatus, gameModeId, currentQuestion, endTime, submitAnswer, connect, isConnected, removedOptionIds, thiefSuggestedAnswerId, isBlind, burnedOptionIds, shuffledOptionIndices, disconnect } = useGameStore();
 
   const myPlayer = players.find(p => p.deviceId === localStorage.getItem('quizsync_device_id'));
   const isMe = (p: any) => p.deviceId === localStorage.getItem('quizsync_device_id');
+  const isHost = myPlayer?.isHost || false;
   
   // Mapear los jugadores del store al formato que espera RankingBoard
   const rankingPlayers = players
@@ -151,7 +153,26 @@ export const GamePage: React.FC = () => {
       {/* Header */}
       <header className="w-full px-4 sm:px-8 py-4 sm:py-6 flex justify-between items-center border-b-2 border-ink bg-white/80 backdrop-blur-sm z-40 relative">
         <div className="flex items-center gap-2 sm:gap-6 z-10 w-full justify-between sm:justify-start">
-          <div className="flex items-center gap-2 sm:gap-3 shrink-0 ml-12 sm:ml-0">
+          <div 
+            className="flex items-center gap-2 sm:gap-3 shrink-0 ml-12 sm:ml-0 cursor-pointer hover:opacity-80 transition-opacity"
+            onClick={async () => {
+              const { showConfirm } = useAlertStore.getState();
+              const msg = isHost 
+                ? "Eres el anfitrión de la sala. Si te vas, la partida terminará para todos los jugadores. ¿Estás seguro?" 
+                : "Si sales de la partida, perderás tu progreso actual y serás desconectado. ¿Estás seguro?";
+              
+              const confirmed = await showConfirm(msg, "¿Abandonar partida?");
+              if (confirmed) {
+                if (isHost) {
+                  // asumiendo que el host desconecta y el servidor limpia la sala
+                  disconnect();
+                } else {
+                  disconnect();
+                }
+                navigate('/');
+              }
+            }}
+          >
             <Pencil className="text-primary animate-bounce hidden sm:block" size={32} />
             <div className="text-2xl sm:text-3xl font-headline font-extrabold tracking-tight text-primary hidden sm:block">
               QuizSync
@@ -166,10 +187,10 @@ export const GamePage: React.FC = () => {
           <div className="flex items-center gap-2 font-headline font-bold uppercase tracking-wider bg-white border-2 border-ink text-ink px-3 py-1 sm:px-4 sm:py-2 rounded-full text-xs sm:text-base shrink-0 ml-auto sm:ml-0">
             {view === 'question' ? (
               <>
-                <Timer size={16} className={timeLeft <= 3 ? "text-red-500 animate-bounce" : ""} />
-                <span className={timeLeft <= 3 ? "text-red-500" : ""}>
-                  {timeLeft}s
-                </span>
+                <div className="flex items-center gap-2 text-red-500 font-bold font-mono text-xl">
+                  <Timer size={24} />
+                  <span>{timeLeft > 0 ? `${timeLeft}S` : '¡TIEMPO!'}</span>
+                </div>
               </>
             ) : (
               <>
@@ -184,7 +205,7 @@ export const GamePage: React.FC = () => {
         <div className={`relative items-center gap-8 ml-4 mr-2 sm:mr-16 z-10 hidden md:flex transition-opacity duration-300 ${view === 'ranking' ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
           <div className="relative flex items-center gap-4">
             <div className="w-12 h-12 -rotate-12 bg-white rounded-full border-2 border-ink shadow-[2px_2px_0px_0px_var(--color-ink)] p-1 flex items-center justify-center shrink-0">
-              {myPlayer ? getAvatarComponent(myPlayer.avatarId) : getAvatarComponent(undefined)}
+              {getAvatarComponent(myPlayer?.avatarId)}
             </div>
             <div className="relative">
               <WashiTape className="-top-2 -left-4 w-12 h-6" colorClass="bg-accent-pink" />

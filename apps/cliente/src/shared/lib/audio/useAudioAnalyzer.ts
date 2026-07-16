@@ -1,11 +1,11 @@
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { Howler } from 'howler';
 import { useAudioStore } from '@/core/audio/useAudioStore';
 import { audioManager } from '@/core/audio/AudioManager';
 import { useAvatarStore } from '@/shared/store/useAvatarStore';
 
 export function useAudioAnalyzer() {
-  const [beatValue, setBeatValue] = useState(0);
+  const beatValueRef = useRef(0);
   const { isMuted, masterVolume, toggleMute, setVolume } = useAudioStore();
   const { selectedAvatar } = useAvatarStore();
   
@@ -46,7 +46,7 @@ export function useAudioAnalyzer() {
       const avg = sum / bassCount;
       const normalized = Math.pow(avg / 255, 1.5); 
       
-      setBeatValue(normalized);
+      beatValueRef.current = normalized;
       requestRef.current = requestAnimationFrame(update);
     };
 
@@ -103,12 +103,14 @@ export function useAudioAnalyzer() {
     audioManager.stopMusic();
   };
 
-  return { 
-    beatValue, 
-    start, 
-    stop, 
-    isPlaying: !isMuted, 
-    volume: masterVolume, 
-    setVolume 
+  return {
+    beatValueRef,
+    start,
+    stop,
+    volume: masterVolume,
+    setVolume,
+    isMuted,
+    toggleMute,
+    isPlaying: !isMuted
   };
 }
