@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { SoundButton } from "@/shared/ui/SoundButton";
-import { useAlertStore } from "@/shared/store/useAlertStore";
+import { useAchievementsStore } from "@/entities/achievements/model/useAchievementsStore";
 
 export function JoinGameForm() {
   const navigate = useNavigate();
   const [pin, setPin] = useState<string>("");
-  const isUnlocked = localStorage.getItem('quizsync_unlocked_gallo') === 'true';
+  const { unlockedAvatars, unlockAvatar } = useAchievementsStore();
+  
+  const isUnlocked = unlockedAvatars['gallo'];
   const isPinValid = pin.length === 6 || (!isUnlocked && pin === "ADMIN");
 
   const handlePinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -17,8 +19,7 @@ export function JoinGameForm() {
   const handleJoin = () => {
     if (!isPinValid) return;
     if (pin === "ADMIN" && !isUnlocked) {
-      localStorage.setItem('quizsync_unlocked_gallo', 'true');
-      useAlertStore.getState().showAlert("¡Has desbloqueado al personaje mítico: Gallo!", "¡Personaje Desbloqueado!");
+      unlockAvatar('gallo');
       setPin("");
       return;
     }

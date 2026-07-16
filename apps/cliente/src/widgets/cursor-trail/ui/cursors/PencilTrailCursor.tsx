@@ -27,8 +27,7 @@ export function PencilTrailCursor() {
       }
 
       const target = e.target as HTMLElement;
-      const computedStyle = window.getComputedStyle(target);
-      const isClickable = target.closest('button') || target.closest('a') || computedStyle.cursor === 'pointer';
+      const isClickable = target.closest('button, a, input, select, [role="button"], .cursor-pointer, [style*="cursor: pointer"]');
       states.current.isHovering = !!isClickable;
     };
 

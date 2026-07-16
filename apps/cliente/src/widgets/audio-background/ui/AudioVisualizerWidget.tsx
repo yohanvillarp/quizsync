@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useAudioAnalyzer } from '@/shared/lib/audio/useAudioAnalyzer';
 import { AudioControlsWidget } from './AudioControlsWidget';
 
@@ -18,22 +18,43 @@ function generateSpheres() {
 }
 
 export function AudioVisualizerWidget() {
-  const { beatValue, start, stop, volume, setVolume, isPlaying } = useAudioAnalyzer();
+  const { beatValueRef, start, stop, volume, setVolume, isPlaying } = useAudioAnalyzer();
   const spheres = useMemo(() => generateSpheres(), []);
+  
+  const sphereRefs = useRef<(HTMLDivElement | null)[]>([]);
 
-  // Matemáticas para deformar las esferas con el beat de la música
-  // Transformamos el valor del beat (0 a 1) en porcentajes de border-radius (30% a 70%)
-  const r1 = 50 + (beatValue * 25); // Hasta 75%
-  const r2 = 50 - (beatValue * 20); // Hasta 30%
-  const dynamicBorderRadius = `${r1}% ${r2}% ${r1}% ${r2}% / ${r2}% ${r1}% ${r2}% ${r1}%`;
+  useEffect(() => {
+    let animationFrameId: number;
+    
+    const update = () => {
+      if (beatValueRef.current !== undefined) {
+        const beatValue = beatValueRef.current;
+        const r1 = 50 + (beatValue * 25);
+        const r2 = 50 - (beatValue * 20);
+        const dynamicBorderRadius = `${r1}% ${r2}% ${r1}% ${r2}% / ${r2}% ${r1}% ${r2}% ${r1}%`;
+        
+        sphereRefs.current.forEach((el, index) => {
+          if (el) {
+            const sphere = spheres[index];
+            el.style.borderRadius = dynamicBorderRadius;
+            el.style.transform = `scale(${1 + (beatValue * 0.4)}) rotate(${beatValue * sphere.variance}deg)`;
+          }
+        });
+      }
+      animationFrameId = requestAnimationFrame(update);
+    };
+    
+    animationFrameId = requestAnimationFrame(update);
+    return () => cancelAnimationFrame(animationFrameId);
+  }, [spheres, beatValueRef]);
 
   return (
     <>
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-        
-        {spheres.map((sphere) => (
+        {spheres.map((sphere, i) => (
           <div
             key={sphere.id}
+            ref={(el) => { sphereRefs.current[i] = el; }}
             className="absolute transition-all duration-75 ease-out shadow-sm"
             style={{
               left: `${sphere.left}%`,
@@ -41,11 +62,6 @@ export function AudioVisualizerWidget() {
               width: `${sphere.size}px`,
               height: `${sphere.size}px`,
               backgroundColor: sphere.color,
-              // Aplicamos la deformación dinámica
-              borderRadius: dynamicBorderRadius,
-              // Escala y ligera rotación que reacciona a la música
-              transform: `scale(${1 + (beatValue * 0.4)}) rotate(${beatValue * sphere.variance}deg)`,
-              // Movimiento flotante sutil CSS
               animation: `float 10s ease-in-out infinite alternate ${sphere.animationDelay}s`,
               opacity: 0.6,
             }}

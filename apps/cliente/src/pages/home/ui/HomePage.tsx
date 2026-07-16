@@ -3,7 +3,7 @@ import { JoinGameForm } from "@/features/join-game/ui/JoinGameForm";
 import { BrowseGamesButton } from "@/features/browse-public-games/ui/BrowseGamesButton";
 import { PublicGamesModal } from "@/features/browse-public-games/ui/PublicGamesModal";
 import { Logo } from "@/shared/ui/Logo";
-import { Backpack } from "lucide-react";
+import { Backpack, Trophy } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { ActiveAvatarWidget } from "@/widgets/active-avatar/ui/ActiveAvatarWidget";
 import { AudioVisualizerWidget } from "@/widgets/audio-background/ui/AudioVisualizerWidget";
@@ -11,6 +11,7 @@ import { useEffect, useState } from "react";
 import { engineClient } from "@/shared/api/engineClient";
 import { Play, Trash2, X, AlertCircle } from "lucide-react";
 import { SoundButton } from "@/shared/ui/SoundButton";
+import { AchievementsModal } from "@/features/achievements/ui/AchievementsModal";
 
 export function HomePage() {
   const navigate = useNavigate();
@@ -18,6 +19,7 @@ export function HomePage() {
   const [activeRoom, setActiveRoom] = useState<{roomId: string, quizTitle: string} | null>(null);
   const [showActiveRoomModal, setShowActiveRoomModal] = useState(false);
   const [isDestroying, setIsDestroying] = useState(false);
+  const [showMissions, setShowMissions] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -66,6 +68,16 @@ export function HomePage() {
       >
         <Backpack size={20} strokeWidth={2.5} className="sm:!w-6 sm:!h-6" />
         <span className="hidden sm:inline">Inventario</span>
+      </SoundButton>
+
+      {/* Botón de Misiones (Esquina superior derecha, ajustado para no chocar con el control de audio) */}
+      <SoundButton 
+        clickSound="click"
+        onClick={() => setShowMissions(true)}
+        className="absolute top-4 right-24 sm:top-6 sm:right-28 z-50 flex items-center gap-2 bg-yellow-400/90 backdrop-blur-md px-3 sm:px-4 py-2 sm:py-3 rounded-full border-[3px] border-[var(--color-ink)] shadow-[4px_4px_0px_0px_var(--color-ink-offset)] sm:shadow-[6px_6px_0px_0px_var(--color-ink-offset)] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_var(--color-ink-offset)] sm:hover:shadow-[8px_8px_0px_0px_var(--color-ink-offset)] hover:bg-yellow-300 transition-all font-bold text-base sm:text-lg text-ink"
+      >
+        <Trophy size={20} strokeWidth={2.5} className="sm:!w-6 sm:!h-6" />
+        <span className="hidden sm:inline uppercase">Misiones</span>
       </SoundButton>
       
       {/* Central Action Area */}
@@ -161,6 +173,11 @@ export function HomePage() {
           setIsPublicGamesOpen(false);
           navigate(`/lobby/${code}`);
         }}
+      />
+
+      <AchievementsModal 
+        isOpen={showMissions} 
+        onClose={() => setShowMissions(false)} 
       />
     </main>
   );

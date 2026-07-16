@@ -95,7 +95,7 @@ export const PreparingLoader: React.FC<PreparingLoaderProps> = ({ text, endTime 
           <rect fill="var(--color-high-yellow)" height="100" rx="10" stroke="var(--color-ink)" strokeWidth="4" transform="rotate(-2)" width="200" x="-100" y="-50"></rect>
           <text dy="30" fill="var(--color-ink)" fontFamily="var(--font-headline), sans-serif" fontSize="80" fontWeight="900" textAnchor="middle">
             <tspan x="0" className={timeLeft <= 1 ? "animate-pulse" : ""}>
-              {timeLeft > 0 ? timeLeft : 0}
+              {timeLeft > 0 ? timeLeft : '¡YA!'}
             </tspan>
           </text>
         </g>

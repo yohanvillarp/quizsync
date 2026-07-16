@@ -14,6 +14,7 @@ import { useAlertStore } from "@/shared/store/useAlertStore";
 import { HomeButton } from "@/shared/ui/HomeButton";
 import { apiClient } from "@/shared/api/apiClient";
 import { SoundButton } from "@/shared/ui/SoundButton";
+import { useAchievementsStore } from "@/entities/achievements/model/useAchievementsStore";
 
 export function LobbyPage() {
   const { code } = useParams<{ code: string }>();
@@ -30,6 +31,7 @@ export function LobbyPage() {
   // Interacciones
   const [activeEmotes, setActiveEmotes] = useState<{ id: string; targetId: string; payload: string }[]>([]);
   const [activePokes, setActivePokes] = useState<string[]>([]);
+  const [isEmoteCooldown, setIsEmoteCooldown] = useState(false);
 
   // Estado modular de sesión y juego
   const { setRole, initializeDeviceId } = useSessionStore();
@@ -168,7 +170,20 @@ export function LobbyPage() {
     if (!playerName.trim()) return;
 
     localStorage.setItem(nameKey, playerName);
-    const avatarId = useAvatarStore.getState().selectedAvatar || 'random';
+    let avatarId = useAvatarStore.getState().selectedAvatar || 'random';
+    
+    // Asignar avatar aleatorio de los desbloqueados antes de unirse
+    if (avatarId === 'random') {
+      const { unlockedAvatars } = useAchievementsStore.getState();
+      const keys = ['fox', 'owl', 'bear', 'cat', 'rabbit', 'dog'];
+      if (unlockedAvatars['gallo']) keys.push('gallo');
+      if (unlockedAvatars['peacock']) keys.push('peacock');
+      if (unlockedAvatars['chameleon']) keys.push('chameleon');
+      if (unlockedAvatars['bat']) keys.push('bat');
+      if (unlockedAvatars['dragon']) keys.push('dragon');
+      avatarId = keys[Math.floor(Math.random() * keys.length)] as any;
+    }
+    
     const deviceId = initializeDeviceId();
 
     const response = await joinRoom(code as string, playerName, avatarId as string, deviceId);
@@ -223,9 +238,14 @@ export function LobbyPage() {
 
   const lastEmoteTime = useRef(0);
   const handleEmote = (emoteId: string) => {
+    if (isEmoteCooldown) return;
     const now = Date.now();
-    if (now - lastEmoteTime.current < 50) return; // 50ms cooldown
+    if (now - lastEmoteTime.current < 2000) return; // 2000ms cooldown
     lastEmoteTime.current = now;
+    
+    setIsEmoteCooldown(true);
+    setTimeout(() => setIsEmoteCooldown(false), 2000);
+
     const myDeviceId = localStorage.getItem('quizsync_device_id') || '';
     emitEmote(myDeviceId, emoteId);
   };
@@ -444,15 +464,14 @@ export function LobbyPage() {
             players.length > 1 ? (
               <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 flex items-center gap-2 sm:gap-4 bg-white border-4 border-[var(--color-ink)] p-2 sm:p-3 px-3 sm:px-6 rounded-full shadow-[4px_4px_0px_0px_var(--color-ink)] sm:shadow-[6px_6px_0px_0px_var(--color-ink)] max-w-[95vw] overflow-x-auto">
                 {AVAILABLE_EMOTES.map(emoji => (
-                  <SoundButton
+                  <button
                     key={emoji}
-                    clickSound="click"
-                    hoverSound="none"
+                    disabled={isEmoteCooldown}
+                    className={`transition-all text-2xl sm:text-3xl ${isEmoteCooldown ? 'opacity-30 cursor-not-allowed scale-90' : 'hover:scale-125 cursor-pointer'}`}
                     onClick={() => handleEmote(emoji)}
-                    className="text-2xl sm:text-3xl hover:scale-125 transition-transform active:scale-95 flex-shrink-0"
                   >
                     {emoji}
-                  </SoundButton>
+                  </button>
                 ))}
               </div>
             ) : null
