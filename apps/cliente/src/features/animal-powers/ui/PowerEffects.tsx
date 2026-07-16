@@ -17,8 +17,6 @@ export const PowerEffects: React.FC = () => {
   const hasNineLives = effects.includes('nine_lives_active');
   const hasSpeedBoost = effects.includes('speed_boost_active');
   const hasLoyalty = effects.some(e => e.startsWith('loyalty_recipient_from_') || e.startsWith('loyalty_active_for_'));
-  const hasSilenced = effects.some(e => e.startsWith('silenced_by_gallo'));
-  const hasSilencedOthers = effects.includes('gallo_silenced_others');
 
   return (
     <div className="fixed inset-0 pointer-events-none z-30">
