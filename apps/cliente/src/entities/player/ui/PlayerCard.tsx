@@ -110,7 +110,7 @@ export function PlayerCard({
               </div>
             );
           })()}
-          <div className="bg-white border-4 border-[var(--color-ink)] p-1 sm:p-2 rounded-3xl flex gap-0.5 sm:gap-1 shadow-[4px_4px_0px_var(--color-ink)] max-w-xs flex-wrap justify-center">
+          <div className="bg-white border-4 border-[var(--color-ink)] p-2 sm:p-3 rounded-3xl grid grid-cols-3 sm:grid-cols-4 gap-2 shadow-[4px_4px_0px_var(--color-ink)] w-max max-w-[90vw] justify-items-center">
             {COMPANIONS_MOCK.map((c) => {
               const key = c.id;
               const isLocked = c.rarity === 'mythic' && key != null && !unlockedAvatars[key as string];
@@ -239,8 +239,13 @@ export function PlayerCard({
       <div className={`px-3 sm:px-4 py-1 sm:py-2 border-2 border-[var(--color-ink)] rounded-xl transform -rotate-2 pointer-events-none flex flex-col items-center justify-center
         ${isHost ? 'bg-[var(--color-ink)] text-white shadow-[3px_3px_0px_var(--color-high-yellow)]' : 'bg-[var(--color-paper-dim)] text-[var(--color-ink)] shadow-[3px_3px_0px_var(--color-ink)]'}
       `}>
-        <span className="font-headline font-black uppercase text-xs sm:text-sm md:text-base tracking-wider block max-w-[70px] sm:max-w-[90px] md:max-w-[120px] truncate text-center leading-tight">
+        <span className="font-headline font-black uppercase text-xs sm:text-sm md:text-base tracking-wider block max-w-[90px] sm:max-w-[110px] md:max-w-[140px] truncate text-center leading-tight">
           {player.name}
+          {isMe && (
+            <span className={`text-[9px] sm:text-[10px] ml-1 px-1.5 py-0.5 rounded-full font-body align-middle border border-[var(--color-ink)] ${isHost ? 'bg-[var(--color-high-yellow)] text-[var(--color-ink)]' : 'bg-[var(--color-ink)] text-white'}`}>
+              TÚ
+            </span>
+          )}
         </span>
         {gameModeId === 'POWER_MODE' && (
           <span className="font-body font-bold text-[10px] sm:text-[11px] uppercase tracking-tighter opacity-80 mt-0.5">
