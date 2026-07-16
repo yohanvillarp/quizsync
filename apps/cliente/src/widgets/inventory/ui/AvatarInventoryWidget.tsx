@@ -1,24 +1,14 @@
 import { useAvatarStore } from "@/shared/store/useAvatarStore";
-import { FoxAvatar, OwlAvatar, BearAvatar, CatAvatar, RabbitAvatar, DogAvatar, GalloAvatar } from "@/shared/ui/avatars/AvatarIcons";
+import { getAvatarComponent } from "@/entities/player/registry/avatarRegistry";
 import { useState, useEffect } from "react";
 import { audioManager } from "@/core/audio/AudioManager";
 import { COMPANIONS_MOCK } from "@/entities/player/model/companions.mock";
 import { Info, X, Music, ShieldOff, Swords } from "lucide-react";
 
-const COMPONENT_MAP: Record<string, React.ReactNode> = {
-  fox: <FoxAvatar />,
-  owl: <OwlAvatar />,
-  bear: <BearAvatar />,
-  cat: <CatAvatar />,
-  rabbit: <RabbitAvatar />,
-  dog: <DogAvatar />,
-  gallo: <GalloAvatar />
-};
-
 const AVATAR_OPTIONS = [
   ...COMPANIONS_MOCK.map(c => ({
     ...c,
-    component: c.id ? COMPONENT_MAP[c.id] : null
+    component: c.id ? getAvatarComponent(c.id) : null
   })),
   { 
     id: 'random', 
@@ -30,7 +20,8 @@ const AVATAR_OPTIONS = [
         ?
       </div>
     ), 
-    rotation: 0 
+    rotation: 0,
+    rarity: 'common'
   },
 ];
 
@@ -39,14 +30,17 @@ export function AvatarInventoryWidget() {
   const [showEffect, setShowEffect] = useState(false);
   const [isGalloUnlocked, setIsGalloUnlocked] = useState(false);
   const [showGalloInfo, setShowGalloInfo] = useState(false);
+  const [activeTab, setActiveTab] = useState<'common' | 'mythic'>('common');
 
   useEffect(() => {
     setIsGalloUnlocked(localStorage.getItem('quizsync_unlocked_gallo') === 'true');
   }, []);
 
+  const filteredAvatars = AVATAR_OPTIONS.filter(avatar => avatar.rarity === activeTab);
+
   return (
     <div className="w-full relative">
-      <div className="mb-12 text-center">
+      <div className="mb-8 text-center">
         <h2 className="font-headline text-3xl font-black text-[var(--color-ink)] inline-block relative">
           ELIGE TU COMPAÑERO
           <div className="absolute -bottom-2 left-0 w-full h-1 bg-[var(--color-ink)] opacity-30 transform -rotate-1"></div>
@@ -56,16 +50,47 @@ export function AvatarInventoryWidget() {
         </p>
       </div>
 
+      <div className="flex justify-center mb-8">
+        <div className="inline-flex bg-white border-4 border-ink rounded-xl p-1 shadow-[4px_4px_0px_0px_rgba(20,20,20,1)]">
+          <button
+            onClick={() => setActiveTab('common')}
+            className={`px-6 py-2 font-headline font-black text-lg uppercase transition-colors rounded-lg ${
+              activeTab === 'common' 
+                ? 'bg-ink text-white' 
+                : 'text-ink/60 hover:text-ink'
+            }`}
+          >
+            Comunes
+          </button>
+          <button
+            onClick={() => setActiveTab('mythic')}
+            className={`px-6 py-2 font-headline font-black text-lg uppercase transition-colors rounded-lg flex items-center gap-2 ${
+              activeTab === 'mythic' 
+                ? 'bg-[#FF9800] text-ink' 
+                : 'text-ink/60 hover:text-ink'
+            }`}
+          >
+            Míticos
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className={`w-5 h-5 ${activeTab === 'mythic' ? 'text-ink' : 'text-[#FF9800]'}`}>
+              <path d="M12 2L2 10L12 22L22 10L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/>
+              <path d="M12 2V22" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/>
+              <path d="M2 10H22" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto items-center">
-        {AVATAR_OPTIONS.map((avatar) => {
+        {filteredAvatars.map((avatar) => {
           const isSelected = selectedAvatar === avatar.id;
           const isGallo = avatar.id === 'gallo';
-          const isLocked = isGallo && !isGalloUnlocked;
+          const isEpic = avatar.rarity === 'mythic';
+          const isLocked = isEpic && !isGalloUnlocked;
           
           return (
             <div
               key={avatar.id}
-              className={`polaroid p-4 pb-6 flex flex-col items-center relative ${
+              className={`${isEpic ? 'polaroid-mythic' : 'polaroid'} p-4 pb-6 flex flex-col items-center relative ${
                 isSelected ? 'selected jitter' : ''
               } ${isLocked ? 'grayscale opacity-80 cursor-not-allowed' : 'cursor-pointer'}`}
               style={{ transform: isSelected ? 'none' : `rotate(${avatar.rotation}deg)` }}
@@ -111,13 +136,15 @@ export function AvatarInventoryWidget() {
                 </button>
               )}
               
-              <div className="w-full aspect-square bg-white mb-3 flex items-center justify-center relative overflow-visible rounded-xl shadow-inner">
-                {avatar.component}
+              <div className={`w-full aspect-square bg-white mb-3 flex items-center justify-center relative overflow-visible rounded-xl shadow-inner ${isEpic ? 'p-2' : ''}`}>
+                <div className={`w-full h-full flex items-center justify-center ${isEpic ? 'scale-90' : ''}`}>
+                  {avatar.component}
+                </div>
               </div>
-              <span className="font-headline text-2xl font-black text-[var(--color-ink)] uppercase">
+              <span className="font-headline text-2xl font-black text-[var(--color-ink)] uppercase tracking-tight">
                 {avatar.name}
               </span>
-              <span className={`font-body text-xs font-bold uppercase tracking-widest mt-1 mb-2 px-2 py-0.5 rounded-full ${isLocked ? 'bg-gray-400 text-white' : 'text-[var(--color-high-pink)] bg-[var(--color-ink)]'}`}>
+              <span className={`font-body text-[10px] sm:text-xs font-bold uppercase tracking-widest mt-1 mb-2 px-3 py-0.5 rounded-full ${isLocked ? 'bg-gray-400 text-white' : (isEpic ? 'bg-gradient-to-r from-[#D4AF37] to-[#F5D76E] text-[#110204] shadow-[0_0_10px_rgba(212,175,55,0.4)]' : 'text-[var(--color-high-pink)] bg-[var(--color-ink)]')}`}>
                 {isLocked ? 'Secreto' : avatar.powerName}
               </span>
               <p className="text-[11px] sm:text-xs text-gray-600 font-medium text-center leading-tight">
@@ -150,7 +177,7 @@ export function AvatarInventoryWidget() {
             
             <div className="polaroid-mythic p-3 sm:p-4 pb-4 sm:pb-6 flex flex-col items-center relative w-48 sm:w-64 flex-shrink-0 cursor-default shrink-0 mt-4 md:mt-0">
               <div className="w-full aspect-square bg-white mb-2 sm:mb-3 flex items-center justify-center relative overflow-visible rounded-xl shadow-inner scale-90 sm:scale-100">
-                <GalloAvatar />
+                {getAvatarComponent('gallo')}
               </div>
               <span className="font-headline text-xl sm:text-2xl font-black text-[var(--color-ink)] uppercase">
                 GALLO

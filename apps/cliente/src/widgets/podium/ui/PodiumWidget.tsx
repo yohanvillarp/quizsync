@@ -1,5 +1,5 @@
 import type { PodiumPlayer } from "@/entities/game/model/types";
-import { FoxAvatar, OwlAvatar, BearAvatar, CatAvatar, RabbitAvatar, DogAvatar, GalloAvatar } from "@/shared/ui/avatars/AvatarIcons";
+import { getAvatarComponent } from "@/entities/player/registry/avatarRegistry";
 import { useEffect, useState } from "react";
 import { Trophy, Star } from "lucide-react";
 import { audioManager } from "@/core/audio/AudioManager";
@@ -14,18 +14,6 @@ export function PodiumWidget({ players, roomId }: PodiumWidgetProps) {
   const second = players.find(p => p.rank === 2);
   const third = players.find(p => p.rank === 3);
 
-  const getAvatarComponent = (avatarId?: string) => {
-    switch (avatarId) {
-      case 'fox': return <FoxAvatar />;
-      case 'owl': return <OwlAvatar />;
-      case 'bear': return <BearAvatar />;
-      case 'cat': return <CatAvatar />;
-      case 'rabbit': return <RabbitAvatar />;
-      case 'dog': return <DogAvatar />;
-      case 'gallo': return <GalloAvatar />;
-      default: return <FoxAvatar />;
-    }
-  };
 
   // 0: Vacío, 1: 3ro, 2: 2do, 3: 1ro
   const [revealStep, setRevealStep] = useState(() => {
