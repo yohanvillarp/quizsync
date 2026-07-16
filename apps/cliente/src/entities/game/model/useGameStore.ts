@@ -15,6 +15,7 @@ export interface Player {
   answered?: boolean;
   emotesMuted?: boolean;
   powerStatus?: 'AVAILABLE' | 'USED';
+  copiedAvatarId?: string;
   activeEffects?: string[];
   lastRoundScore?: number;
   lastRoundPowerPoints?: number;
@@ -59,6 +60,9 @@ interface GameState {
   powerAnimations: { sourceId: string; avatarId: string; targetId?: string; timestamp: number }[];
   thiefSuggestedAnswerId: string | null;
   serverTimeOffset: number;
+  burnedOptionIds: string[];
+  isBlind: boolean;
+  shuffledOptionIndices: number[] | null;
   
   // Acciones
   connect: (url?: string) => void;
@@ -181,6 +185,9 @@ export const useGameStore = create<GameState>()(
     endTime: data.endTime, 
     removedOptionIds: [],
     thiefSuggestedAnswerId: null,
+    burnedOptionIds: [],
+    isBlind: false,
+    shuffledOptionIndices: null,
     players: state.players.map(p => ({ ...p, answered: false }))
   })));
   socketClient.on('show_ranking', (data: ShowRankingPayload) => set({ gameStatus: data.status, endTime: data.endTime, players: data.players }));
@@ -200,6 +207,29 @@ export const useGameStore = create<GameState>()(
   });
   socketClient.on('thief_target_answered', (data: { answerId: string }) => {
     set({ thiefSuggestedAnswerId: data.answerId });
+  });
+  
+  socketClient.on('power_scorched_earth', (data: { burnedOptionId: string }) => {
+    set(state => ({ burnedOptionIds: [...state.burnedOptionIds, data.burnedOptionId] }));
+  });
+  
+  socketClient.on('power_blindness', (data: { durationMs: number }) => {
+    set({ isBlind: true });
+    setTimeout(() => {
+      set({ isBlind: false });
+    }, data.durationMs || 4000);
+  });
+  
+  socketClient.on('power_illusion_shuffle', () => {
+    set(state => {
+      const numOptions = state.currentQuestion?.options?.length || 4;
+      const arr = Array.from({length: numOptions}, (_, i) => i);
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return { shuffledOptionIndices: arr };
+    });
   });
   socketClient.on('time_update', (data: { endTime: number }) => {
     set({ endTime: data.endTime });
@@ -309,6 +339,9 @@ export const useGameStore = create<GameState>()(
     powerJustRecharged: false,
     thiefSuggestedAnswerId: null,
     serverTimeOffset: 0,
+    burnedOptionIds: [],
+    isBlind: false,
+    shuffledOptionIndices: null,
 
     connect: (url) => {
       socketClient.connect(url);

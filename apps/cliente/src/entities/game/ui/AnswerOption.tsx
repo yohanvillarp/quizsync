@@ -33,7 +33,7 @@ export const AnswerOption: React.FC<AnswerOptionProps> = ({
       onMouseEnter={() => !disabled && setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       disabled={disabled}
-      className={`${baseBoxClass} group p-6 md:p-8 flex items-center gap-4 md:gap-6 ${disabled ? '' : 'highlighter-hover hover:scale-[1.03] active:scale-95'} text-left relative overflow-hidden transition-all ${isSelected ? 'bg-[var(--color-high-yellow)] ring-4 ring-black scale-[1.03] -translate-y-1' : isSuggested ? 'bg-[var(--color-high-pink)]/20 ring-4 ring-[var(--color-high-pink)] animate-pulse' : 'bg-white'} ${disabled && !isSelected ? 'opacity-50' : ''}`}
+      className={`w-full h-full ${baseBoxClass} group p-6 md:p-8 flex items-center gap-4 md:gap-6 ${disabled ? '' : 'highlighter-hover hover:scale-[1.03] active:scale-95'} text-left relative overflow-hidden transition-all ${isSelected ? 'bg-[var(--color-high-yellow)] ring-4 ring-black scale-[1.03] -translate-y-1' : isSuggested ? 'bg-[var(--color-high-pink)]/20 ring-4 ring-[var(--color-high-pink)] animate-pulse' : 'bg-white'} ${disabled && !isSelected ? 'opacity-50' : ''}`}
       style={{
         transform: (hovered && !disabled) || isSelected || isSuggested ? 'scale(1.03) translateY(-4px)' : `scale(1) ${rotation ? `rotate(${rotation.replace('rotate-', '')}deg)` : ''}`,
       }}

@@ -12,25 +12,15 @@ import { SoundButton } from '@/shared/ui/SoundButton';
 import { PreparingLoader } from './PreparingLoader';
 import { PowerButton } from '@/features/animal-powers/ui/PowerButton';
 import { PowerEffects } from '@/features/animal-powers/ui/PowerEffects';
-import { PowerActivationAnim } from '@/features/animal-powers/ui/PowerActivationAnim';
-import { FoxAvatar, OwlAvatar, BearAvatar, CatAvatar, RabbitAvatar, DogAvatar, GalloAvatar } from '@/shared/ui/avatars/AvatarIcons';
+import { getAvatarComponent } from '@/entities/player/registry/avatarRegistry';
 import { PowerRechargeAnim } from '@/features/animal-powers/ui/PowerRechargeAnim';
-
-const ICONS: Record<string, React.ReactNode> = {
-  fox: <FoxAvatar />,
-  owl: <OwlAvatar />,
-  bear: <BearAvatar />,
-  cat: <CatAvatar />,
-  rabbit: <RabbitAvatar />,
-  dog: <DogAvatar />,
-  gallo: <GalloAvatar />
-};
+import { PowerActivationAnim } from '@/features/animal-powers/ui/PowerActivationAnim';
 
 export const GamePage: React.FC = () => {
   const navigate = useNavigate();
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
 
-  const { players, gameStatus, gameModeId, currentQuestion, endTime, submitAnswer, connect, isConnected, removedOptionIds, thiefSuggestedAnswerId } = useGameStore();
+  const { players, gameStatus, gameModeId, currentQuestion, endTime, submitAnswer, connect, isConnected, removedOptionIds, thiefSuggestedAnswerId, isBlind, burnedOptionIds, shuffledOptionIndices } = useGameStore();
 
   const myPlayer = players.find(p => p.deviceId === localStorage.getItem('quizsync_device_id'));
   const isMe = (p: any) => p.deviceId === localStorage.getItem('quizsync_device_id');
@@ -194,7 +184,7 @@ export const GamePage: React.FC = () => {
         <div className={`relative items-center gap-8 ml-4 mr-2 sm:mr-16 z-10 hidden md:flex transition-opacity duration-300 ${view === 'ranking' ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
           <div className="relative flex items-center gap-4">
             <div className="w-12 h-12 -rotate-12 bg-white rounded-full border-2 border-ink shadow-[2px_2px_0px_0px_var(--color-ink)] p-1 flex items-center justify-center shrink-0">
-              {myPlayer && ICONS[myPlayer.avatarId] ? ICONS[myPlayer.avatarId] : <FoxAvatar />}
+              {myPlayer ? getAvatarComponent(myPlayer.avatarId) : getAvatarComponent(undefined)}
             </div>
             <div className="relative">
               <WashiTape className="-top-2 -left-4 w-12 h-6" colorClass="bg-accent-pink" />
@@ -223,28 +213,50 @@ export const GamePage: React.FC = () => {
         }`}>
           {currentQuestion && (
             <>
-              <QuestionCard question={currentQuestion.text} roundNumber={1} />
+              {isBlind ? (
+                <div className="w-full max-w-4xl bg-ink text-white p-12 text-center rounded-3xl border-[8px] border-white/20 shadow-[12px_12px_0px_var(--color-ink)] animate-pulse">
+                  <h2 className="font-headline font-black text-4xl sm:text-6xl mb-4">APAGÓN</h2>
+                  <p className="font-body text-xl opacity-80">Un murciélago te ha dejado a oscuras...</p>
+                </div>
+              ) : (
+                <QuestionCard question={currentQuestion.text} roundNumber={1} />
+              )}
+              
               <section className="grid grid-cols-1 md:grid-cols-2 gap-10 w-full max-w-5xl mb-8">
-                {currentQuestion.options.map((opt: any, index: number) => {
+                {(shuffledOptionIndices 
+                  ? shuffledOptionIndices.map(i => currentQuestion.options[i]) 
+                  : currentQuestion.options
+                ).map((opt: any, renderedIndex: number) => {
                   const letters = ['A', 'B', 'C', 'D'];
+                  // Original index is needed to keep the style consistent with the original position, or we just use renderedIndex
+                  const originalIndex = currentQuestion.options.findIndex((o: any) => o.id === opt.id);
+                  const indexToUse = shuffledOptionIndices ? renderedIndex : originalIndex;
+                  
                   const styles = ['default', 'alt', 'alt', 'default'];
                   const isSelected = selectedAnswer === opt.id;
                   const isRemoved = removedOptionIds.includes(opt.id);
+                  const isBurned = burnedOptionIds.includes(opt.id);
 
                   if (isRemoved) return <div key={opt.id} className="hidden md:block opacity-0" />;
 
                   return (
-                    <AnswerOption
-                      key={opt.id}
-                      letter={letters[index] || ''}
-                      text={opt.text}
-                      rotation={index % 2 === 0 ? 'rotate-1' : '-rotate-1'}
-                      styleType={styles[index] as any}
-                      isSelected={isSelected}
-                      isSuggested={thiefSuggestedAnswerId === opt.id}
-                      disabled={!!selectedAnswer}
-                      onClick={() => handleSelectOption(opt.id)}
-                    />
+                    <div key={opt.id} className={`h-full w-full ${isBurned ? 'opacity-50 grayscale pointer-events-none relative' : ''}`}>
+                      {isBurned && (
+                        <div className="absolute inset-0 z-10 flex items-center justify-center text-4xl">
+                          🔥
+                        </div>
+                      )}
+                      <AnswerOption
+                        letter={letters[indexToUse] || ''}
+                        text={isBurned ? 'CALCINADO' : opt.text}
+                        rotation={indexToUse % 2 === 0 ? 'rotate-1' : '-rotate-1'}
+                        styleType={styles[indexToUse] as any}
+                        isSelected={isSelected}
+                        isSuggested={thiefSuggestedAnswerId === opt.id}
+                        disabled={!!selectedAnswer || isBurned}
+                        onClick={() => handleSelectOption(opt.id)}
+                      />
+                    </div>
                   );
                 })}
               </section>

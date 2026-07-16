@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useGameStore } from '@/entities/game/model/useGameStore';
 import { audioManager } from '@/core/audio/AudioManager';
-import { getCompanionById } from '@/entities/player/model/companions.mock';
-
+import { getAvatarComponent, getAvatarData } from '@/entities/player/registry/avatarRegistry';
 const powerColors: Record<string, string> = {
   fox: 'var(--color-high-pink)',
   owl: 'var(--color-ink)',
@@ -12,16 +11,6 @@ const powerColors: Record<string, string> = {
   dog: 'var(--color-ink-offset)',
 };
 
-import { FoxAvatar, OwlAvatar, BearAvatar, CatAvatar, RabbitAvatar, DogAvatar } from '@/shared/ui/avatars/AvatarIcons';
-
-const ICONS: Record<string, React.ReactNode> = {
-  fox: <FoxAvatar />,
-  owl: <OwlAvatar />,
-  bear: <BearAvatar />,
-  cat: <CatAvatar />,
-  rabbit: <RabbitAvatar />,
-  dog: <DogAvatar />,
-};
 
 export const PowerActivationAnim: React.FC = () => {
   const powerAnimations = useGameStore(state => state.powerAnimations);
@@ -33,7 +22,7 @@ export const PowerActivationAnim: React.FC = () => {
     const latest = powerAnimations[powerAnimations.length - 1];
     if (latest) {
       setActiveAnim(latest);
-      audioManager.playUISoundWithCooldown('power-activation', 1500);
+      audioManager.playAvatarPowerSound(latest.avatarId);
       
       const timer = setTimeout(() => {
         setActiveAnim(null);
@@ -46,8 +35,8 @@ export const PowerActivationAnim: React.FC = () => {
 
   if (!activeAnim) return null;
 
-  const companion = getCompanionById(activeAnim.avatarId);
-  const powerName = companion ? `¡${companion.powerName.toUpperCase()}!` : '¡PODER!';
+  const companionData = activeAnim ? getAvatarData(activeAnim.avatarId) : null;
+  const powerName = companionData ? `¡${companionData.powerName.toUpperCase()}!` : '¡PODER!';
   const color = powerColors[activeAnim.avatarId] || 'var(--color-ink)';
 
   const sourcePlayer = players.find(p => p.deviceId === activeAnim.sourceId);
@@ -78,7 +67,7 @@ export const PowerActivationAnim: React.FC = () => {
             )}
             <div className="flex items-center gap-4 md:gap-8">
               <div className="w-24 h-24 md:w-40 md:h-40 drop-shadow-[4px_4px_0px_rgba(0,0,0,0.5)] scale-125">
-                {ICONS[activeAnim.avatarId] || <FoxAvatar />}
+                {getAvatarComponent(activeAnim.avatarId)}
               </div>
               <h1 className="text-white font-headline font-black text-5xl md:text-8xl italic uppercase tracking-tighter drop-shadow-[6px_6px_0px_var(--color-ink)]" style={{ WebkitTextStroke: '3px var(--color-ink)' }}>
                 {powerName}
