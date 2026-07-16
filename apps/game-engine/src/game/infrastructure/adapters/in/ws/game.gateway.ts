@@ -24,7 +24,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   private questionTimeouts: Map<string, NodeJS.Timeout> = new Map();
   private lastEmoteTime: Map<string, number> = new Map();
-  private readonly EMOTE_COOLDOWN_MS = 800;
+  private readonly EMOTE_COOLDOWN_MS = 1500;
   private readonly logger = new Logger(GameGateway.name);
 
   constructor(
@@ -267,7 +267,16 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     try {
       if (!payload.deviceId) throw new Error("deviceId requerido");
 
-      const room = this.gameService.addPlayerToRoom(payload.roomId, client.id, payload.name, payload.avatarId, payload.deviceId);
+      const ipAddress = (client.handshake.headers['x-forwarded-for'] as string) || client.handshake.address;
+
+      const room = this.gameService.addPlayerToRoom(
+        payload.roomId, 
+        client.id, 
+        payload.name, 
+        payload.avatarId, 
+        payload.deviceId,
+        ipAddress
+      );
       const myPlayer = room.players.get(payload.deviceId);
       
       client.join(payload.roomId);

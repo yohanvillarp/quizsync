@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException, forwardRef, Inject } from '@nestjs/common';
 import { PowerService } from './power.service';
+import { ScoringEngine } from '@/game/domain/services/ScoringEngine';
 import { GAME_CONSTANTS } from '@/game/domain/game.constants';
 import { Subject } from 'rxjs';
 import { GameModeId } from '@/game/domain/models/game-mode';
@@ -11,6 +12,7 @@ export interface Player {
   avatarId: string;
   isHost: boolean;
   connected: boolean;
+  ipAddress?: string;
   score: number;
   answered: boolean;
   emotesMuted: boolean;
@@ -58,6 +60,7 @@ export interface RoomState {
   currentQuestionIndex: number;
   currentEndTime: number | null; // Tiempo UNIX en que termina la fase actual
   maxPlayers: number;
+  ipTracker: Map<string, number>; // Rastrear cuántos jugadores se conectan desde la misma IP
 }
 
 export interface PublicRoomDto {
@@ -105,7 +108,7 @@ export class GameService {
   }
 
   createRoom(
-    quizId: string, 
+    quizId: string,
     quizTitle: string,
     quizDescription: string,
     categoryName: string, 
@@ -114,8 +117,11 @@ export class GameService {
     hostId: string,
     questions: Question[],
     force: boolean = false,
-    maxPlayers: number = 10
+    maxPlayers?: number
   ): string {
+    const defaultMaxPlayers = parseInt(process.env.MAX_PLAYERS_PER_ROOM || '20', 10);
+    const resolvedMaxPlayers = maxPlayers || defaultMaxPlayers;
+
     const existingRoomId = this.activeHosts.get(hostId);
     if (existingRoomId) {
       if (!force) {
@@ -142,7 +148,8 @@ export class GameService {
       questions: questions,
       currentQuestionIndex: -1,
       currentEndTime: null,
-      maxPlayers: maxPlayers || 10,
+      maxPlayers: resolvedMaxPlayers,
+      ipTracker: new Map<string, number>()
     });
 
     this.activeHosts.set(hostId, roomId);
@@ -209,19 +216,14 @@ export class GameService {
     return room;
   }
 
-  addPlayerToRoom(roomId: string, socketId: string, name: string, avatarId: string, deviceId: string): RoomState {
+  addPlayerToRoom(roomId: string, socketId: string, name: string, avatarId: string, deviceId: string, clientIp?: string): RoomState {
     const room = this.getRoom(roomId);
     
     if (room.bannedDeviceIds.has(deviceId)) {
       throw new Error('Has sido vetado de esta sala.');
     }
     
-    // Validar capacidad máxima si es un nuevo jugador
-    if (!room.players.has(deviceId) && room.players.size >= room.maxPlayers) {
-      throw new Error(`La sala ya ha alcanzado el límite máximo de ${room.maxPlayers} jugadores.`);
-    }
-    
-    // Reconexión si el deviceId ya existe
+    // Si el jugador ya está en la sala (reconexión/recarga), no aplicamos límite estricto de IP ni de sala máxima
     if (room.players.has(deviceId)) {
       const existing = room.players.get(deviceId)!;
       existing.socketId = socketId;
@@ -231,10 +233,39 @@ export class GameService {
       return room;
     }
 
+    // Validar límite máximo de la sala
+    if (room.players.size >= room.maxPlayers) {
+      throw new Error(`La sala está llena (Máximo alcanzado). Por favor, intenta en otra sala o espera a que haya un espacio libre.`);
+    }
+
+    // Validar límite de IP (Anti-Spam / Anti-Incógnito)
+    if (clientIp) {
+      const MAX_PER_IP = 3;
+      const currentIpCount = room.ipTracker.get(clientIp) || 0;
+      if (currentIpCount >= MAX_PER_IP) {
+        throw new Error(`Se ha alcanzado el límite de jugadores desde tu red (${MAX_PER_IP}).`);
+      }
+      room.ipTracker.set(clientIp, currentIpCount + 1);
+    }
+
     // El host oficial de la sala es aquel cuyo deviceId coincida con el hostId
     const isHost = room.hostId === deviceId;
 
-    room.players.set(deviceId, { socketId, deviceId, name, avatarId, isHost, connected: true, score: 0, answered: false, emotesMuted: false, powerStatus: 'AVAILABLE', activeEffects: [], questionsAnsweredSincePower: 0 });
+    room.players.set(deviceId, { 
+      socketId, 
+      deviceId, 
+      name, 
+      avatarId, 
+      isHost, 
+      connected: true, 
+      ipAddress: clientIp,
+      score: 0, 
+      answered: false, 
+      emotesMuted: false, 
+      powerStatus: 'AVAILABLE', 
+      activeEffects: [], 
+      questionsAnsweredSincePower: 0 
+    });
 
     // Cancelar el timeout de auto-destrucción SOLO si el host se une
     if (isHost) {
@@ -343,6 +374,13 @@ export class GameService {
     if (!forceLeave) {
       if (player.connected) return null;
       if (room.status === 'FINISHED' && !player.isHost) return null;
+    }
+
+    if (player.ipAddress) {
+      const currentIpCount = room.ipTracker.get(player.ipAddress) || 0;
+      if (currentIpCount > 0) {
+        room.ipTracker.set(player.ipAddress, currentIpCount - 1);
+      }
     }
 
     room.players.delete(deviceId);
@@ -466,17 +504,19 @@ export class GameService {
     const option = currentQ.options.find(o => o.id === answerId);
     
     let isCorrect = false;
-    let points = 0;
     const timeLimitMs = currentQ.timeLimit * 1000;
     const timeTakenMs = timeLimitMs - timeLeft;
     const maxPoints = currentQ.maxPoints || 1000;
 
-    if (option?.isCorrect) {
-      isCorrect = true;
-      // Puntaje basado en velocidad (maxPoints, min maxPoints/2 si acierta en el último segundo)
-      const timeFactor = timeLeft / timeLimitMs; // De 0 a 1
-      points = Math.floor((maxPoints / 2) + ((maxPoints / 2) * timeFactor));
-    }
+    isCorrect = !!option?.isCorrect;
+    
+    // Delegar el cálculo base a nuestro ScoringEngine (Arquitectura Hexagonal)
+    let points = ScoringEngine.calculateSpeedPoints(
+      isCorrect,
+      timeLimitMs,
+      timeTakenMs,
+      maxPoints
+    );
     
     let powerPoints = 0;
     
