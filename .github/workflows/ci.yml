@@ -36,15 +36,15 @@ jobs:
 
     - name: Lint
       working-directory: apps/${{ matrix.app }}
-      run: pnpm run lint --if-present
+      run: pnpm run --if-present lint -- --quiet
 
     - name: Typecheck
       working-directory: apps/${{ matrix.app }}
-      run: pnpm run typecheck --if-present
+      run: pnpm run --if-present typecheck
 
     - name: Run Tests
       working-directory: apps/${{ matrix.app }}
-      run: pnpm run test:ci --if-present
+      run: pnpm run --if-present test:ci
 
     - name: Build Check
       working-directory: apps/${{ matrix.app }}
