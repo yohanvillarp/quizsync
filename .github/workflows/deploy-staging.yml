@@ -19,25 +19,24 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     
-    - name: Setup Node & pnpm
+    - name: Setup Node
       uses: actions/setup-node@v4
       with:
         node-version: '22'
-    - uses: pnpm/action-setup@v3
-      with:
-        version: 9
         
-    - name: Install & Build API Core
+    - name: Install & Build API Core (NPM para Azure)
       working-directory: ./apps/api-core
       run: |
-        pnpm install
-        pnpm run build
+        npm install
+        npx prisma generate
+        npm run build
         
-    - name: Install & Build Game Engine
+    - name: Install & Build Game Engine (NPM para Azure)
       working-directory: ./apps/game-engine
       run: |
-        pnpm install
-        pnpm run build
+        npm install
+        npm run build
+        npm prune --production
 
     - name: Azure Login (OIDC)
       uses: azure/login@v1
@@ -47,16 +46,16 @@ jobs:
         subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
     - name: Deploy API Core
-      run: |
-        cd apps/api-core
-        zip -rq api-core.zip .
-        az webapp deployment source config-zip --src api-core.zip --name quizsync-api-core --resource-group rg-quizsync-prod
+      uses: azure/webapps-deploy@v3
+      with:
+        app-name: 'quizsync-api-core'
+        package: ./apps/api-core
 
     - name: Deploy Game Engine
-      run: |
-        cd apps/game-engine
-        zip -rq game-engine.zip .
-        az webapp deployment source config-zip --src game-engine.zip --name quizsync-game-engine --resource-group rg-quizsync-prod
+      uses: azure/webapps-deploy@v3
+      with:
+        app-name: 'quizsync-game-engine'
+        package: ./apps/game-engine
 
     - name: Esperar reinicio de servidores
       run: sleep 15
