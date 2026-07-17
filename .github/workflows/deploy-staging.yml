@@ -49,13 +49,13 @@ jobs:
     - name: Deploy API Core
       run: |
         cd apps/api-core
-        zip -r api-core.zip .
+        zip -rq api-core.zip .
         az webapp deployment source config-zip --src api-core.zip --name quizsync-api-core --resource-group rg-quizsync-prod
 
     - name: Deploy Game Engine
       run: |
         cd apps/game-engine
-        zip -r game-engine.zip .
+        zip -rq game-engine.zip .
         az webapp deployment source config-zip --src game-engine.zip --name quizsync-game-engine --resource-group rg-quizsync-prod
 
     - name: Esperar reinicio de servidores
