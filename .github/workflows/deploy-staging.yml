@@ -46,29 +46,17 @@ jobs:
         tenant-id: ${{ secrets.AZURE_TENANT_ID }}
         subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-    - name: Stop API Core (Evitar 409 Conflict)
-      run: az webapp stop --name quizsync-api-core --resource-group rg-quizsync-prod
-
     - name: Deploy API Core
-      uses: azure/webapps-deploy@v3
-      with:
-        app-name: 'quizsync-api-core' 
-        package: './apps/api-core'
-
-    - name: Start API Core
-      run: az webapp start --name quizsync-api-core --resource-group rg-quizsync-prod
-
-    - name: Stop Game Engine (Evitar 409 Conflict)
-      run: az webapp stop --name quizsync-game-engine --resource-group rg-quizsync-prod
+      run: |
+        cd apps/api-core
+        zip -r api-core.zip .
+        az webapp deployment source config-zip --src api-core.zip --name quizsync-api-core --resource-group rg-quizsync-prod
 
     - name: Deploy Game Engine
-      uses: azure/webapps-deploy@v3
-      with:
-        app-name: 'quizsync-game-engine'
-        package: './apps/game-engine'
-
-    - name: Start Game Engine
-      run: az webapp start --name quizsync-game-engine --resource-group rg-quizsync-prod
+      run: |
+        cd apps/game-engine
+        zip -r game-engine.zip .
+        az webapp deployment source config-zip --src game-engine.zip --name quizsync-game-engine --resource-group rg-quizsync-prod
 
     - name: Esperar reinicio de servidores
       run: sleep 15
