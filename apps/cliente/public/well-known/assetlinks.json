@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "tech.nikelyh.quizpit",
+      "sha256_cert_fingerprints": [
+        "8D:E2:B0:E1:48:ED:0C:94:72:91:23:21:D8:94:C3:BB:08:50:BE:CA:BD:A4:2C:7D:BF:76:D3:A5:BC:36:A1:2B"
+      ]
+    }
+  }
+]
