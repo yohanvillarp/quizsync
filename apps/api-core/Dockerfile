@@ -10,9 +10,6 @@ RUN pnpm install --no-frozen-lockfile
 
 COPY . .
 
-# Generar cliente de Prisma
-RUN pnpm dlx prisma generate
-
 RUN pnpm build
 
 EXPOSE 3000
