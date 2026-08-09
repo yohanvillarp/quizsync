@@ -24,5 +24,5 @@ jobs:
 
       - name: Build and Push Docker image
         run: |
-          docker build -t quizsync.azurecr.io/game-engine:${{ github.sha }} -t quizsync.azurecr.io/game-engine:latest -f apps/game-engine/Dockerfile .
+          docker build -t quizsync.azurecr.io/game-engine:${{ github.sha }} -t quizsync.azurecr.io/game-engine:latest apps/game-engine
           docker push quizsync.azurecr.io/game-engine --all-tags
