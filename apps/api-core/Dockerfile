@@ -5,6 +5,7 @@ WORKDIR /usr/src/app
 RUN npm install -g pnpm @nestjs/cli
 
 COPY package.json pnpm-lock.yaml ./
+COPY prisma ./prisma
 RUN pnpm install --no-frozen-lockfile
 
 COPY . .
