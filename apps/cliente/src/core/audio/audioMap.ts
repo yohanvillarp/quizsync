@@ -1,6 +1,6 @@
 // Mapa de URLs apuntando a Azure Blob Storage (o CDN)
 // Obtenemos la URL base desde el archivo .env de Vite
-export const AZURE_BLOB_BASE_URL = import.meta.env.VITE_AZURE_BLOB_URL || 'https://quizsyncprodstorage.blob.core.windows.net/assets';
+export const AZURE_BLOB_BASE_URL = import.meta.env.VITE_AZURE_BLOB_URL;
 
 export const COMMON_SOUNDS = {
   // Sprite de audios comunes para reducir peticiones HTTP (Acierto, error, click, etc.)
