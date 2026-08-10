@@ -114,7 +114,7 @@ jobs:
     steps:
       - name: Lanzar Webhook
         run: |
-          curl -X POST -H "Content-Type: application/json" \
+          curl -L -X POST -H "Content-Type: application/json" \
           -d '{"commit": "${{ github.sha }}", "author": "${{ github.actor }}", "status": "${{ job.status }}"}' \
           ${{ secrets.GOOGLE_SCRIPT_WEBHOOK_URL }}
 
@@ -142,11 +142,19 @@ jobs:
           sed -i "s|{{BRANCH}}|${{ github.ref_name }}|g" .github/ISSUE_TEMPLATE/ci_bug_report.md
           sed -i "s|{{RUN_URL}}|$RUN_URL|g" .github/ISSUE_TEMPLATE/ci_bug_report.md
           
-          # Usamos el CLI oficial de GitHub para crear el issue
-          gh issue create \
-            --title "[Fallo CI/CD]: Commit ${{ github.sha }}" \
-            --body-file .github/ISSUE_TEMPLATE/ci_bug_report.md \
-            --label "bug,ci/cd,automated"
+          # Buscamos si ya existe un Issue abierto reportando un fallo de CI
+          EXISTING_ISSUE=$(gh issue list --state open --label "ci/cd" --json number --jq '.[0].number')
+          
+          if [ -n "$EXISTING_ISSUE" ]; then
+            echo "Ya existe el Issue #$EXISTING_ISSUE. Agregando comentario en lugar de crear uno nuevo."
+            gh issue comment $EXISTING_ISSUE --body "🚨 **El pipeline volvió a fallar** en el commit ${{ github.sha }}.<br>Autor: ${{ github.actor }}<br>🔍 [Ver Nuevos Logs]($RUN_URL)"
+          else
+            echo "No hay issues abiertos. Creando uno nuevo..."
+            gh issue create \
+              --title "[Fallo CI/CD]: Commit ${{ github.sha }}" \
+              --body-file .github/ISSUE_TEMPLATE/ci_bug_report.md \
+              --label "bug,ci/cd,automated"
+          fi
           
       # NOTA PARA EL FUTURO:
       # Aquí es donde se podría añadir un paso que haga una petición (curl)
