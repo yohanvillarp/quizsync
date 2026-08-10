@@ -1,10 +1,10 @@
 import { Link, useLocation } from 'react-router-dom';
+import { Layers } from 'lucide-react';
 
 export function Navbar() {
   const location = useLocation();
 
   const links = [
-    { name: 'Inicio', path: '/' },
     { name: 'Reportes de QA', path: '/reports' },
     { name: 'Pruebas de Carga', path: '/stress' },
   ];
@@ -15,7 +15,10 @@ export function Navbar() {
         <div className="flex justify-between h-16">
           <div className="flex">
             <div className="flex-shrink-0 flex items-center">
-              <span className="text-xl font-bold text-azure-blue">QuizSync QA</span>
+              <Link to="/" className="flex items-center gap-2 group">
+                <Layers className="text-azure-blue group-hover:text-azure-hover transition-colors" />
+                <span className="text-xl font-bold text-azure-blue group-hover:text-azure-hover transition-colors">QuizSync QA</span>
+              </Link>
             </div>
             <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
               {links.map((link) => (
