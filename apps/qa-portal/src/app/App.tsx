@@ -2,6 +2,7 @@ import { Routes, Route } from 'react-router-dom';
 import { Navbar } from '../widgets/Navbar/ui/Navbar';
 import { HomePage } from '../pages/Home/ui/HomePage';
 import { ReportsPage } from '../pages/Reports/ui/ReportsPage';
+import { NotFoundPage } from '../pages/NotFound/ui/NotFoundPage';
 import { Activity } from 'lucide-react';
 
 export function App() {
@@ -33,6 +34,8 @@ export function App() {
               </div>
             </div>
           } />
+          {/* Ruta por defecto (404) */}
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </main>
     </div>
