@@ -1,6 +1,6 @@
 config:
-  # Entorno destino: Se inyecta por variable de entorno o por defecto usa localhost
-  target: "{{ $processEnvironment.TARGET_URL || 'http://localhost:3002' }}"
+  # Entorno destino: Se inyecta por variable de entorno o por defecto usa 127.0.0.1 (IPv4 explícito)
+  target: "{{ $processEnvironment.TARGET_URL || 'http://127.0.0.1:3002' }}"
   
   # Fases de carga para simular diferentes escenarios
   phases:
@@ -16,7 +16,8 @@ config:
       
   # Motores a utilizar: Usaremos el motor nativo socketio de Artillery v2
   engines:
-    socketio: {}
+    socketio:
+      transports: ["websocket", "polling"]
 
 scenarios:
   # Escenario de usuario: "Jugador responde preguntas"
