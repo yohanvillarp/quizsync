@@ -19,7 +19,7 @@ jobs:
       - name: Configurar Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
 
       - name: Instalar pnpm
         uses: pnpm/action-setup@v3
@@ -93,9 +93,9 @@ jobs:
 
       - name: Ejecutar Auditoría Gemcheck
         run: |
-          npx @nikelyh/gemcheck@0.4.0 scan --project ./
-          npx @nikelyh/gemcheck@0.4.0 complexity --project ./
-          npx @nikelyh/gemcheck@0.4.0 git --project ./
+          npx @nikelyh/gemcheck@0.5.0 scan --project ./
+          npx @nikelyh/gemcheck@0.5.0 complexity --project ./
+          npx @nikelyh/gemcheck@0.5.0 git --project ./
         continue-on-error: true
 
       - name: Preparar Portal de Reportes

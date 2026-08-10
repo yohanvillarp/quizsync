@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { ShieldCheck } from 'lucide-react';
+import { ShieldCheck, FolderGit2 } from 'lucide-react';
 
 export function Navbar() {
   const location = useLocation();
@@ -37,9 +37,15 @@ export function Navbar() {
             </div>
           </div>
           <div className="flex items-center gap-4">
-            <div className="w-8 h-8 border-2 border-brand-black flex items-center justify-center font-bold">
-              Q
-            </div>
+            <a 
+              href="https://gemcheck.nikelyh.tech/" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 px-4 py-2 bg-brand-white border-2 border-brand-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all"
+            >
+              <FolderGit2 className="w-5 h-5 text-brand-black" strokeWidth={2.5} />
+              <span className="font-bold text-sm tracking-widest">NIKELYH</span>
+            </a>
           </div>
         </div>
       </div>
