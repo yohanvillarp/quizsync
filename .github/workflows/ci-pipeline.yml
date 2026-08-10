@@ -13,6 +13,8 @@ jobs:
     steps:
       - name: Descargar Código
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
 
       - name: Configurar Node.js
         uses: actions/setup-node@v4
@@ -24,40 +26,29 @@ jobs:
         with:
           version: 8
 
-      # --- CONSTRUCCIÓN (BUILD) ---
-      - name: Construir API Core
-        run: |
-          cd apps/api-core
-          pnpm install --no-frozen-lockfile
-          pnpm run build
+      - name: Instalar Dependencias Globales y Turbo
+        run: pnpm install --no-frozen-lockfile
 
-      - name: Construir Game Engine
-        run: |
-          cd apps/game-engine
-          pnpm install --no-frozen-lockfile
-          pnpm run build
+      - name: Configurar Caché de Turborepo
+        uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: ${{ runner.os }}-turbo-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-
 
-      - name: Construir Cliente
-        run: |
-          cd apps/cliente
-          pnpm install --no-frozen-lockfile
-          pnpm run build
-
-      - name: Construir Studio
-        run: |
-          cd apps/studio
-          pnpm install --no-frozen-lockfile
-          pnpm run build
+      # --- CONSTRUCCIÓN (BUILD) CACHÉ POR TURBO ---
+      - name: Construir Proyecto Completo (Caché por Turbo)
+        run: pnpm run build
 
       # --- INFRAESTRUCTURA EFÍMERA ---
       - name: Levantar Bases de Datos (Docker)
         run: docker compose -f docker-compose.yml up -d postgres redis
 
-      - name: Instalar Dependencias de QA y Utilidades
+      - name: Instalar Utilidades y Playwright
         run: |
           npm install -g wait-on
           cd apps/qa
-          pnpm install --no-frozen-lockfile
           npx playwright install --with-deps
 
       - name: Levantar Servidores Locales
@@ -90,13 +81,7 @@ jobs:
           pnpm run test:load --output artillery-report.json || true
           node ../../.github/scripts/generate-stress-report.js artillery-report.json artillery-report.html
         env:
-          TARGET_URL: "http://localhost:3002"
-
-      - name: Construir Portal de QA
-        run: |
-          cd apps/qa-portal
-          pnpm install --no-frozen-lockfile
-          pnpm run build
+          TARGET_URL: "http://127.0.0.1:3002"
 
       - name: Preparar Portal de Reportes
         if: always()
