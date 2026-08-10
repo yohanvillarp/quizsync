@@ -17,7 +17,7 @@ config:
   # Motores a utilizar: Usaremos el motor nativo socketio de Artillery v2
   engines:
     socketio:
-      transports: ["websocket", "polling"]
+      transports: ["websocket"]
 
 scenarios:
   # Escenario de usuario: "Jugador responde preguntas"
