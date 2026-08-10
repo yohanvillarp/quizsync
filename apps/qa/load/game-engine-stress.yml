@@ -14,9 +14,10 @@ config:
       arrivalRate: 50
       name: Sustained load
       
-  # Motores a utilizar: Indicamos explícitamente que usemos Socket.io
+  # Motores a utilizar: Indicamos explícitamente que usemos Socket.io con WebSocket directo
   engines:
-    socketio-v3: {}
+    socketio-v3:
+      transports: ["websocket"]
 
 scenarios:
   # Escenario de usuario: "Jugador responde preguntas"
