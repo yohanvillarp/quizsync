@@ -4,108 +4,92 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QA Reports - QuizSync</title>
-    <!-- Importar fuentes: Roboto y JetBrains Mono -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-    <!-- Importar iconos (Phosphor Icons - muy profesionales) -->
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;600&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-color: #0f172a;
-            --card-bg: #1e293b;
-            --text-primary: #f8fafc;
-            --text-secondary: #94a3b8;
-            --accent: #38bdf8;
-            --border: #334155;
+            --azure-blue: #0078D4;
+            --bg-color: #f3f2f1;
+            --card-bg: #ffffff;
+            --text-primary: #323130;
+            --text-secondary: #605e5c;
+            --border: #edebe9;
         }
         body { 
-            font-family: 'Roboto', sans-serif; 
+            font-family: 'Segoe UI', system-ui, sans-serif; 
             background: var(--bg-color); 
             color: var(--text-primary); 
-            padding: 3rem 2rem; 
-            max-width: 900px; 
+            padding: 2rem; 
+            max-width: 1000px; 
             margin: 0 auto; 
         }
-        h1, h2 {
-            font-family: 'JetBrains Mono', monospace;
-            font-weight: 700;
-        }
         h1 { 
+            font-weight: 600;
             color: var(--text-primary); 
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
             margin-bottom: 2rem;
-            border-bottom: 1px solid var(--border);
             padding-bottom: 1rem;
+            border-bottom: 2px solid var(--azure-blue);
+            font-size: 1.75rem;
         }
-        h1 i { color: var(--accent); }
         
         .grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
             gap: 1.5rem;
         }
         .card { 
             background: var(--card-bg); 
-            padding: 2rem; 
-            border-radius: 12px; 
-            border: 1px solid var(--border); 
+            padding: 1.5rem; 
+            border: 1px solid var(--border);
+            /* Estilo Azure: Bordes totalmente cuadrados y sombras ligeras */
+            border-radius: 0;
+            box-shadow: 0 1.6px 3.6px 0 rgba(0,0,0,0.132), 0 0.3px 0.9px 0 rgba(0,0,0,0.108);
             display: flex;
             flex-direction: column;
-            transition: transform 0.2s, border-color 0.2s;
-        }
-        .card:hover {
-            transform: translateY(-4px);
-            border-color: var(--accent);
         }
         .card h2 {
             margin-top: 0;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
             font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--azure-blue);
         }
         .card p {
             color: var(--text-secondary);
-            line-height: 1.6;
+            line-height: 1.5;
             margin-bottom: 2rem;
             flex-grow: 1;
         }
         .btn { 
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-            background: var(--accent);
-            color: var(--bg-color); 
+            display: inline-block;
+            background: var(--azure-blue);
+            color: #ffffff; 
             text-decoration: none; 
-            font-family: 'JetBrains Mono', monospace;
-            font-weight: 700;
-            padding: 0.75rem 1.5rem;
-            border-radius: 6px;
-            transition: opacity 0.2s;
+            font-weight: 600;
+            padding: 0.5rem 1rem;
+            border-radius: 0; /* Botones cuadrados */
+            text-align: center;
+            border: 1px solid transparent;
         }
         .btn:hover { 
-            opacity: 0.9; 
+            background: #106ebe; 
         }
     </style>
 </head>
 <body>
-    <h1><i class="ph ph-chart-line-up"></i> Dashboard de Calidad (QA)</h1>
+    <h1>Dashboard de Calidad (QA)</h1>
     
     <div class="grid">
         <div class="card">
-            <h2><i class="ph ph-browser"></i> Pruebas E2E (Playwright)</h2>
+            <h2>Pruebas E2E (Playwright)</h2>
             <p>Resultados detallados de las pruebas funcionales simulando la interacción real de los usuarios en los navegadores web.</p>
-            <a href="e2e/index.html" class="btn"><i class="ph ph-arrow-right"></i> Ver Reporte</a>
+            <a href="e2e/index.html" class="btn">Abrir Reporte E2E</a>
         </div>
         
         <div class="card">
-            <h2><i class="ph ph-rocket-launch"></i> Pruebas de Carga (Artillery)</h2>
+            <h2>Pruebas de Carga (Artillery)</h2>
             <p>Métricas de rendimiento, pruebas de estrés, análisis de latencia y manejo de conexiones concurrentes del Game Engine.</p>
-            <a href="stress/index.html" class="btn"><i class="ph ph-arrow-right"></i> Ver Reporte</a>
+            <a href="stress/index.html" class="btn">Abrir Reporte de Carga</a>
         </div>
     </div>
 </body>

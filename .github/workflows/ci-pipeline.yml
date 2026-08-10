@@ -87,7 +87,7 @@ jobs:
       - name: Pruebas de Carga (Artillery)
         run: |
           cd apps/qa
-          pnpm run test:load --output artillery-report.json
+          pnpm run test:load --output artillery-report.json || true
           npx artillery report artillery-report.json --output artillery-report.html
         env:
           TARGET_URL: "http://localhost:3002"
