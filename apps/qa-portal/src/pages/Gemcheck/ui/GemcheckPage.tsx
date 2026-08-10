@@ -73,15 +73,15 @@ export function GemcheckPage() {
         </button>
       </div>
 
-      <div className="flex-1 w-full bg-brand-black p-4 border-4 border-brand-black brutalist-card">
+      <div className="flex-1 w-full bg-brand-white p-4 border-4 border-brand-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
         {activeTab === 'scan' && (
-          scanData ? <ScanDashboard data={scanData} /> : <div className="text-brand-white text-xl font-bold p-8">No se encontró el reporte general.</div>
+          scanData ? <ScanDashboard data={scanData} /> : <div className="text-brand-black text-xl font-bold p-8">No se encontró el reporte general.</div>
         )}
         {activeTab === 'complexity' && (
-          complexityData ? <ComplexityDashboard complexityData={complexityData} /> : <div className="text-brand-white text-xl font-bold p-8">No se encontró el reporte de complejidad.</div>
+          complexityData ? <ComplexityDashboard complexityData={complexityData} /> : <div className="text-brand-black text-xl font-bold p-8">No se encontró el reporte de complejidad.</div>
         )}
         {activeTab === 'git' && (
-          gitData ? <GitDashboard gitActivity={gitData} /> : <div className="text-brand-white text-xl font-bold p-8">No se encontró el reporte de Git.</div>
+          gitData ? <GitDashboard gitActivity={gitData} /> : <div className="text-brand-black text-xl font-bold p-8">No se encontró el reporte de Git.</div>
         )}
       </div>
     </div>
