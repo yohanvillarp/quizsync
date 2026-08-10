@@ -27,7 +27,7 @@ export function Navbar() {
                   to={link.path}
                   className={`px-4 py-2 text-sm font-bold uppercase tracking-wider transition-colors ${
                     location.pathname === link.path
-                      ? 'bg-brand-black text-brand-white'
+                      ? 'bg-brand-black text-white'
                       : 'bg-transparent text-brand-black border-2 border-transparent hover:border-brand-black'
                   }`}
                 >
