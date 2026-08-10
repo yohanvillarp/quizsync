@@ -117,3 +117,38 @@ jobs:
           curl -X POST -H "Content-Type: application/json" \
           -d '{"commit": "${{ github.sha }}", "author": "${{ github.actor }}", "status": "${{ job.status }}"}' \
           ${{ secrets.GOOGLE_SCRIPT_WEBHOOK_URL }}
+
+  # ---------------------------------------------------------
+  # 5. AIOps: Reporte Automático de Bugs
+  # ---------------------------------------------------------
+  Reporte_Fallo:
+    name: Auto-crear Issue de Bug
+    needs: Integracion_Continua
+    if: failure() # Solo se ejecuta si el job de pruebas falla
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write # Permiso necesario para crear issues
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Crear Issue usando GitHub CLI
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RUN_URL: "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+        run: |
+          # Reemplazamos las variables de la plantilla dinámicamente
+          sed -i "s|{{AUTHOR}}|${{ github.actor }}|g" .github/ISSUE_TEMPLATE/ci_bug_report.md
+          sed -i "s|{{COMMIT_SHA}}|${{ github.sha }}|g" .github/ISSUE_TEMPLATE/ci_bug_report.md
+          sed -i "s|{{BRANCH}}|${{ github.ref_name }}|g" .github/ISSUE_TEMPLATE/ci_bug_report.md
+          sed -i "s|{{RUN_URL}}|$RUN_URL|g" .github/ISSUE_TEMPLATE/ci_bug_report.md
+          
+          # Usamos el CLI oficial de GitHub para crear el issue
+          gh issue create \
+            --title "[Fallo CI/CD]: Commit ${{ github.sha }}" \
+            --body-file .github/ISSUE_TEMPLATE/ci_bug_report.md \
+            --label "bug,ci/cd,automated"
+          
+      # NOTA PARA EL FUTURO:
+      # Aquí es donde se podría añadir un paso que haga una petición (curl)
+      # a la API de Gemini enviando los logs del fallo para que comente 
+      # automáticamente en el Issue recién creado.
