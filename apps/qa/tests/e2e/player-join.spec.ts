@@ -29,8 +29,7 @@ test.describe('Player Join Flow', () => {
     }
     
     // 5. Verificar que aparezca un mensaje de error o toast
-    // Esto es un ejemplo, ajusta el texto del error real que muestra tu aplicación
-    const errorMessage = page.locator('text=/No se encontró la sala|error|inválido/i');
+    const errorMessage = page.locator('text=/La sala no existe o ha sido cerrada/i');
     await expect(errorMessage).toBeVisible({ timeout: 5000 });
   });
 
