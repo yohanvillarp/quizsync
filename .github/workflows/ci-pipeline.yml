@@ -27,20 +27,29 @@ jobs:
         with:
           version: 8
 
-      - name: Install Dependencies
-        run: pnpm install --no-frozen-lockfile
+      - name: Install and Build API Core
+        run: |
+          cd apps/api-core
+          pnpm install --no-frozen-lockfile
+          pnpm run build
 
-      - name: Build API Core
-        run: pnpm --filter api-core run build
+      - name: Install and Build Game Engine
+        run: |
+          cd apps/game-engine
+          pnpm install --no-frozen-lockfile
+          pnpm run build
 
-      - name: Build Game Engine
-        run: pnpm --filter game-engine run build
+      - name: Install and Build Cliente
+        run: |
+          cd apps/cliente
+          pnpm install --no-frozen-lockfile
+          pnpm run build
 
-      - name: Build Cliente
-        run: pnpm --filter cliente run build
-
-      - name: Build Studio
-        run: pnpm --filter studio run build
+      - name: Install and Build Studio
+        run: |
+          cd apps/studio
+          pnpm install --no-frozen-lockfile
+          pnpm run build
 
   # ---------------------------------------------------------
   # 2. TESTING: Ejecutar pruebas automatizadas en QA
@@ -63,24 +72,25 @@ jobs:
         with:
           version: 8
 
-      - name: Install Dependencies
-        run: pnpm install --no-frozen-lockfile
+      - name: Install QA Dependencies
+        run: |
+          cd apps/qa
+          pnpm install --no-frozen-lockfile
 
       - name: Install Playwright Browsers
-        run: pnpm --filter qa-testing exec playwright install --with-deps
-
-      # NOTA: En un entorno real completo, aquí se levantaría docker-compose
-      # y se arrancarían los backends y frontends en background antes de correr las pruebas.
-      # Por simplicidad y evitar timeouts masivos, ejecutamos el script directamente.
-      # Si el entorno de Azure tiene una URL de Staging, se configuraría aquí en env vars.
+        run: |
+          cd apps/qa
+          npx playwright install --with-deps
 
       - name: Run E2E Tests (Playwright)
-        run: pnpm --filter qa-testing run test:e2e
-        # env:
-        #   CLIENT_URL: "http://localhost:5173"
+        run: |
+          cd apps/qa
+          pnpm run test:e2e
 
       - name: Run Load Tests (Artillery)
-        run: pnpm --filter qa-testing run test:load
+        run: |
+          cd apps/qa
+          pnpm run test:load
 
   # ---------------------------------------------------------
   # 3. SONARQUBE: Análisis estático de código
