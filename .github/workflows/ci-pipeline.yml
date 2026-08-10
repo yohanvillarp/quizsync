@@ -1,0 +1,116 @@
+name: CI/CD Pipeline - QuizSync
+
+on:
+  push:
+    branches: [ "main", "develop" ]
+  pull_request:
+    branches: [ "main", "develop" ]
+
+jobs:
+  # ---------------------------------------------------------
+  # 1. BUILD: Asegurar que todo compila correctamente
+  # ---------------------------------------------------------
+  build:
+    name: Build & Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 8
+
+      - name: Install Dependencies
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Build API Core
+        run: pnpm --filter api-core run build
+
+      - name: Build Game Engine
+        run: pnpm --filter game-engine run build
+
+      - name: Build Cliente
+        run: pnpm --filter cliente run build
+
+      - name: Build Studio
+        run: pnpm --filter studio run build
+
+  # ---------------------------------------------------------
+  # 2. TESTING: Ejecutar pruebas automatizadas en QA
+  # ---------------------------------------------------------
+  test:
+    name: E2E & Load Testing
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 8
+
+      - name: Install Dependencies
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Install Playwright Browsers
+        run: pnpm --filter qa-testing exec playwright install --with-deps
+
+      # NOTA: En un entorno real completo, aquí se levantaría docker-compose
+      # y se arrancarían los backends y frontends en background antes de correr las pruebas.
+      # Por simplicidad y evitar timeouts masivos, ejecutamos el script directamente.
+      # Si el entorno de Azure tiene una URL de Staging, se configuraría aquí en env vars.
+
+      - name: Run E2E Tests (Playwright)
+        run: pnpm --filter qa-testing run test:e2e
+        # env:
+        #   CLIENT_URL: "http://localhost:5173"
+
+      - name: Run Load Tests (Artillery)
+        run: pnpm --filter qa-testing run test:load
+
+  # ---------------------------------------------------------
+  # 3. SONARQUBE: Análisis estático de código
+  # ---------------------------------------------------------
+  sonarcloud:
+    name: SonarQube Analysis
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Necesario para el análisis preciso de SonarQube
+      
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Necesario para crear comentarios en PRs
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}    # Creado en los secrets de GitHub
+
+  # ---------------------------------------------------------
+  # 4. REPORTES: Enviar resultados a Google Sheets (Webhook)
+  # ---------------------------------------------------------
+  report:
+    name: Send Report to Google Sheets
+    needs: [build, test, sonarcloud]
+    if: always() # Ejecutar siempre, incluso si las pruebas fallaron
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call Webhook
+        run: |
+          curl -X POST -H "Content-Type: application/json" \
+          -d '{"commit": "${{ github.sha }}", "author": "${{ github.actor }}", "status": "${{ job.status }}"}' \
+          ${{ secrets.GOOGLE_SCRIPT_WEBHOOK_URL }}

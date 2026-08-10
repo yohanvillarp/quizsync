@@ -1,0 +1,45 @@
+config:
+  # Entorno destino: El servidor en la nube de game-engine (Azure Container Apps)
+  target: "https://game-engine.calmriver-c52c4ba5.westus2.azurecontainerapps.io"
+  
+  # Fases de carga para simular diferentes escenarios
+  phases:
+    # Fase 1: Calentamiento (Warm up) - 10 usuarios por segundo durante 10 segundos
+    - duration: 10
+      arrivalRate: 10
+      name: Warm up
+      
+    # Fase 2: Estrés constante - 50 usuarios por segundo durante 30 segundos
+    - duration: 30
+      arrivalRate: 50
+      name: Sustained load
+      
+  # Motores a utilizar: Indicamos explícitamente que usemos Socket.io
+  engines:
+    socketio-v3: {}
+
+scenarios:
+  # Escenario de usuario: "Jugador responde preguntas"
+  - name: "Player answers questions"
+    engine: "socketio-v3"
+    flow:
+      # 1. Simular la conexión inicial
+      - emit:
+          channel: "join_room"
+          data:
+            roomId: "TEST_ROOM_123"
+            playerName: "LoadTesterUser"
+      
+      # 2. Esperar 2 segundos para asimilar la carga
+      - think: 2
+      
+      # 3. Enviar una respuesta simulada
+      - emit:
+          channel: "submit_answer"
+          data:
+            roomId: "TEST_ROOM_123"
+            questionId: "q1"
+            answerId: "a2"
+            
+      # 4. Simular que el usuario se queda esperando los resultados
+      - think: 5
