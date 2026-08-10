@@ -111,7 +111,7 @@ jobs:
           mkdir -p public-reports/gemcheck
           if [ -d "reports" ]; then
             cp reports/.-audit.json public-reports/gemcheck/gemcheck-report.json || true
-            cp reports/.-complexity.json public-reports/gemcheck/complexity-report.json || true
+            cp reports/complexity-report.json public-reports/gemcheck/complexity-report.json || true
             cp reports/git-activity.json public-reports/gemcheck/git-activity.json || true
           fi
           
