@@ -30,6 +30,7 @@ export function App() {
                 title="Artillery Stress Report"
                 className="w-full h-full border-none flex-1"
               ></iframe>
+              </div>
             </div>
           } />
         </Routes>
