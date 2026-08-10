@@ -157,7 +157,8 @@ jobs:
             gh issue create \
               --title "[Fallo CI/CD]: Commit ${{ github.sha }}" \
               --body-file .github/ISSUE_TEMPLATE/ci_bug_report.md \
-              --label "bug,ci/cd,automated"
+              --label "bug,ci/cd,automated" \
+              --assignee "${{ github.actor }}"
           fi
           
       # NOTA PARA EL FUTURO:
