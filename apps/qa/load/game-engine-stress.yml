@@ -1,6 +1,6 @@
 config:
-  # Entorno destino: El servidor en la nube de game-engine (Azure Container Apps)
-  target: "https://game-engine.calmriver-c52c4ba5.westus2.azurecontainerapps.io"
+  # Entorno destino: Se inyecta por variable de entorno o por defecto usa localhost
+  target: "{{ $processEnvironment.TARGET_URL || 'http://localhost:3002' }}"
   
   # Fases de carga para simular diferentes escenarios
   phases:

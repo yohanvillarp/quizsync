@@ -7,119 +7,112 @@ on:
     branches: [ "main", "develop" ]
 
 jobs:
-  # ---------------------------------------------------------
-  # 1. BUILD: Asegurar que todo compila correctamente
-  # ---------------------------------------------------------
-  build:
-    name: Build & Lint
+  Integracion_Continua:
+    name: Build & E2E Testing
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code
+      - name: Descargar Código
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Configurar Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
-      - name: Install pnpm
+      - name: Instalar pnpm
         uses: pnpm/action-setup@v3
         with:
           version: 8
 
-      - name: Install and Build API Core
+      # --- CONSTRUCCIÓN (BUILD) ---
+      - name: Construir API Core
         run: |
           cd apps/api-core
           pnpm install --no-frozen-lockfile
           pnpm run build
 
-      - name: Install and Build Game Engine
+      - name: Construir Game Engine
         run: |
           cd apps/game-engine
           pnpm install --no-frozen-lockfile
           pnpm run build
 
-      - name: Install and Build Cliente
+      - name: Construir Cliente
         run: |
           cd apps/cliente
           pnpm install --no-frozen-lockfile
           pnpm run build
 
-      - name: Install and Build Studio
+      - name: Construir Studio
         run: |
           cd apps/studio
           pnpm install --no-frozen-lockfile
           pnpm run build
 
-  # ---------------------------------------------------------
-  # 2. TESTING: Ejecutar pruebas automatizadas en QA
-  # ---------------------------------------------------------
-  test:
-    name: E2E & Load Testing
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+      # --- INFRAESTRUCTURA EFÍMERA ---
+      - name: Levantar Bases de Datos (Docker)
+        run: docker-compose -f docker-compose.yml up -d
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v3
-        with:
-          version: 8
-
-      - name: Install QA Dependencies
+      - name: Instalar Dependencias de QA y Utilidades
         run: |
+          npm install -g wait-on
           cd apps/qa
           pnpm install --no-frozen-lockfile
-
-      - name: Install Playwright Browsers
-        run: |
-          cd apps/qa
           npx playwright install --with-deps
 
-      - name: Run E2E Tests (Playwright)
+      - name: Levantar Servidores Locales
+        # Ejecutamos en segundo plano y usamos nohup para asegurar que sigan corriendo
+        run: |
+          cd apps/api-core && pnpm run start:prod &
+          cd apps/game-engine && pnpm run start:prod &
+          cd apps/cliente && pnpm run preview --port 4173 &
+        env:
+          DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/quizsync?schema=public"
+          REDIS_URL: "redis://localhost:6379"
+          VITE_API_URL: "http://localhost:3000"
+          VITE_ENGINE_URL: "http://localhost:3002"
+
+      - name: Esperar a que los puertos respondan
+        run: |
+          wait-on tcp:3000 tcp:3002 tcp:4173 -t 60000
+
+      # --- EJECUCIÓN DE PRUEBAS ---
+      - name: Pruebas Funcionales E2E (Playwright)
         run: |
           cd apps/qa
           pnpm run test:e2e
+        env:
+          CLIENT_URL: "http://localhost:4173"
 
-      - name: Run Load Tests (Artillery)
+      - name: Pruebas de Carga (Artillery)
         run: |
           cd apps/qa
           pnpm run test:load
+        env:
+          TARGET_URL: "http://localhost:3002"
 
-  # ---------------------------------------------------------
-  # 3. SONARQUBE: Análisis estático de código
-  # ---------------------------------------------------------
-  sonarcloud:
-    name: SonarQube Analysis
-    needs: test
+  SonarQube:
+    name: Análisis de Calidad
+    needs: Integracion_Continua
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Necesario para el análisis preciso de SonarQube
+          fetch-depth: 0
       
-      - name: SonarCloud Scan
+      - name: Escanear con SonarCloud
         uses: SonarSource/sonarcloud-github-action@master
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Necesario para crear comentarios en PRs
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}    # Creado en los secrets de GitHub
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
-  # ---------------------------------------------------------
-  # 4. REPORTES: Enviar resultados a Google Sheets (Webhook)
-  # ---------------------------------------------------------
-  report:
-    name: Send Report to Google Sheets
-    needs: [build, test, sonarcloud]
-    if: always() # Ejecutar siempre, incluso si las pruebas fallaron
+  Reportes:
+    name: Enviar a Google Sheets
+    needs: [Integracion_Continua, SonarQube]
+    if: always()
     runs-on: ubuntu-latest
     steps:
-      - name: Call Webhook
+      - name: Lanzar Webhook
         run: |
           curl -X POST -H "Content-Type: application/json" \
           -d '{"commit": "${{ github.sha }}", "author": "${{ github.actor }}", "status": "${{ job.status }}"}' \
