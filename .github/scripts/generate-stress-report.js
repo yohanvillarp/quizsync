@@ -12,7 +12,6 @@ if (!inputFile || !outputFile) {
 try {
     const data = JSON.parse(fs.readFileSync(path.resolve(inputFile), 'utf8'));
     
-    // Extraer métricas (evitando errores si alguna métrica no existe)
     const counters = data.aggregate?.counters || {};
     const rates = data.aggregate?.rates || {};
     const summaries = data.aggregate?.summaries || {};
@@ -21,100 +20,184 @@ try {
     const vusersFailed = counters['vusers.failed'] || 0;
     const vusersCompleted = counters['vusers.completed'] || 0;
     
-    // Contar errores totales de websocket u otros
     const errors = Object.keys(counters)
         .filter(k => k.startsWith('errors.'))
         .map(k => ({ type: k.replace('errors.', ''), count: counters[k] }));
         
     const totalErrors = errors.reduce((acc, curr) => acc + curr.count, 0);
 
-    const httpRate = rates['http.request_rate'] ? rates['http.request_rate'].toFixed(2) : '0';
     const vusersSessionLength = summaries['vusers.session_length'] || { min: 0, max: 0, median: 0, p95: 0 };
+    
+    const isSuccess = vusersFailed === 0 && totalErrors === 0 && vusersCompleted > 0;
+    const scoreColor = isSuccess ? '#4ade80' : '#f87171'; // Green or Red
+    const scoreText = isSuccess ? 'A' : 'F';
 
     const html = `<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reporte de Carga - Artillery</title>
+    <title>Reporte de Carga - Socket.IO</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --azure-blue: #0078D4;
-            --bg-color: #f3f2f1;
-            --card-bg: #ffffff;
-            --text-primary: #323130;
-            --text-secondary: #605e5c;
-            --border: #edebe9;
-            --danger: #d13438;
-            --success: #107c10;
+            --brand-black: #000000;
+            --brand-white: #ffffff;
+            --brand-green: #4ade80;
+            --brand-red: #f87171;
+            --brand-gray: #f8f9fa;
         }
         body { 
-            font-family: 'Segoe UI', system-ui, sans-serif; 
-            background: var(--bg-color); 
-            color: var(--text-primary); 
+            font-family: 'JetBrains Mono', monospace; 
+            background: var(--brand-white); 
+            color: var(--brand-black); 
             padding: 2rem; 
-            max-width: 1000px; 
-            margin: 0 auto; 
+            margin: 0; 
         }
-        h1 { 
-            font-weight: 600;
-            color: var(--text-primary); 
+        
+        .header-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
             margin-bottom: 2rem;
-            padding-bottom: 1rem;
-            border-bottom: 2px solid var(--azure-blue);
         }
+        
+        .score-box {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .score-label {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+        
+        .score-value {
+            font-size: 3rem;
+            font-weight: 800;
+        }
+        
+        .score-grade {
+            background: ${scoreColor};
+            color: var(--brand-black);
+            border: 4px solid var(--brand-black);
+            padding: 0.5rem 1.5rem;
+            font-size: 3rem;
+            font-weight: 800;
+            box-shadow: 4px 4px 0px 0px var(--brand-black);
+        }
+
+        .tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .tab {
+            font-family: 'Space Grotesk', sans-serif;
+            padding: 0.5rem 1.5rem;
+            border: 2px solid var(--brand-black);
+            font-weight: 700;
+            text-transform: uppercase;
+            box-shadow: 4px 4px 0px 0px var(--brand-black);
+        }
+        .tab.active {
+            background: var(--brand-black);
+            color: var(--brand-white);
+        }
+
         .grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+        
+        .card { 
+            background: var(--brand-white); 
+            padding: 1.5rem; 
+            border: 3px solid var(--brand-black);
+            box-shadow: 6px 6px 0px 0px var(--brand-black);
+        }
+        
+        .card h3 {
+            font-family: 'Space Grotesk', sans-serif;
+            margin: 0 0 1rem 0;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            border-bottom: 2px solid var(--brand-black);
+            padding-bottom: 0.5rem;
+        }
+        
+        .card .value {
+            font-size: 2.5rem;
+            font-weight: 800;
+        }
+
+        .chart-area {
+            border: 3px solid var(--brand-black);
+            padding: 2rem;
+            box-shadow: 6px 6px 0px 0px var(--brand-black);
             margin-bottom: 2rem;
         }
-        .card { 
-            background: var(--card-bg); 
-            padding: 1.5rem; 
-            border: 1px solid var(--border);
-            border-radius: 0;
-            box-shadow: 0 1.6px 3.6px 0 rgba(0,0,0,0.132), 0 0.3px 0.9px 0 rgba(0,0,0,0.108);
-            text-align: center;
+        
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
         }
-        .card h3 {
-            margin: 0 0 0.5rem 0;
-            color: var(--text-secondary);
-            font-size: 0.9rem;
+        
+        .chart-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
             text-transform: uppercase;
+            letter-spacing: 0.1em;
         }
-        .card .value {
-            font-size: 2rem;
-            font-weight: 600;
-            color: var(--azure-blue);
-        }
-        .value.error { color: var(--danger); }
-        .value.success { color: var(--success); }
         
         table {
             width: 100%;
             border-collapse: collapse;
-            background: var(--card-bg);
-            box-shadow: 0 1.6px 3.6px 0 rgba(0,0,0,0.132), 0 0.3px 0.9px 0 rgba(0,0,0,0.108);
-            margin-bottom: 2rem;
+            font-family: 'JetBrains Mono', monospace;
         }
         th, td {
             padding: 1rem;
             text-align: left;
-            border-bottom: 1px solid var(--border);
+            border-bottom: 2px solid var(--brand-black);
         }
         th {
-            background-color: #faf9f8;
-            font-weight: 600;
-            color: var(--text-secondary);
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
         }
     </style>
 </head>
 <body>
-    <h1>Reporte de Pruebas de Estrés (Artillery)</h1>
+    <div class="header-section">
+        <div>
+            <!-- left side empty for now, title is in parent iframe -->
+        </div>
+        <div class="score-box">
+            <div style="text-align: right">
+                <div class="score-label">ERROR RATE</div>
+                <div class="score-value">${vusersCreated > 0 ? ((vusersFailed / vusersCreated) * 100).toFixed(2) : 0}%</div>
+            </div>
+            <div class="score-grade">${scoreText}</div>
+        </div>
+    </div>
+
+    <div class="tabs">
+        <div class="tab active">Métricas</div>
+        <div class="tab">Tiempos</div>
+        <div class="tab">Errores</div>
+    </div>
     
     <div class="grid">
         <div class="card">
@@ -123,56 +206,64 @@ try {
         </div>
         <div class="card">
             <h3>Usuarios Completados</h3>
-            <div class="value success">${vusersCompleted}</div>
+            <div class="value">${vusersCompleted}</div>
         </div>
         <div class="card">
             <h3>Usuarios Fallidos</h3>
-            <div class="value ${vusersFailed > 0 ? 'error' : 'success'}">${vusersFailed}</div>
+            <div class="value">${vusersFailed}</div>
         </div>
         <div class="card">
             <h3>Total Errores Red</h3>
-            <div class="value ${totalErrors > 0 ? 'error' : 'success'}">${totalErrors}</div>
+            <div class="value">${totalErrors}</div>
         </div>
     </div>
 
-    <h2>Tiempos de Respuesta de Sesión (ms)</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>Mínimo</th>
-                <th>Máximo</th>
-                <th>Mediana</th>
-                <th>Percentil 95 (p95)</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>${vusersSessionLength.min || 0}</td>
-                <td>${vusersSessionLength.max || 0}</td>
-                <td>${vusersSessionLength.median || 0}</td>
-                <td>${vusersSessionLength.p95 || 0}</td>
-            </tr>
-        </tbody>
-    </table>
+    <div class="chart-area">
+        <div class="chart-header">
+            <div class="chart-title">Tiempos de Respuesta (ms)</div>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Mínimo</th>
+                    <th>Máximo</th>
+                    <th>Mediana</th>
+                    <th>Percentil 95 (p95)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>${vusersSessionLength.min || 0}</td>
+                    <td>${vusersSessionLength.max || 0}</td>
+                    <td>${vusersSessionLength.median || 0}</td>
+                    <td>${vusersSessionLength.p95 || 0}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
 
     ${errors.length > 0 ? `
-    <h2>Desglose de Errores</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>Tipo de Error</th>
-                <th>Cantidad</th>
-            </tr>
-        </thead>
-        <tbody>
-            ${errors.map(e => `
-            <tr>
-                <td style="color: var(--danger);">${e.type}</td>
-                <td>${e.count}</td>
-            </tr>
-            `).join('')}
-        </tbody>
-    </table>
+    <div class="chart-area">
+        <div class="chart-header">
+            <div class="chart-title">Desglose de Errores</div>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Tipo de Error</th>
+                    <th>Cantidad</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${errors.map(e => `
+                <tr>
+                    <td style="color: var(--brand-red); font-weight: 700;">${e.type}</td>
+                    <td>${e.count}</td>
+                </tr>
+                `).join('')}
+            </tbody>
+        </table>
+    </div>
     ` : ''}
 </body>
 </html>`;
