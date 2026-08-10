@@ -91,6 +91,13 @@ jobs:
         env:
           TARGET_URL: "http://127.0.0.1:3002"
 
+      - name: Ejecutar Auditoría Gemcheck
+        run: |
+          npx @nikelyh/gemcheck@0.4.0 scan --project ./
+          npx @nikelyh/gemcheck@0.4.0 complexity --project ./
+          npx @nikelyh/gemcheck@0.4.0 git --project ./
+        continue-on-error: true
+
       - name: Preparar Portal de Reportes
         if: always()
         run: |
@@ -98,6 +105,12 @@ jobs:
           mkdir public-reports
           if [ -d "apps/qa-portal/dist" ]; then
             cp -r apps/qa-portal/dist/* public-reports/
+          fi
+          
+          # Movemos reportes de Gemcheck
+          mkdir -p public-reports/gemcheck
+          if [ -d "reports" ]; then
+            cp reports/*.json public-reports/gemcheck/ || true
           fi
           
           # Movemos los reportes crudos a sus carpetas raw para iframes

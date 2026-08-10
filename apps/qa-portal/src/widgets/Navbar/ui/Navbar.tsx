@@ -7,6 +7,7 @@ export function Navbar() {
   const links = [
     { name: 'Reportes E2E', path: '/reports' },
     { name: 'Stress Test', path: '/stress' },
+    { name: 'Auditoría Gemcheck', path: '/audit' }
   ];
 
   return (

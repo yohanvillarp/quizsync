@@ -3,6 +3,7 @@ import { Navbar } from '../widgets/Navbar/ui/Navbar';
 import { HomePage } from '../pages/Home/ui/HomePage';
 import { ReportsPage } from '../pages/Reports/ui/ReportsPage';
 import { NotFoundPage } from '../pages/NotFound/ui/NotFoundPage';
+import { GemcheckPage } from '../pages/Gemcheck/ui/GemcheckPage';
 import { Activity } from 'lucide-react';
 
 export function App() {
@@ -12,6 +13,7 @@ export function App() {
       <main>
         <Routes>
           <Route path="/" element={<HomePage />} />
+          <Route path="/audit" element={<GemcheckPage />} />
           <Route path="/reports" element={<ReportsPage />} />
           <Route path="/stress" element={
             <div className="min-h-[calc(100vh-80px)] w-full flex flex-col p-8 max-w-7xl mx-auto">
