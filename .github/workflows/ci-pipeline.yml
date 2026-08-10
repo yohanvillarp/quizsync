@@ -142,6 +142,10 @@ jobs:
           sed -i "s|{{BRANCH}}|${{ github.ref_name }}|g" .github/ISSUE_TEMPLATE/ci_bug_report.md
           sed -i "s|{{RUN_URL}}|$RUN_URL|g" .github/ISSUE_TEMPLATE/ci_bug_report.md
           
+          # Nos aseguramos de que las etiquetas existan en el repositorio para evitar errores
+          gh label create "ci/cd" --description "Errores del pipeline" --color "B60205" --force || true
+          gh label create "automated" --description "Generado por un bot" --color "B60205" --force || true
+          
           # Buscamos si ya existe un Issue abierto reportando un fallo de CI
           EXISTING_ISSUE=$(gh issue list --state open --label "ci/cd" --json number --jq '.[0].number')
           
