@@ -51,7 +51,7 @@ jobs:
 
       # --- INFRAESTRUCTURA EFÍMERA ---
       - name: Levantar Bases de Datos (Docker)
-        run: docker compose -f docker-compose.yml up -d
+        run: docker compose -f docker-compose.yml up -d postgres redis
 
       - name: Instalar Dependencias de QA y Utilidades
         run: |
@@ -67,7 +67,7 @@ jobs:
           cd apps/game-engine && pnpm run start:prod &
           cd apps/cliente && pnpm run preview --port 4173 &
         env:
-          DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/quizsync?schema=public"
+          DATABASE_URL: "postgresql://quiz_user:quiz_password@localhost:5433/quizsync_db?schema=public"
           REDIS_URL: "redis://localhost:6379"
           VITE_API_URL: "http://localhost:3000"
           VITE_ENGINE_URL: "http://localhost:3002"
