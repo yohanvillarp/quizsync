@@ -1,0 +1,22 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Roboto:wght@300;400;500;700&display=swap');
+
+@theme {
+  --color-azure-blue: #0078D4;
+  --color-azure-hover: #106ebe;
+  --color-azure-bg: #f3f2f1;
+  --color-azure-surface: #ffffff;
+  --color-azure-text: #323130;
+  --color-azure-text-sec: #605e5c;
+  --color-azure-border: #edebe9;
+  
+  /* Fuentes solicitadas: Roboto para lectura y JetBrains Mono para código/datos */
+  --font-sans: 'Roboto', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+@layer base {
+  body {
+    @apply bg-azure-bg text-azure-text font-sans antialiased m-0 p-0 h-screen w-screen overflow-x-hidden;
+  }
+}

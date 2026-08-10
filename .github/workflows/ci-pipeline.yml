@@ -92,19 +92,29 @@ jobs:
         env:
           TARGET_URL: "http://localhost:3002"
 
+      - name: Construir Portal de QA
+        run: |
+          cd apps/qa-portal
+          pnpm install --no-frozen-lockfile
+          pnpm run build
+
       - name: Preparar Portal de Reportes
         if: always()
         run: |
+          # Copiamos la app de react a public-reports
           mkdir public-reports
+          if [ -d "apps/qa-portal/dist" ]; then
+            cp -r apps/qa-portal/dist/* public-reports/
+          fi
+          
+          # Movemos los reportes crudos a sus carpetas raw para iframes
           if [ -d "apps/qa/playwright-report" ]; then
-            mv apps/qa/playwright-report public-reports/e2e
+            mv apps/qa/playwright-report public-reports/e2e-raw
           fi
           if [ -f "apps/qa/artillery-report.html" ]; then
-            mkdir public-reports/stress
-            mv apps/qa/artillery-report.html public-reports/stress/index.html
+            mkdir public-reports/stress-raw
+            mv apps/qa/artillery-report.html public-reports/stress-raw/index.html
           fi
-          # Copiar la plantilla HTML en lugar de generarla inline
-          cp .github/TEMPLATES/qa_report_index.html public-reports/index.html
 
       - name: Subir Artifact para GitHub Pages
         uses: actions/upload-pages-artifact@v3
