@@ -14,22 +14,23 @@ config:
       arrivalRate: 50
       name: Sustained load
       
-  # Motores a utilizar: Indicamos explícitamente que usemos Socket.io con WebSocket directo
+  # Motores a utilizar: Usaremos el motor nativo socketio de Artillery v2
   engines:
-    socketio-v3:
-      transports: ["websocket"]
+    socketio: {}
 
 scenarios:
   # Escenario de usuario: "Jugador responde preguntas"
   - name: "Player answers questions"
-    engine: "socketio-v3"
+    engine: "socketio"
     flow:
       # 1. Simular la conexión inicial
       - emit:
           channel: "join_room"
           data:
-            roomId: "TEST_ROOM_123"
-            playerName: "LoadTesterUser"
+            roomId: "123456"
+            name: "LoadTesterUser"
+            avatarId: "tester-avatar"
+            deviceId: "tester-device-123"
       
       # 2. Esperar 2 segundos para asimilar la carga
       - think: 2
@@ -38,8 +39,8 @@ scenarios:
       - emit:
           channel: "submit_answer"
           data:
-            roomId: "TEST_ROOM_123"
-            questionId: "q1"
+            roomId: "123456"
+            deviceId: "tester-device-123"
             answerId: "a2"
             
       # 4. Simular que el usuario se queda esperando los resultados
