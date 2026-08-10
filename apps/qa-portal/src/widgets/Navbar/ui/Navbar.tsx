@@ -20,7 +20,7 @@ export function Navbar() {
               <span className="text-2xl font-black tracking-widest uppercase">QA_PORTAL</span>
             </Link>
             
-            <div className="hidden sm:flex gap-4">
+            <div className="flex flex-wrap gap-4">
               {links.map((link) => (
                 <Link
                   key={link.path}
