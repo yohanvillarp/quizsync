@@ -66,6 +66,7 @@ jobs:
       - name: Esperar a que los puertos respondan
         run: |
           wait-on tcp:3000 tcp:3002 tcp:4173 -t 60000
+          sleep 3
 
       # --- EJECUCIÓN DE PRUEBAS ---
       - name: Pruebas Funcionales E2E (Playwright)

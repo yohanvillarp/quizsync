@@ -16,13 +16,13 @@ config:
       
   # Motores a utilizar: Usaremos el motor nativo socketio de Artillery v2
   engines:
-    socketio:
+    socketio-v3:
       transports: ["websocket"]
 
 scenarios:
   # Escenario de usuario: "Jugador responde preguntas"
   - name: "Player answers questions"
-    engine: "socketio"
+    engine: "socketio-v3"
     flow:
       # 1. Simular la conexión inicial
       - emit:
