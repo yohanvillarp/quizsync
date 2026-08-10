@@ -76,10 +76,17 @@ jobs:
         env:
           CLIENT_URL: "http://localhost:4173"
 
-      - name: Pruebas de Carga (Artillery)
+      - name: Verificar Conectividad Socket.IO
         run: |
           cd apps/qa
-          pnpm run test:load --output artillery-report.json || true
+          node load/verify-connection.js
+        env:
+          TARGET_URL: "http://127.0.0.1:3002"
+
+      - name: Pruebas de Carga (Socket.IO)
+        run: |
+          cd apps/qa
+          node load/stress-test.js artillery-report.json || true
           node ../../.github/scripts/generate-stress-report.js artillery-report.json artillery-report.html
         env:
           TARGET_URL: "http://127.0.0.1:3002"
