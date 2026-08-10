@@ -194,77 +194,101 @@ try {
     </div>
 
     <div class="tabs">
-        <div class="tab active">Métricas</div>
-        <div class="tab">Tiempos</div>
-        <div class="tab">Errores</div>
+        <button class="tab active" onclick="showTab('metricas')">Métricas</button>
+        <button class="tab" onclick="showTab('tiempos')">Tiempos</button>
+        <button class="tab" onclick="showTab('errores')">Errores</button>
     </div>
     
-    <div class="grid">
-        <div class="card">
-            <h3>Usuarios Simulados</h3>
-            <div class="value">${vusersCreated}</div>
-        </div>
-        <div class="card">
-            <h3>Usuarios Completados</h3>
-            <div class="value">${vusersCompleted}</div>
-        </div>
-        <div class="card">
-            <h3>Usuarios Fallidos</h3>
-            <div class="value">${vusersFailed}</div>
-        </div>
-        <div class="card">
-            <h3>Total Errores Red</h3>
-            <div class="value">${totalErrors}</div>
+    <div id="metricas" class="tab-content" style="display: block;">
+        <div class="grid">
+            <div class="card">
+                <h3>Usuarios Simulados</h3>
+                <div class="value">${vusersCreated}</div>
+            </div>
+            <div class="card">
+                <h3>Usuarios Completados</h3>
+                <div class="value">${vusersCompleted}</div>
+            </div>
+            <div class="card">
+                <h3>Usuarios Fallidos</h3>
+                <div class="value">${vusersFailed}</div>
+            </div>
+            <div class="card">
+                <h3>Total Errores Red</h3>
+                <div class="value">${totalErrors}</div>
+            </div>
         </div>
     </div>
 
-    <div class="chart-area">
-        <div class="chart-header">
-            <div class="chart-title">Tiempos de Respuesta (ms)</div>
+    <div id="tiempos" class="tab-content" style="display: none;">
+        <div class="chart-area">
+            <div class="chart-header">
+                <div class="chart-title">Tiempos de Respuesta (ms)</div>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Mínimo</th>
+                        <th>Máximo</th>
+                        <th>Mediana</th>
+                        <th>Percentil 95 (p95)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>${vusersSessionLength.min || 0}</td>
+                        <td>${vusersSessionLength.max || 0}</td>
+                        <td>${vusersSessionLength.median || 0}</td>
+                        <td>${vusersSessionLength.p95 || 0}</td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
-        <table>
-            <thead>
-                <tr>
-                    <th>Mínimo</th>
-                    <th>Máximo</th>
-                    <th>Mediana</th>
-                    <th>Percentil 95 (p95)</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>${vusersSessionLength.min || 0}</td>
-                    <td>${vusersSessionLength.max || 0}</td>
-                    <td>${vusersSessionLength.median || 0}</td>
-                    <td>${vusersSessionLength.p95 || 0}</td>
-                </tr>
-            </tbody>
-        </table>
     </div>
 
-    ${errors.length > 0 ? `
-    <div class="chart-area">
-        <div class="chart-header">
-            <div class="chart-title">Desglose de Errores</div>
+    <div id="errores" class="tab-content" style="display: none;">
+        ${errors.length > 0 ? `
+        <div class="chart-area">
+            <div class="chart-header">
+                <div class="chart-title">Desglose de Errores</div>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Tipo de Error</th>
+                        <th>Cantidad</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${errors.map(e => `
+                    <tr>
+                        <td style="color: var(--brand-red); font-weight: 700;">${e.type}</td>
+                        <td>${e.count}</td>
+                    </tr>
+                    `).join('')}
+                </tbody>
+            </table>
         </div>
-        <table>
-            <thead>
-                <tr>
-                    <th>Tipo de Error</th>
-                    <th>Cantidad</th>
-                </tr>
-            </thead>
-            <tbody>
-                ${errors.map(e => `
-                <tr>
-                    <td style="color: var(--brand-red); font-weight: 700;">${e.type}</td>
-                    <td>${e.count}</td>
-                </tr>
-                `).join('')}
-            </tbody>
-        </table>
+        ` : `
+        <div class="chart-area" style="text-align: center; padding: 3rem;">
+            <div class="chart-title">No hay errores registrados 🎉</div>
+        </div>
+        `}
     </div>
-    ` : ''}
+
+    <script>
+        function showTab(tabId) {
+            // Ocultar todos los contenidos
+            document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+            // Quitar clase active de todos los tabs
+            document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+            
+            // Mostrar el contenido seleccionado
+            document.getElementById(tabId).style.display = 'block';
+            // Añadir clase active al botón clickeado
+            event.target.classList.add('active');
+        }
+    </script>
 </body>
 </html>`;
 
