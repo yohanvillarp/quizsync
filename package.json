@@ -2,6 +2,7 @@
   "name": "quizsync-monorepo",
   "version": "1.0.0",
   "private": true,
+  "packageManager": "pnpm@8.15.0",
   "scripts": {
     "build": "turbo run build",
     "test:e2e": "turbo run test:e2e",
