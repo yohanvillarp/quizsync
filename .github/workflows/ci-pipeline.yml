@@ -87,9 +87,30 @@ jobs:
       - name: Pruebas de Carga (Artillery)
         run: |
           cd apps/qa
-          pnpm run test:load
+          pnpm run test:load --output artillery-report.json
+          npx artillery report artillery-report.json --output artillery-report.html
         env:
           TARGET_URL: "http://localhost:3002"
+
+      - name: Preparar Portal de Reportes
+        if: always()
+        run: |
+          mkdir public-reports
+          if [ -d "apps/qa/playwright-report" ]; then
+            mv apps/qa/playwright-report public-reports/e2e
+          fi
+          if [ -f "apps/qa/artillery-report.html" ]; then
+            mkdir public-reports/stress
+            mv apps/qa/artillery-report.html public-reports/stress/index.html
+          fi
+          # Copiar la plantilla HTML en lugar de generarla inline
+          cp .github/TEMPLATES/qa_report_index.html public-reports/index.html
+
+      - name: Subir Artifact para GitHub Pages
+        uses: actions/upload-pages-artifact@v3
+        if: always()
+        with:
+          path: public-reports/
 
   SonarQube:
     name: Análisis de Calidad
@@ -165,3 +186,22 @@ jobs:
       # Aquí es donde se podría añadir un paso que haga una petición (curl)
       # a la API de Gemini enviando los logs del fallo para que comente 
       # automáticamente en el Issue recién creado.
+
+  # ---------------------------------------------------------
+  # 6. Despliegue de Reportes a GitHub Pages
+  # ---------------------------------------------------------
+  Deploy_Pages:
+    name: Desplegar Reportes (Pages)
+    needs: Integracion_Continua
+    if: always() # Queremos ver los reportes incluso si fallan los tests
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
