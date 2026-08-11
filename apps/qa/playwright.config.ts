@@ -8,6 +8,16 @@ export default defineConfig({
   // Carpeta donde se encuentran nuestras pruebas funcionales
   testDir: './tests/e2e',
   
+  // Ignorar el sistema operativo en el nombre de la foto (win32 vs linux)
+  snapshotPathTemplate: '{testDir}/{testFileDir}/{testFileName}-snapshots/{arg}{ext}',
+
+  expect: {
+    toHaveScreenshot: {
+      // Permitir hasta un 5% de diferencia de píxeles (por fuentes y antialiasing entre Windows y Linux)
+      maxDiffPixelRatio: 0.05,
+    },
+  },
+  
   // Ejecutar las pruebas en paralelo para mayor velocidad
   fullyParallel: true,
   
