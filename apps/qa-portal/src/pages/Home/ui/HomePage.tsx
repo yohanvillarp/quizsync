@@ -51,6 +51,19 @@ export function HomePage() {
             Auditoría QA &rarr;
           </div>
         </Link>
+        
+        <a href="/bdd-raw/index.html" className="brutalist-card p-8 flex flex-col group cursor-pointer text-brand-black no-underline">
+          <div className="flex items-center gap-4 mb-6">
+            <ShieldCheck className="w-8 h-8 text-brand-black" strokeWidth={2.5} />
+            <h2 className="text-2xl font-black uppercase tracking-tight">Pruebas BDD</h2>
+          </div>
+          <p className="font-sans font-medium mb-8 flex-1 text-brand-black">
+            Revisa los reportes de pruebas de aceptación y comportamiento (BDD) escritos en lenguaje natural (Gherkin).
+          </p>
+          <div className="font-bold uppercase tracking-wider text-sm mt-auto group-hover:underline">
+            Ver Casos de Uso &rarr;
+          </div>
+        </a>
       </div>
     </div>
   );

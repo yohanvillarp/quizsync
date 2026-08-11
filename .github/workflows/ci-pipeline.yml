@@ -10,6 +10,10 @@ jobs:
   Integracion_Continua:
     name: Build & E2E Testing
     runs-on: ubuntu-latest
+    outputs:
+      bdd_total: ${{ steps.bdd_metrics.outputs.total }}
+      bdd_passed: ${{ steps.bdd_metrics.outputs.passed }}
+      bdd_failed: ${{ steps.bdd_metrics.outputs.failed }}
     steps:
       - name: Descargar Código
         uses: actions/checkout@v4
@@ -76,6 +80,13 @@ jobs:
         env:
           CLIENT_URL: "http://localhost:4173"
 
+      - name: Pruebas de Aceptación BDD (Cucumber)
+        run: |
+          cd apps/qa
+          pnpm run test:bdd || true
+        env:
+          CLIENT_URL: "http://localhost:4173"
+
       - name: Verificar Conectividad Socket.IO
         run: |
           cd apps/qa
@@ -97,6 +108,13 @@ jobs:
           npx @nikelyh/gemcheck@0.5.0 complexity --project ./
           npx @nikelyh/gemcheck@0.5.0 git --project ./
         continue-on-error: true
+
+      - name: Extraer Métricas BDD
+        id: bdd_metrics
+        if: always()
+        run: |
+          cd apps/qa
+          node extract-metrics.js >> $GITHUB_OUTPUT
 
       - name: Preparar Portal de Reportes
         if: always()
@@ -122,6 +140,10 @@ jobs:
           if [ -f "apps/qa/artillery-report.html" ]; then
             mkdir public-reports/stress-raw
             mv apps/qa/artillery-report.html public-reports/stress-raw/index.html
+          fi
+          if [ -f "apps/qa/cucumber-report.html" ]; then
+            mkdir public-reports/bdd-raw
+            mv apps/qa/cucumber-report.html public-reports/bdd-raw/index.html
           fi
 
       - name: Subir Artifact para GitHub Pages
@@ -154,7 +176,7 @@ jobs:
       - name: Lanzar Webhook
         run: |
           curl -L -X POST -H "Content-Type: application/json" \
-          -d '{"commit": "${{ github.sha }}", "author": "${{ github.actor }}", "status": "${{ job.status }}"}' \
+          -d "{\"commit\": \"${{ github.sha }}\", \"author\": \"${{ github.actor }}\", \"status\": \"${{ job.status }}\", \"bdd_total\": \"${{ needs.Integracion_Continua.outputs.bdd_total }}\", \"bdd_passed\": \"${{ needs.Integracion_Continua.outputs.bdd_passed }}\", \"bdd_failed\": \"${{ needs.Integracion_Continua.outputs.bdd_failed }}\"}" \
           ${{ secrets.GOOGLE_SCRIPT_WEBHOOK_URL }}
 
   # ---------------------------------------------------------
