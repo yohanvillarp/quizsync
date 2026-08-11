@@ -45,6 +45,10 @@ jobs:
       - name: Construir Proyecto Completo (Caché por Turbo)
         run: pnpm run build:all
 
+      # --- PRUEBAS UNITARIAS (BACKEND) ---
+      - name: Pruebas Unitarias y Cobertura (Jest)
+        run: pnpm run test:cov:all
+
       # --- INFRAESTRUCTURA EFÍMERA ---
       - name: Levantar Bases de Datos (Docker)
         run: docker compose -f docker-compose.yml up -d postgres redis

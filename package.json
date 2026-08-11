@@ -5,6 +5,7 @@
   "packageManager": "pnpm@8.15.0",
   "scripts": {
     "build:all": "turbo run build --force",
+    "test:cov:all": "turbo run test:cov",
     "test:e2e:all": "turbo run test:e2e",
     "test:load:all": "turbo run test:load",
     "dev:all": "turbo run dev",
