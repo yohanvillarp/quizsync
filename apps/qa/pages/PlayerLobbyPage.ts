@@ -6,7 +6,7 @@ export class PlayerLobbyPage {
 
   constructor(page: Page) {
     this.page = page;
-    this.waitingMessage = page.getByText(/Esperando al anfitrión/i);
+    this.waitingMessage = page.getByText(/Esperando al Host/i);
   }
 
   async isWaitingMessageVisible(): Promise<boolean> {

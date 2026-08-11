@@ -7,7 +7,7 @@ Given('que el anfitrión ha creado una sala', async function (this: CustomWorld)
   // Hacemos una petición real al Game Engine para crear la sala
   const engineUrl = process.env.ENGINE_URL || 'http://127.0.0.1:3002';
   
-  const response = await fetch(`${engineUrl}/rooms`, {
+  const response = await fetch(`${engineUrl}/api/rooms`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -42,9 +42,10 @@ When('el jugador ingresa el PIN de la sala y su nombre {string}', async function
 // Assertions
 Then('el jugador debe ver la pantalla de {string}', async function (this: CustomWorld, message: string) {
   // Simulamos que revisa que estamos en el lobby
+  await this.page?.screenshot({ path: 'test-screenshot.png' });
   const isVisible = await this.playerLobbyPage.isWaitingMessageVisible();
   
-  // Dependiendo de si el backend está corriendo, fallará o pasará.
-  // expect(isVisible).toBeTruthy(); 
+  // Verificamos que realmente se ve el mensaje de espera, indicando que logramos entrar al lobby
+  expect(isVisible).toBeTruthy(); 
   console.log(`Verificación de visibilidad de "${message}": ${isVisible}`);
 });
