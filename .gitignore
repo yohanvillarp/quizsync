@@ -59,3 +59,6 @@ apps/studio/dist/
 
 # Diseños y assets no necesarios para el repo
 apps/cliente/src/design-drafts/
+
+# Turborepo Cache
+.turbo/
