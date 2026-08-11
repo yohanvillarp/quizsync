@@ -4,11 +4,11 @@
   "private": true,
   "packageManager": "pnpm@8.15.0",
   "scripts": {
-    "build": "turbo run build --filter=\"!quizsync-monorepo\"",
-    "test:e2e": "turbo run test:e2e --filter=\"!quizsync-monorepo\"",
-    "test:load": "turbo run test:load --filter=\"!quizsync-monorepo\"",
-    "dev": "turbo run dev --filter=\"!quizsync-monorepo\"",
-    "start": "turbo run start:prod --filter=\"!quizsync-monorepo\""
+    "build:all": "turbo run build",
+    "test:e2e:all": "turbo run test:e2e",
+    "test:load:all": "turbo run test:load",
+    "dev:all": "turbo run dev",
+    "start:all": "turbo run start:prod"
   },
   "devDependencies": {
     "turbo": "^2.10.9"

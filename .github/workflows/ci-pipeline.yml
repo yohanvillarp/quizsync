@@ -43,7 +43,7 @@ jobs:
 
       # --- CONSTRUCCIÓN (BUILD) CACHÉ POR TURBO ---
       - name: Construir Proyecto Completo (Caché por Turbo)
-        run: pnpm run build
+        run: pnpm run build:all
 
       # --- INFRAESTRUCTURA EFÍMERA ---
       - name: Levantar Bases de Datos (Docker)
