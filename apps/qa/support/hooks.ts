@@ -6,10 +6,16 @@ import { PlayerLobbyPage } from '../pages/PlayerLobbyPage';
 let browser: ChromiumBrowser;
 
 export class CustomWorld extends World {
+  browser!: ChromiumBrowser;
   context!: BrowserContext;
   page!: Page;
+  
+  // Page Objects
   playerJoinPage!: PlayerJoinPage;
   playerLobbyPage!: PlayerLobbyPage;
+
+  // Estado compartido entre steps
+  currentPin: string | null = null;
 }
 
 setWorldConstructor(CustomWorld);
