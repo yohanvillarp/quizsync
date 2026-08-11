@@ -1,2 +1,10 @@
+﻿onlyBuiltDependencies:
+  - "@clerk/shared"
+  - "@google/genai"
+  - "@prisma/client"
+  - "@prisma/engines"
+  - "prisma"
+  - "protobufjs"
+  - "unrs-resolver"
 packages:
   - 'apps/*'
