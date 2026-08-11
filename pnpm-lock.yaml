@@ -341,6 +341,9 @@ importers:
 
   apps/qa:
     devDependencies:
+      '@axe-core/playwright':
+        specifier: ^4.13.0
+        version: 4.13.0(playwright-core@1.62.1)
       '@cucumber/cucumber':
         specifier: ^10.0.0
         version: 10.9.0
@@ -592,6 +595,15 @@ packages:
       ajv: 8.20.0
       jsonpointer: 5.0.1
       leven: 3.1.0
+    dev: true
+
+  /@axe-core/playwright@4.13.0(playwright-core@1.62.1):
+    resolution: {integrity: sha512-6YLx+kxXu5GJceG4ozFg+33a2EMTdjYwWGloJ3sb9Kta5pp+ZNS53uxGVog5JetIY8s++P5UrtX+cri+u0VAVg==}
+    peerDependencies:
+      playwright-core: '>= 1.0.0'
+    dependencies:
+      axe-core: 4.13.0
+      playwright-core: 1.62.1
     dev: true
 
   /@babel/code-frame@7.29.7:
@@ -5498,6 +5510,11 @@ packages:
     engines: {node: '>= 0.4'}
     dependencies:
       possible-typed-array-names: 1.1.0
+    dev: true
+
+  /axe-core@4.13.0:
+    resolution: {integrity: sha512-UzGt8zg7Ny8djbYMhxl2zuEevVa7r2gJjYY5Lwr1xM7+XU2nd6CkIWFTVcCIbAP63vSz71NaVyyuSk9lHKcy0A==}
+    engines: {node: '>=4'}
     dev: true
 
   /axios@1.19.0:

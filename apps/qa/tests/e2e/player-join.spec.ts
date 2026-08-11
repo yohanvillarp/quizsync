@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import AxeBuilder from '@axe-core/playwright';
 
 /**
  * Suite de pruebas funcionales para la experiencia del Jugador.
@@ -14,6 +15,13 @@ test.describe('Player Join Flow', () => {
     // 2. Esperar a que el input del PIN esté visible (buscamos por el placeholder o rol)
     const pinInput = page.getByPlaceholder(/PIN/i);
     await expect(pinInput).toBeVisible();
+    
+    // Regresión Visual: Validar que la interfaz principal no haya sufrido daños
+    await expect(page).toHaveScreenshot('lobby-initial.png');
+
+    // Accesibilidad (A11y): Validar que el Lobby cumpla con WCAG
+    const accessibilityScanResults = await new AxeBuilder({ page }).analyze();
+    expect(accessibilityScanResults.violations).toEqual([]);
     
     // 3. Escribir un PIN falso
     await pinInput.fill('000000');
