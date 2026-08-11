@@ -14,7 +14,8 @@ export class PlayerJoinPage {
   }
 
   async navigate() {
-    await this.page.goto('http://localhost:5173'); // URL de apps/cliente
+    const baseUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+    await this.page.goto(baseUrl);
   }
 
   async enterPin(pin: string) {
