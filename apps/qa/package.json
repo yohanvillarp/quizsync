@@ -11,9 +11,11 @@
     "test:load:verify": "node load/verify-connection.js"
   },
   "devDependencies": {
+    "@cucumber/cucumber": "^10.0.0",
     "@playwright/test": "^1.62.1",
     "@types/node": "^20.19.43",
     "socket.io-client": "^4.8.0",
+    "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
   }
 }
