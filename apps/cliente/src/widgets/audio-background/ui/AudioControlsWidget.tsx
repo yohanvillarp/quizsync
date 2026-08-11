@@ -41,8 +41,9 @@ export function AudioControlsWidget({ volume, setVolume, start, stop, isPlaying 
   else if (volume < 0.5) Icon = Volume1;
 
   return (
-    <div
+    <aside
       ref={containerRef}
+      aria-label="Audio controls"
       className="absolute top-4 right-4 sm:top-6 sm:right-6 z-50 flex items-center gap-2 bg-white/90 backdrop-blur-md p-2 sm:p-3 rounded-full border-[3px] border-[var(--color-ink)] shadow-[4px_4px_0px_0px_var(--color-ink-offset)] sm:shadow-[6px_6px_0px_0px_var(--color-ink-offset)] transition-all cursor-pointer"
       onMouseEnter={() => setIsExpanded(true)}
       onMouseLeave={() => setIsExpanded(false)}
@@ -81,8 +82,9 @@ export function AudioControlsWidget({ volume, setVolume, start, stop, isPlaying 
           }}
           className="w-full h-4 sm:h-3 bg-[var(--color-paper-dim)] rounded-lg appearance-none cursor-pointer accent-[var(--color-ink)]"
           title="Volume"
+          aria-label="Volume"
         />
       </div>
-    </div>
+    </aside>
   );
 }
