@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConflictException } from '@nestjs/common';
-import { QuizController } from './quiz.controller';
+import { QuizController } from '@/quiz/infrastructure/adapters/in/web/quiz.controller';
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import { CreateQuizService } from '@/quiz/application/services/create-quiz.service';
 import { QUIZ_REPOSITORY } from '@/quiz/domain/ports/out/quiz.repository';
