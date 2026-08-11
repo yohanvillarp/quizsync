@@ -6,7 +6,6 @@ import { Logo } from "@/shared/ui/Logo";
 import { Backpack, Trophy } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { ActiveAvatarWidget } from "@/widgets/active-avatar/ui/ActiveAvatarWidget";
-import { AudioVisualizerWidget } from "@/widgets/audio-background/ui/AudioVisualizerWidget";
 import { useEffect, useState } from "react";
 import { engineClient } from "@/shared/api/engineClient";
 import { Play, Trash2, X, AlertCircle } from "lucide-react";
@@ -58,7 +57,6 @@ export function HomePage() {
 
   return (
     <main className="min-h-screen flex flex-col items-center justify-center relative px-4 sm:px-6 md:px-8 py-6 sm:py-8 md:py-10 pb-20 sm:pb-24 overflow-y-auto z-10 w-full">
-      <AudioVisualizerWidget />
 
       {/* Botón de Inventario (Esquina superior izquierda) */}
       <SoundButton 

@@ -60,5 +60,11 @@ apps/studio/dist/
 # Diseños y assets no necesarios para el repo
 apps/cliente/src/design-drafts/
 
+# Test Reports (QA)
+apps/qa/playwright-report/
+apps/qa/test-results/
+apps/qa/blob-report/
+
 # Turborepo Cache
-.turbo/
+.turbo/
+
