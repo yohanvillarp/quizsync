@@ -55,6 +55,14 @@ jobs:
           cd apps/qa
           npx playwright install --with-deps
 
+      - name: Migrar y Poblar Base de Datos
+        run: |
+          cd apps/api-core
+          npx prisma db push --accept-data-loss
+          npx prisma db seed
+        env:
+          DATABASE_URL: "postgresql://quiz_user:quiz_password@localhost:5433/quizsync_db?schema=public"
+
       - name: Levantar Servidores Locales
         # Ejecutamos en segundo plano y usamos nohup para asegurar que sigan corriendo
         run: |
