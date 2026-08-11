@@ -1,0 +1,247 @@
+name: CI/CD Pipeline - QuizSync
+
+on:
+  push:
+    branches: [ "main", "develop" ]
+  pull_request:
+    branches: [ "main", "develop" ]
+
+jobs:
+  Integracion_Continua:
+    name: Build & E2E Testing
+    runs-on: ubuntu-latest
+    outputs:
+      bdd_total: ${{ steps.bdd_metrics.outputs.total }}
+      bdd_passed: ${{ steps.bdd_metrics.outputs.passed }}
+      bdd_failed: ${{ steps.bdd_metrics.outputs.failed }}
+    steps:
+      - name: Descargar Código
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Instalar pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 8
+
+      - name: Instalar Dependencias Globales y Turbo
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Configurar Caché de Turborepo
+        uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: ${{ runner.os }}-turbo-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-
+
+      # --- CONSTRUCCIÓN (BUILD) CACHÉ POR TURBO ---
+      - name: Construir Proyecto Completo (Caché por Turbo)
+        run: pnpm run build
+
+      # --- INFRAESTRUCTURA EFÍMERA ---
+      - name: Levantar Bases de Datos (Docker)
+        run: docker compose -f docker-compose.yml up -d postgres redis
+
+      - name: Instalar Utilidades y Playwright
+        run: |
+          npm install -g wait-on
+          cd apps/qa
+          npx playwright install --with-deps
+
+      - name: Levantar Servidores Locales
+        # Ejecutamos en segundo plano y usamos nohup para asegurar que sigan corriendo
+        run: |
+          cd apps/api-core && pnpm run start:prod &
+          cd apps/game-engine && pnpm run start:prod &
+          cd apps/cliente && pnpm run preview --port 4173 &
+        env:
+          DATABASE_URL: "postgresql://quiz_user:quiz_password@localhost:5433/quizsync_db?schema=public"
+          REDIS_URL: "redis://localhost:6379"
+          VITE_API_URL: "http://localhost:3000"
+          VITE_ENGINE_URL: "http://localhost:3002"
+
+      - name: Esperar a que los puertos respondan
+        run: |
+          wait-on tcp:3000 tcp:3002 tcp:4173 -t 60000
+          sleep 3
+
+      # --- EJECUCIÓN DE PRUEBAS ---
+      - name: Pruebas Funcionales E2E (Playwright)
+        run: |
+          cd apps/qa
+          pnpm run test:e2e
+        env:
+          CLIENT_URL: "http://localhost:4173"
+
+      - name: Pruebas de Aceptación BDD (Cucumber)
+        run: |
+          cd apps/qa
+          pnpm run test:bdd || true
+        env:
+          CLIENT_URL: "http://localhost:4173"
+
+      - name: Verificar Conectividad Socket.IO
+        run: |
+          cd apps/qa
+          node load/verify-connection.js
+        env:
+          TARGET_URL: "http://127.0.0.1:3002"
+
+      - name: Pruebas de Carga (Socket.IO)
+        run: |
+          cd apps/qa
+          node load/stress-test.js artillery-report.json || true
+          node ../../.github/scripts/generate-stress-report.js artillery-report.json artillery-report.html
+        env:
+          TARGET_URL: "http://127.0.0.1:3002"
+
+      - name: Ejecutar Auditoría Gemcheck
+        run: |
+          npx @nikelyh/gemcheck@0.5.0 scan --project ./
+          npx @nikelyh/gemcheck@0.5.0 complexity --project ./
+          npx @nikelyh/gemcheck@0.5.0 git --project ./
+        continue-on-error: true
+
+      - name: Extraer Métricas BDD
+        id: bdd_metrics
+        if: always()
+        run: |
+          cd apps/qa
+          node extract-metrics.js >> $GITHUB_OUTPUT
+
+      - name: Preparar Portal de Reportes
+        if: always()
+        run: |
+          # Copiamos la app de react a public-reports
+          mkdir public-reports
+          if [ -d "apps/qa-portal/dist" ]; then
+            cp -r apps/qa-portal/dist/* public-reports/
+          fi
+          
+          # Movemos reportes de Gemcheck
+          mkdir -p public-reports/gemcheck
+          if [ -d "reports" ]; then
+            cp reports/.-audit.json public-reports/gemcheck/gemcheck-report.json || true
+            cp reports/complexity-report.json public-reports/gemcheck/complexity-report.json || true
+            cp reports/git-activity.json public-reports/gemcheck/git-activity.json || true
+          fi
+          
+          # Movemos los reportes crudos a sus carpetas raw para iframes
+          if [ -d "apps/qa/playwright-report" ]; then
+            mv apps/qa/playwright-report public-reports/e2e-raw
+          fi
+          if [ -f "apps/qa/artillery-report.html" ]; then
+            mkdir public-reports/stress-raw
+            mv apps/qa/artillery-report.html public-reports/stress-raw/index.html
+          fi
+          if [ -f "apps/qa/cucumber-report.html" ]; then
+            mkdir public-reports/bdd-raw
+            mv apps/qa/cucumber-report.html public-reports/bdd-raw/index.html
+          fi
+
+      - name: Subir Artifact para GitHub Pages
+        uses: actions/upload-pages-artifact@v3
+        if: always()
+        with:
+          path: public-reports/
+
+  SonarQube:
+    name: Análisis de Calidad
+    needs: Integracion_Continua
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Escanear con SonarCloud
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+  Reportes:
+    name: Enviar a Google Sheets
+    needs: [Integracion_Continua, SonarQube]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Lanzar Webhook
+        run: |
+          curl -L -X POST -H "Content-Type: application/json" \
+          -d "{\"commit\": \"${{ github.sha }}\", \"author\": \"${{ github.actor }}\", \"status\": \"${{ job.status }}\", \"bdd_total\": \"${{ needs.Integracion_Continua.outputs.bdd_total }}\", \"bdd_passed\": \"${{ needs.Integracion_Continua.outputs.bdd_passed }}\", \"bdd_failed\": \"${{ needs.Integracion_Continua.outputs.bdd_failed }}\"}" \
+          ${{ secrets.GOOGLE_SCRIPT_WEBHOOK_URL }}
+
+  # ---------------------------------------------------------
+  # 5. AIOps: Reporte Automático de Bugs
+  # ---------------------------------------------------------
+  Reporte_Fallo:
+    name: Auto-crear Issue de Bug
+    needs: Integracion_Continua
+    if: failure() # Solo se ejecuta si el job de pruebas falla
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write # Permiso necesario para crear issues
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Crear Issue usando GitHub CLI
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RUN_URL: "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+        run: |
+          # Reemplazamos las variables de la plantilla dinámicamente
+          sed -i "s|{{AUTHOR}}|${{ github.actor }}|g" .github/ISSUE_TEMPLATE/ci_bug_report.md
+          sed -i "s|{{COMMIT_SHA}}|${{ github.sha }}|g" .github/ISSUE_TEMPLATE/ci_bug_report.md
+          sed -i "s|{{BRANCH}}|${{ github.ref_name }}|g" .github/ISSUE_TEMPLATE/ci_bug_report.md
+          sed -i "s|{{RUN_URL}}|$RUN_URL|g" .github/ISSUE_TEMPLATE/ci_bug_report.md
+          
+          # Nos aseguramos de que las etiquetas existan en el repositorio para evitar errores
+          gh label create "ci/cd" --description "Errores del pipeline" --color "B60205" --force || true
+          gh label create "automated" --description "Generado por un bot" --color "B60205" --force || true
+          
+          # Buscamos si ya existe un Issue abierto reportando un fallo de CI
+          EXISTING_ISSUE=$(gh issue list --state open --label "ci/cd" --json number --jq '.[0].number')
+          
+          if [ -n "$EXISTING_ISSUE" ]; then
+            echo "Ya existe el Issue #$EXISTING_ISSUE. Agregando comentario en lugar de crear uno nuevo."
+            gh issue comment $EXISTING_ISSUE --body "🚨 **El pipeline volvió a fallar** en el commit ${{ github.sha }}.<br>Autor: ${{ github.actor }}<br>🔍 [Ver Nuevos Logs]($RUN_URL)"
+          else
+            echo "No hay issues abiertos. Creando uno nuevo..."
+            gh issue create \
+              --title "[Fallo CI/CD]: Commit ${{ github.sha }}" \
+              --body-file .github/ISSUE_TEMPLATE/ci_bug_report.md \
+              --label "bug,ci/cd,automated" \
+              --assignee "${{ github.actor }}"
+          fi
+          
+      # NOTA PARA EL FUTURO:
+      # Aquí es donde se podría añadir un paso que haga una petición (curl)
+      # a la API de Gemini enviando los logs del fallo para que comente 
+      # automáticamente en el Issue recién creado.
+
+  # ---------------------------------------------------------
+  # 6. Despliegue de Reportes a GitHub Pages
+  # ---------------------------------------------------------
+  Deploy_Pages:
+    name: Desplegar Reportes (Pages)
+    needs: Integracion_Continua
+    if: always() # Queremos ver los reportes incluso si fallan los tests
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

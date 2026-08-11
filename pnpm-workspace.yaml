@@ -6,3 +6,5 @@
   - "prisma"
   - "protobufjs"
   - "unrs-resolver"
+packages:
+  - 'apps/*'

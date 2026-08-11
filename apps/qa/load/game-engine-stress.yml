@@ -1,0 +1,48 @@
+config:
+  # Entorno destino: Se inyecta por variable de entorno o por defecto usa 127.0.0.1 (IPv4 explícito)
+  target: "{{ $processEnvironment.TARGET_URL || 'http://127.0.0.1:3002' }}"
+  
+  # Fases de carga para simular diferentes escenarios
+  phases:
+    # Fase 1: Calentamiento (Warm up) - 10 usuarios por segundo durante 10 segundos
+    - duration: 10
+      arrivalRate: 10
+      name: Warm up
+      
+    # Fase 2: Estrés constante - 50 usuarios por segundo durante 30 segundos
+    - duration: 30
+      arrivalRate: 50
+      name: Sustained load
+      
+  # Motores a utilizar: Usaremos el motor nativo socketio de Artillery v2
+  engines:
+    socketio-v3:
+      transports: ["websocket"]
+
+scenarios:
+  # Escenario de usuario: "Jugador responde preguntas"
+  - name: "Player answers questions"
+    engine: "socketio-v3"
+    flow:
+      # 1. Simular la conexión inicial
+      - emit:
+          channel: "join_room"
+          data:
+            roomId: "123456"
+            name: "LoadTesterUser"
+            avatarId: "tester-avatar"
+            deviceId: "tester-device-123"
+      
+      # 2. Esperar 2 segundos para asimilar la carga
+      - think: 2
+      
+      # 3. Enviar una respuesta simulada
+      - emit:
+          channel: "submit_answer"
+          data:
+            roomId: "123456"
+            deviceId: "tester-device-123"
+            answerId: "a2"
+            
+      # 4. Simular que el usuario se queda esperando los resultados
+      - think: 5

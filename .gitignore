@@ -56,3 +56,6 @@ apps/studio/dist/
 *.swp
 *.swo
 .opencode/
+
+# Diseños y assets no necesarios para el repo
+apps/cliente/src/design-drafts/

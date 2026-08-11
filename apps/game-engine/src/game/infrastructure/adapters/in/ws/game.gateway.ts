@@ -17,6 +17,9 @@ import type { ApiCoreQuiz } from '@/game/domain/models/api-core.dto';
   cors: {
     origin: '*',
   },
+  transports: ['websocket', 'polling'],
+  pingInterval: 25000,
+  pingTimeout: 60000,
 })
 export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
