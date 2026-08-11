@@ -8,9 +8,9 @@ export class PlayerJoinPage {
 
   constructor(page: Page) {
     this.page = page;
-    this.pinInput = page.getByPlaceholder('PIN de la sala');
-    this.nameInput = page.getByPlaceholder('Tu nombre');
-    this.joinButton = page.getByRole('button', { name: 'Unirse' });
+    this.pinInput = page.getByPlaceholder('PIN DE JUEGO');
+    this.nameInput = page.getByPlaceholder('Tu Nickname');
+    this.joinButton = page.getByRole('button', { name: 'UNIRSE' });
   }
 
   async navigate() {
@@ -32,7 +32,8 @@ export class PlayerJoinPage {
 
   async joinGame(pin: string, name: string) {
     await this.enterPin(pin);
-    await this.enterName(name);
     await this.submit();
+    await this.enterName(name);
+    await this.page.getByRole('button', { name: '¡A Jugar!' }).click();
   }
 }
