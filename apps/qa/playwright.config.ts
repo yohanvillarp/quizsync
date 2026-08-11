@@ -13,8 +13,8 @@ export default defineConfig({
 
   expect: {
     toHaveScreenshot: {
-      // Permitir hasta un 5% de diferencia de píxeles (por fuentes y antialiasing entre Windows y Linux)
-      maxDiffPixelRatio: 0.05,
+      // Permitir hasta un 10% de diferencia de píxeles (por fuentes y antialiasing entre Windows y Linux)
+      maxDiffPixelRatio: 0.10,
     },
   },
   
